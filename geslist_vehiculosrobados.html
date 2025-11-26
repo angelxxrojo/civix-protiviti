@@ -1,0 +1,532 @@
+<div class="row main-list">
+    <div class="col-md-10">
+        <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Filtros
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-10">
+                        <div class=form-group>
+                            <input id="txsearch" type="text" class="form-control rounded-input" placeholder="Buscar por Nombre, Documento, Sexo y Fecha de Nacimiento">
+                        </div>
+                    </div>
+                        
+                    <div class="col-lg-2">
+                        <div class=form-group>
+                            <button id="btn-rownew" type="button" class="btn btn-w-md btn-primary btn-rounded full-width-nowrap">
+                                <i class="fa pe-7s-plus"></i> Nuevo Registro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>    
+    <div class="col-md-2">
+        <div class="panel panel-filled  panel-c-accent">
+            <div class="panel-heading">
+                Total de Personas
+            </div>
+            <div class="panel-body text-center">
+                <h2 class="m-b-none " id="totalperson"></h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="result-list"></div>
+
+<div id="panelTemplate" class="d-none" style="display:none">
+    <div class="col-md-2" style="border-radius: 15px;">
+        <div class="panel panel-filled panel-c-accent" >
+            
+            <div class="panel-heading"   style="padding: 10px 0px 0px 15px;">
+                <div class="text-left">
+                    <span class="badge" style="font-size:95%;border-radius:5px;padding: 2px 3px;margin-bottom:0px;"><strong>{status_name}</strong></span>
+                </div>
+            </div>
+            
+            <div class="panel-body">
+                <hr style="margin: 0px 1px;">
+                
+                <div style="font-size:80%;height:100px;border-radius: 15px;">
+                    <h4 style="font-size:140%;width:100%">{name}</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 50% 50%; row-gap: 1px; column-gap: 5px; max-width: 100%;">
+                    <div>Marca:</div> <div class="c-white">{marca}</div>
+                    <div>Modelo:</div> <div class="c-white">{modelo}</div>
+                    <div>Color:</div> <div class="c-white">{color}</div>
+                    <div>Fecha Robo:</div> <div class="c-white">{fecha_robo_formateado}</div>
+                 </div>
+                
+                </div>
+            </div>
+            <div class="panel-footer text-left">
+                <button id="btn-rowupdate" class="btn btn-w-md btn-success btn-rounded"><i
+                        class="fa pe-7s-edit"></i>Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade " id="modal-rownew" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title mb-0 text-left">Registro de Vehículos Robados</h4>
+            </div>
+            <div class="modal-body" >
+                <div class="row">
+                    <div class="col-lg-12 m-0" >
+                        <div class="panel panel-filled panel-c-accent">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">INFORMACIÓN DEL VEHICULO</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-3">
+                                    <label>Placa</label>
+                                    <div class=form-group>
+                                        <input id="txtname" type="text" class="form-control"
+                                            placeholder="e.g ABC-123">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-3">
+                                    <label>Tipo de Vehiculo</label>
+                                    <div class=form-group>
+                                        <select id="txttipo_cuerpo" class="form-control">
+                                            <option value="" disabled selected>Seleccione tipo de vehiculo</option>
+                                            <option value=3>Auto</option>
+                                            <option value=4>Motocicleta</option>
+                                            <option value=6>Bus</option>
+                                            <option value=8>Camion</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label>Marca</label>
+                                    <div class=form-group>
+                                        <input id="txtmarca" type="text" class="form-control" placeholder="e.g Toyota">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label>Modelo</label>
+                                    <div class=form-group>
+                                        <input id="txtmodelo" type="text" class="form-control" placeholder="e.g Corolla">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label>Color</label>
+                                    <div class=form-group>
+                                        <input id="txtcolor" type="text" class="form-control"
+                                            placeholder="e.g Gris metálico">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label>Número de Identificación</label>
+                                    <div class=form-group>
+                                        <input id="txtnum_ident" type="text" class="form-control"
+                                            placeholder="e.g 1ZWBM7EX17KXXXXXXX">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label>Año del Carro</label>
+                                    <div class=form-group>
+                                        <input id="txtanio_carro" type="integer" class="form-control"
+                                            placeholder="e.g 2018">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>       
+                        <div class="panel panel-filled panel-c-accent">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">INFORMACIÓN DEL ROBO</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-3">
+                                    <label>Fecha de Robo</label>
+                                    <div class=form-group>
+                                        <input id="txtfecha_robo" type="date" class="form-control"
+                                            placeholder="Selecciona fecha">
+                                    </div>
+                                </div>
+                                <div class="col-lg-12">
+                                    <label>Descripción</label>
+                                    <div class=form-group>
+                                        <textarea id="txtdescripcion" class="form-control" placeholder="Ingrese información complementaria del caso" rows="4"
+                                        style="resize: none;"></textarea>
+                                    </div>
+                                
+                                </div>
+                            </div>
+                        </div>       
+                        <div class="panel panel-filled panel-c-accent">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">INFORMACIÓN DEL PROPIETARIO</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-12">
+                                    <label>Nombre Completo</label>
+                                    <div class=form-group>
+                                        <input id="txtnombrecompleto" type="text" class="form-control" placeholder="Ingreso Nombre y Apellidos">
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label>Telefono/Celular</label>
+                                    <div class=form-group>
+                                        <input id="txtcontacto" type="integer" class="form-control" placeholder="000 000 000">
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Tipo de documento</label>
+                                        <select id="txtident_tipo" class="form-control">
+                                            <option value="" disabled selected>Seleccione tipo de doc</option>
+                                            <option value="DNI" selected>DNI</option>
+                                            <option value="CE">Carnet Extranjeria</option>
+                                            <option value="PA">Pasaporte</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Número de documento</label>
+                                        <input id="txtident_nro" type="text" class="form-control" placeholder="00000000">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        
+                    </div>
+        
+                    <div class="col-lg-3">
+                        <div class="form-group" id ="switchCaseActive">
+                            <div class="form-check form-switch mb-0" >
+                                <input class="form-check-input" type="checkbox" id="toggleActive" checked>
+                                <label class="form-check-label badge" for="toggleActive" id="toggleLabel">
+                                    SEGUIMIENTO ACTIVO
+                                </label>
+                            </div>
+                        </div>       
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+                <button id="btnSendNew" type="button" class="btn btn-accent btn-rounded">Enviar</button>
+                <button id="btnSendEdit" type="button" class="btn btn-accent btn-rounded">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    const switchCaseActive = $('#switchCaseActive');
+    switchCaseActive.css("display", "none");
+
+    var videoPlayer = null;
+    const img = document.getElementById('imagen-cambiable');
+    const input = document.getElementById('input-file');
+    const id_lista = 1;
+    const btnSaveNew = $('#btnSendNew');
+
+    const btnSaveEdit = $('#btnSendEdit');
+    btnSaveEdit.css("display", "none")
+
+    var photo_new;
+
+
+    {
+
+        function imageprocess(obj, time) {
+            var btn = obj.parentElement.parentElement.parentElement.querySelector('button')
+            btn.setAttribute('disabled', 1);
+            btn.className = "btn btn-w-md btn-secondary btn-rounded"
+
+            setTimeout(
+                () => {
+                    obj.src = 'public//images/logowin.png'
+                    obj.style.filter = 'grayscale(100%)'
+                    obj.style.opacity = '0.1'
+                },
+                time
+            );
+        }
+        function getStatusColor(statusId) {
+            switch (statusId) {
+                case 0: return '#ffc107';
+                case 1: return '#28a745'; // verde
+                default: return '#dc3545'; // rojo
+
+            }
+        }
+        function formatFecha(fechaStr) {
+            const d = new Date(fechaStr);
+            
+            if (isNaN(d)) return ""; 
+
+            const pad = n => n.toString().padStart(2, '0');
+            const day = pad(d.getDate());
+            const month = pad(d.getMonth() + 1);
+            const year = d.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        }
+        
+        function showresultsearch(data) {
+
+            $("#result-list").html("")
+            $("#result-list").empty();
+
+            var paneltemplate = $("#panelTemplate").html();
+            $("#totalperson").html(data.length)
+
+            for (x of data) {
+                var panel = paneltemplate;
+                
+                
+                x.fecha_robo_formateado = x.fecha_robo && formatFecha(x.fecha_robo) || "";
+
+                x.status_name = "";
+                x.marca = x.marca || "" ;
+                x.modelo = x.modelo || "" ;
+                x.color = x.color || "" ;
+                switch (x.status) {
+                    case 0: x.status_name = 'Caso Cerrado'; break;
+                    case 1: x.status_name = 'En Seguimiento'; break;// verde
+                    case 2: x.status_name = 'Caso en Espera'; break; // rojo
+                };
+                const bgColor = getStatusColor(x.status);
+                
+                for (y in x) {
+                    panel = panel.replaceAll("{" + y + "}", x[y])
+                }
+                panel = $(panel)
+                
+                panel.find('.badge')
+                    .css({
+                        'background-color': bgColor,
+                        'color': 'white',
+                    });
+                    
+                var anchor = $(panel).find('button')
+                anchor.attr("data-record", JSON.stringify(x));
+                anchor.off("click")
+                anchor.on('click', function () {
+                    const record = JSON.parse($(this).attr("data-record"));
+                    abrirModalEdicion(record);
+                });
+                
+                if (!x.status){
+                    anchor.attr('disabled', true);
+                    anchor.attr('class', "btn btn-w-md btn-secondary btn-rounded");
+                }
+                    
+                $("#result-list").append(panel)
+            }
+        }
+
+        function abrirModalEdicion(record) {
+            btnSaveNew.css("display", "none")
+            btnSaveEdit.css("display", "")
+            switchCaseActive.css("display", "")
+
+            const $m = $("#modal-rownew");
+            const fechaRaw = record.fecha_robo;
+            const fechaFormateada = fechaRaw ? fechaRaw.split('T')[0] : "";
+            log(fechaFormateada)
+            $m.find("#txtname").val(record.name);
+            $m.find("#txtmarca").val(record.marca);
+            $m.find("#txtmodelo").val(record.modelo);
+            $m.find("#txttipo_cuerpo").val(record.tipo_cuerpo);
+            $m.find("#txtcolor").val(record.color);
+            $m.find("#txtnum_ident").val(record.numero_identificacion);
+            $m.find("#txtanio_carro").val(record.anio_carro);
+            $m.find("#txtfecha_robo").val(fechaFormateada);
+            $m.find("#txtdescripcion").val(record.descripcion);
+            
+            $m.find("#txtnombrecompleto").val(record.nombre_propietario);
+            $m.find("#txtcontacto").val(record.contacto_propietario);
+            $m.find("#txtident_tipo").val(record.tipo_documento);
+            $m.find("#txtident_nro").val(record.num_documento);
+            
+            $('#modal-rownew .modal-title').text("Ficha de " + record.name);
+
+            $m.find("#input-file").val(null);
+
+            $m.data("edit-id", record.id);
+
+            $m.find('.panel').each(function() {
+                  const $panel = $(this);
+                  const $body  = $panel.find('.panel-body');
+                  const $icon  = $panel.find('.panel-tools .panel-toggle i');
+            
+                  $body.css('display', 'none');
+                  $icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                  $panel.addClass('panel-collapse');
+                });
+            
+            $m.modal("show");
+        }
+
+        function getvalues() {
+
+            toggleActive = $('#toggleActive').prop('checked');
+            const status = toggleActive ? 1 : 0;
+
+            return {
+                id_lista:               id_lista,
+                name:                   $("#txtname").val(),
+                marca:                  $("#txtmarca").val(),
+                modelo:                 $("#txtmodelo").val(),
+                tipo_cuerpo:            $("#txttipo_cuerpo").val(),
+                color:                  $("#txtcolor").val(),
+                numero_identificacion:  $("#txtnum_ident").val(),
+                anio_carro:             $("#txtanio_carro").val() || null,
+                fecha_robo:             $("#txtfecha_robo").val() || null,
+                descripcion:            $("#txtdescripcion").val(),
+                nombre_propietario:     $("#txtnombrecompleto").val(),
+                contacto_propietario:   $("#txtcontacto").val(),
+                tipo_documento:         $("#txtident_tipo").val(),
+                num_documento:          $("#txtident_nro").val(),
+                status:                 status,
+            }
+        }
+
+        function doupdate(editId) {
+            var values = getvalues();
+            
+            values.id = editId;
+            values.edit_id = editId;
+            log(values)
+            callAPI({
+                method: "gestion/doupdaterob",
+                post: 1,
+                params: values,
+                ok: (data) => {
+                    setTimeout(
+                        () => {
+
+                            $("#modal-rownew").modal('hide');
+                            $(".modal-backdrop").remove();
+                            showresultsearch(data);
+                        },
+                        150
+                    );
+                }
+            });
+        }
+
+        function doinsert() {
+            var values = getvalues();
+            callAPI({
+                method: "gestion/donewrob",
+                post: 1,
+
+                params: values,
+                ok: (data) => {
+                    $("#modal-rownew").modal('hide');
+                    $(".modal-backdrop").remove(); // elimina backdrop
+                    showresultsearch(data);
+                }
+            });
+        }
+        
+        
+    }
+
+    /******************************************
+     * EVENTS
+         */
+    {
+
+        $('#btnSendNew').on('click', function () {
+            doinsert();
+        });
+
+        $('#btnSendEdit').on('click', function () {
+            const editId = $("#modal-rownew").data("edit-id");
+
+            doupdate(editId);
+        });
+
+
+        $("#txsearch").keyup(function (ev) {
+            var value = $("#txsearch").val().toLowerCase();
+            var list = $("#result-list")[0].childNodes
+            for (x of list) {
+                x.style.display = "";
+                var data = x.innerHTML.toLowerCase()
+                if (data.indexOf(value) == -1) {
+                    x.style.display = "none";
+                }
+            }
+        });
+
+        $('#btn-rownew').on('click', function () {
+            btnSaveNew.css("display", "")
+            btnSaveEdit.css("display", "none")
+            switchCaseActive.css("display", "none")
+
+            const $m = $('#modal-rownew');
+            $m.find('input[type="text"], input[type="date"], input[type="integer"]').val('');
+            $m.find('#input-file').val(null);
+            $m.find('select').prop('selectedIndex', 0);
+            $m.find('textarea').val('');
+            $m.find('#imagen-cambiable').attr('src', 'public/images/logowin.png');
+            $m.find("#result-images-processed").empty();
+            
+            
+            
+            $m.modal('show');
+        });
+
+        $('#toggleActive').on('change', function () {
+            const isActive = $(this).is(':checked');
+            var isChecked = $('#toggleActive').prop('checked');
+
+            $('#toggleLabel').text(isActive ? 'SEGUIMIENTO ACTIVO' : 'SIN SEGUIMIENTO');
+        });
+
+
+
+    }
+
+    /********************************************
+     * ONLOAD
+     */
+
+    {
+        $(document).ready(function () {
+
+
+            callAPI({
+                method: "gestion/get_list_robados",
+                ok: (data) => {
+                    log(data)
+                    showresultsearch(data)
+                }
+            });
+ 
+
+        });
+
+    }
+
+</script>

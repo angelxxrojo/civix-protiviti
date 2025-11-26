@@ -1,0 +1,215 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="panel panel-default panel-filled panel-c-white">
+      <div class="panel-heading">
+        <h5 class="panel-title">Herramientas del operador</h5>
+      </div>
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-sm-3">
+            <div class="form-group">
+              <label for="filterSearch">Búsqueda rápida</label>
+              <input type="text" id="filterSearch" class="form-control input-sm" placeholder="Ticket, dirección, operador">
+            </div>
+          </div>
+          <div class="col-sm-2">
+            <div class="form-group">
+              <label for="filterEstado">Estado</label>
+              <select id="filterEstado" class="form-control input-sm">
+                <option value="">Todos</option>
+                <option>Nuevo</option>
+                <option>Clasificado</option>
+                <option>Despachado</option>
+                <option>En ruta</option>
+                <option>En escena</option>
+                <option>Resuelto</option>
+                <option>Cerrado</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-sm-2">
+            <div class="form-group">
+              <label for="filterTipo">Tipo</label>
+              <select id="filterTipo" class="form-control input-sm">
+                <option value="">Todos</option>
+                <option>Seguridad ciudadana</option>
+                <option>Tránsito</option>
+                <option>Asistencia médica</option>
+                <option>Otros</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-sm-2">
+            <div class="form-group">
+              <label for="filterPrioridad">Prioridad</label>
+              <select id="filterPrioridad" class="form-control input-sm">
+                <option value="">Todas</option>
+                <option value="1">Crítica</option>
+                <option value="2">Media</option>
+                <option value="3">Baja</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-sm-3 text-right">
+            <label class="hidden-xs">&nbsp;</label>
+            <div>
+              <button class="btn btn-default btn-sm" id="btnClearFilters">Limpiar filtros</button>
+              <button class="btn btn-primary btn-sm" id="btnNuevoTicket">Nuevo ticket</button>
+              <button class="btn btn-warning btn-sm" id="btnSeedDemo">Cargar demo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs-bar clearfix">
+  <div class="tabs-scroll">
+    <ul class="nav nav-tabs nav-tabs-cad" id="ticketTabs"></ul>
+  </div>
+  <div class="tabs-actions">
+    <button class="btn btn-default btn-xs" id="btnReabrirTab">Pestañas archivadas</button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-3">
+    <div class="panel panel-filled panel-c-info">
+      <div class="panel-heading">
+        <h5 class="panel-title">Datos del ticket</h5>
+      </div>
+      <div class="panel-body" id="ticketDetails">
+        <p class="text-muted">Seleccione un ticket para ver la información.</p>
+      </div>
+    </div>
+    <div class="panel panel-filled panel-c-success">
+      <div class="panel-heading">
+        <div class="pull-right">
+          <button class="btn btn-xs btn-default" id="btnAgregarAgente">Agregar</button>
+        </div>
+        <h5 class="panel-title">Agentes asignados</h5>
+      </div>
+      <div class="panel-body" id="agentList">
+        <p class="text-muted">Sin agentes asignados.</p>
+      </div>
+      <div class="panel-footer text-right">
+        <button class="btn btn-xs btn-danger" id="btnLiberarTodos">Liberar todos</button>
+      </div>
+    </div>
+    <div class="panel panel-default panel-filled panel-c-white">
+      <div class="panel-heading">
+        <h5 class="panel-title">Acciones rápidas</h5>
+      </div>
+      <div class="panel-body" id="quickActions">
+        <div class="btn-group btn-group-justified btn-group-sm">
+          <a class="btn btn-default" data-state="Clasificado">Clasificado</a>
+          <a class="btn btn-default" data-state="Despachado">Despachado</a>
+        </div>
+        <div class="btn-group btn-group-justified btn-group-sm m-t-xs">
+          <a class="btn btn-default" data-state="En ruta">En ruta</a>
+          <a class="btn btn-default" data-state="En escena">En escena</a>
+        </div>
+        <div class="btn-group btn-group-justified btn-group-sm m-t-xs">
+          <a class="btn btn-default" data-state="Resuelto">Resuelto</a>
+          <a class="btn btn-danger" id="btnCerrarTicket">Cerrar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="panel panel-primary panel-filled panel-c-info">
+      <div class="panel-heading">
+        <h5 class="panel-title">Chat del ticket</h5>
+      </div>
+      <div class="panel-body">
+        <div id="chatBody" class="chat-body"></div>
+        <div class="chat-input">
+          <textarea id="chatInput" class="form-control" rows="2" placeholder="Escribe un mensaje..."></textarea>
+          <div class="text-right m-t-xs">
+            <button class="btn btn-default btn-xs" id="btnReenviarUltimo">Reenviar último</button>
+            <button class="btn btn-default btn-xs" id="btnSimularAgente">Simular agente</button>
+            <button class="btn btn-success btn-xs" id="btnEnviarChat">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="panel panel-default panel-filled panel-c-white">
+      <div class="panel-heading">
+        <div class="pull-right">
+          <button class="btn btn-xs btn-info" id="btnSugerirCercano">Sugerir más cercano</button>
+        </div>
+        <h5 class="panel-title">Mapa</h5>
+      </div>
+      <div class="panel-body">
+        <div id="mapCAD" class="cad-map"></div>
+      </div>
+    </div>
+    <div class="panel panel-warning panel-filled panel-c-warning">
+      <div class="panel-heading">
+        <h5 class="panel-title">Resumen rápido</h5>
+      </div>
+      <div class="panel-body" id="kpiPanel">
+        <div class="kpi-item">
+          <span class="kpi-label">Abiertos</span>
+          <span class="kpi-value" data-kpi="abiertos">0</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-label">En atención</span>
+          <span class="kpi-value" data-kpi="atencion">0</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-label">Críticos</span>
+          <span class="kpi-value" data-kpi="criticos">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.m-t-xs { margin-top: 5px; }
+.tabs-bar { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.tabs-scroll { flex: 1 1 auto; overflow-x: auto; }
+.tabs-scroll::-webkit-scrollbar { height: 6px; }
+.tabs-actions { margin-left: 10px; flex: 0 0 auto; }
+.nav-tabs-cad > li > a { padding-right: 30px; position: relative; }
+.tab-close { position: absolute; right: 8px; top: 8px; border: none; background: transparent; color: #fff; font-size: 12px; line-height: 1; cursor: pointer; }
+.tab-close:hover { color: #ff6258; }
+.chat-body { height: 460px; overflow-y: auto; background: #1f2430; padding: 10px; border-radius: 4px; }
+.chat-input { margin-top: 10px; }
+.msg { margin-bottom: 10px; padding: 8px 10px; border-radius: 4px; color: #fff; font-size: 12px; }
+.msg small { display: block; opacity: 0.75; margin-top: 4px; }
+.msg-operator { background: #1ab394; text-align: right; }
+.msg-agent { background: #f8ac59; }
+.msg-system { background: #3a3f51; font-style: italic; }
+.msg .reenviado { display: inline-block; margin-left: 6px; padding: 2px 6px; font-size: 10px; background: rgba(255,255,255,0.2); border-radius: 3px; }
+.tab-blink { animation: cadblink 1s linear infinite; }
+@keyframes cadblink { 50% { background-color: rgba(239,83,80,0.25); } }
+.cad-map { height: 320px; border-radius: 4px; }
+.kpi-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.1); }
+.kpi-item:last-child { border-bottom: none; }
+.kpi-label { font-weight: 600; }
+.kpi-value { font-size: 20px; font-weight: 700; }
+.ticket-meta { margin-bottom: 8px; }
+.ticket-meta span { display: block; }
+.label-priority-1 { background: #ed5565; }
+.label-priority-2 { background: #f8ac59; }
+.label-priority-3 { background: #23c6c8; }
+.leaflet-container { background: #1a1a1a; }
+.leaflet-control { background: rgba(31,36,48,0.9) !important; border: none !important; color: #fff; }
+.leaflet-control a { color: #fff !important; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #1f2430; color: #fff; }
+</style>
+
+
+
+{{myscripts}}

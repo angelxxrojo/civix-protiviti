@@ -1,0 +1,394 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenWebUI CAD – Chat + Quick Actions + Llamadas + Mapa</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --bg:#0f1221; --panel:#171a2e; --border:#2b2f52; --text:#e7e9ff; --muted:#9aa3c7; --accent:#6f9cff;
+    --ok:#32d583; --away:#f1c40f; --busy:#fd6f6f; --card:#1f2442;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .app{display:grid;grid-template-columns: 520px 1fr; grid-template-rows: 60px 1fr; height:100%}
+  .topbar{grid-column:1/3;display:flex;align-items:center;gap:12px;padding:10px 16px;background:#141834;border-bottom:1px solid var(--border)}
+  .topbar h1{margin:0;font-size:16px}
+  .badge{padding:4px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px;background:var(--panel)}
+
+  /* Chat + Quick actions + Llamadas */
+  .left{grid-column:1;grid-row:2;display:flex;flex-direction:column;border-right:1px solid var(--border);background:radial-gradient(900px 300px at -10% -10%, #1a1f3e 0%, transparent 60%)}
+  .chat-head{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .qa{display:flex;gap:8px;flex-wrap:wrap}
+  .qa button{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
+  .qa button:hover{border-color:var(--accent);color:var(--accent)}
+  .calls{padding:10px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .call-card{background:var(--card);border:1px solid var(--border);padding:8px 10px;border-radius:12px;display:flex;align-items:center;gap:10px}
+  .call-btn{padding:6px 10px;border:none;border-radius:8px;cursor:pointer;background:#22305d;color:#cfe0ff}
+  .call-btn.primary{background:var(--accent);color:#0b1026;font-weight:700}
+  .call-btn.danger{background:#ff7b7b;color:#120a0a;font-weight:700}
+  .call-ind{width:10px;height:10px;border-radius:50%}
+
+  .messages{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:90%;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:var(--panel)}
+  .msg.you{align-self:flex-end;background:linear-gradient(180deg,#22305d,#1b2548);border-color:#22305d}
+  .meta{font-size:11px;color:var(--muted);margin-top:6px}
+  .composer{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:var(--panel)}
+  .composer input{flex:1;background:#0e132a;border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;outline:none}
+  .composer button{background:var(--accent);color:#0b1026;border:none;padding:0 14px;border-radius:12px;font-weight:700;cursor:pointer}
+
+  /* Right side */
+  .right{grid-column:2;grid-row:2;display:grid;grid-template-rows: 55% 45%;gap:10px;padding:10px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+  .card .head{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .card .head h3{margin:0;font-size:14px}
+  .tools{display:flex;gap:8px;align-items:center}
+  .tools input,.tools select{background:#0e132a;border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:10px}
+  .tools button{background:#22305d;color:#c9d6ff;border:1px solid #2a3a77;padding:6px 10px;border-radius:10px;cursor:pointer}
+  #map{flex:1}
+  .body{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+  .inc-row,.agent{display:flex;gap:10px;align-items:center;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+  .pill{font-size:11px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .ok{background:var(--ok)} .away{background:var(--away)} .busy{background:var(--busy)}
+  .actions{margin-left:auto;display:flex;gap:6px}
+  .actions button{padding:6px 8px;border-radius:10px;border:1px solid var(--border);background:#121735;color:var(--text);cursor:pointer}
+  .actions button.primary{background:var(--accent);color:#0b1026;border:none}
+
+  @media (max-width:1200px){
+    .app{grid-template-columns: 1fr; grid-template-rows: 60px 48vh 52vh}
+    .left{grid-row:2}
+    .right{grid-row:3; grid-template-rows: 1fr 1fr}
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <h1>OpenWebUI CAD – Miraflores</h1>
+      <span class="badge">Chat + Quick Actions + Control de Llamadas</span>
+      <span class="badge">Mapa + Agentes + Bandeja</span>
+    </div>
+
+    <!-- LEFT -->
+    <section class="left">
+      <div class="chat-head">
+        <div class="qa">
+          <button onclick="qaAccidente()">Accidente</button>
+          <button onclick="qaRobo()">Robo</button>
+          <button onclick="qaAsigna()">Asignar cercanos</button>
+          <button onclick="qaCerrar()">Cerrar incidencia</button>
+          <button onclick="qaUbicar()">Centrar mapa</button>
+        </div>
+      </div>
+
+      <!-- Control de llamadas -->
+      <div class="calls">
+        <div class="call-card" id="callCard">
+          <span class="call-ind" id="callInd" style="background:#aaa"></span>
+          <span id="callInfo">Sin llamadas</span>
+          <button class="call-btn primary" onclick="simularLlamada()">Simular llamada</button>
+          <button class="call-btn" onclick="responder()" id="btnResponder" disabled>Responder</button>
+          <button class="call-btn" onclick="transferir()" id="btnTransferir" disabled>Transferir</button>
+          <button class="call-btn" onclick="grabar()" id="btnGrabar" disabled>Grabar</button>
+          <button class="call-btn danger" onclick="colgar()" id="btnColgar" disabled>Colgar</button>
+        </div>
+      </div>
+
+      <div id="messages" class="messages"></div>
+      <div class="composer">
+        <input id="input" type="text" placeholder="Escribe aquí… Ej: Registrar accidente en Av. Larco con Benavides">
+        <button onclick="send()">Enviar</button>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <section class="right">
+      <div class="card">
+        <div class="head">
+          <h3>Mapa de incidencias y agentes</h3>
+          <div class="tools">
+            <input id="searchAgent" placeholder="Buscar agente…" oninput="renderAgentsList()">
+            <select id="statusFilter" onchange="renderAgentsList()">
+              <option value="">Todos</option>
+              <option value="ok">Disponibles</option>
+              <option value="away">En ruta</option>
+              <option value="busy">Ocupados</option>
+            </select>
+            <button onclick="centerMiraflores()">Centrar</button>
+          </div>
+        </div>
+        <div id="map"></div>
+      </div>
+
+      <div class="card">
+        <div class="head">
+          <h3>Bandeja de incidencias · acciones rápidas</h3>
+          <div class="tools">
+            <select id="filterTipo" onchange="renderIncidents()">
+              <option value="">Todos</option>
+              <option>Accidente</option>
+              <option>Robo</option>
+              <option>Emergencia médica</option>
+            </select>
+            <select id="filterEstado" onchange="renderIncidents()">
+              <option value="">Estado</option>
+              <option>Abierta</option>
+              <option>En seguimiento</option>
+              <option>Cerrada</option>
+            </select>
+          </div>
+        </div>
+        <div id="bandeja" class="body"></div>
+        <div id="agentsList" class="body" style="border-top:1px solid var(--border)"></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+  // ======= Datos simulados =======
+  const MIRAFLORES = { lat:-12.1215, lng:-77.03, zoom:14 };
+  const agents = [
+    { id:1, name:'Agente Torres',  lat:-12.1229, lng:-77.0331, status:'ok' },
+    { id:2, name:'Agente Ruiz',    lat:-12.1192, lng:-77.0274, status:'busy' },
+    { id:3, name:'Agente Sánchez', lat:-12.1250, lng:-77.0248, status:'ok' },
+    { id:4, name:'Agente Huamán',  lat:-12.1160, lng:-77.0380, status:'away' },
+    { id:5, name:'Agente Rojas',   lat:-12.1278, lng:-77.0355, status:'ok' },
+  ];
+  let incidents = [
+    { id:'INC-1001', tipo:'Accidente', desc:'Accidente leve', estado:'Abierta', lat:-12.1255, lng:-77.0295, prioridad:'Alta' },
+  ];
+
+  // ======= Mapa =======
+  let map;
+//setTimeout(()=>{
+   map = L.map('map', { zoomControl:true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+  map.setView([MIRAFLORES.lat, MIRAFLORES.lng], MIRAFLORES.zoom);
+//  renderAgentsOnMap();
+ // renderIncidentsOnMap();
+//}, 300);
+  function centerMiraflores(){ map.setView([MIRAFLORES.lat, MIRAFLORES.lng], MIRAFLORES.zoom); }
+
+  const agentLayers = new Map();
+  const incidentLayers = new Map();
+  function colorByStatus(s){ return s==='ok'? '#32d583' : (s==='away'? '#f1c40f' : '#fd6f6f'); }
+
+  function renderAgentsOnMap(){
+    agents.forEach(a=>{
+      let layer = agentLayers.get(a.id);
+      if(!layer){
+        layer = L.circleMarker([a.lat, a.lng],{radius:8,weight:2,color:colorByStatus(a.status),fillColor:colorByStatus(a.status),fillOpacity:0.85})
+          .bindPopup(`<b>${a.name}</b><br>Estado: ${statusLabel(a.status)}`)
+          .addTo(map);
+        agentLayers.set(a.id, layer);
+      }else{
+        layer.setLatLng([a.lat, a.lng]);
+        layer.setStyle({ color:colorByStatus(a.status), fillColor:colorByStatus(a.status) });
+      }
+    });
+  }
+
+  function renderIncidentsOnMap(){
+    incidents.forEach(i=>{
+      let layer = incidentLayers.get(i.id);
+      if(!layer){
+        layer = L.marker([i.lat, i.lng], { draggable:true }).addTo(map).bindPopup(`<b>${i.tipo}</b><br>${i.desc} · ${i.id}`);
+        layer.on('dragend', ()=>{
+          const ll = layer.getLatLng(); i.lat = ll.lat; i.lng = ll.lng;
+          addSysMsg(`Ubicación de ${i.id} actualizada a <b>${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}</b>.`);
+        });
+        incidentLayers.set(i.id, layer);
+      }else{
+        layer.setLatLng([i.lat, i.lng]);
+      }
+    });
+  }
+
+  // Click en mapa → crear incidencia rápida
+  map.on('click', (e)=>{
+    const id = `INC-${Math.floor(1000+Math.random()*9000)}`;
+    const inc = { id, tipo:'Incidencia', desc:'Marcada en mapa', estado:'Abierta', lat:e.latlng.lat, lng:e.latlng.lng, prioridad:'Media' };
+    incidents.push(inc);
+    addSysMsg(`Incidencia <b>${id}</b> creada desde el mapa.`);
+    renderIncidentsOnMap(); renderIncidents();
+  });
+
+  function statusLabel(s){ return s==='ok'? 'Disponible' : (s==='away'? 'En ruta' : 'Ocupado'); }
+
+  // ======= Bandeja y Agentes (listas) =======
+  function renderIncidents(){
+    const wrap = document.getElementById('bandeja'); wrap.innerHTML='';
+    const t = document.getElementById('filterTipo').value;
+    const e = document.getElementById('filterEstado').value;
+    incidents.forEach(i=>{
+      if(t && i.tipo!==t) return;
+      if(e && i.estado!==e) return;
+      const row = document.createElement('div'); row.className='inc-row';
+      row.innerHTML = `
+        <span class="dot ${i.estado==='Abierta'?'away':(i.estado==='Cerrada'?'busy':'ok')}"></span>
+        <div>
+          <div><strong>${i.id}</strong> · ${i.tipo} · <span class="pill">${i.prioridad}</span></div>
+          <div class="pill">${i.estado}</div>
+        </div>
+        <div class="actions">
+          <button onclick="abrirCaso('${i.id}')">Abrir</button>
+          <button class="primary" onclick="asignarCercanos('${i.id}')">Asignar cercanos</button>
+          <button onclick="cerrarCaso('${i.id}')">Cerrar</button>
+        </div>`;
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderAgentsList(){
+    const q = document.getElementById('searchAgent').value.toLowerCase();
+    const f = document.getElementById('statusFilter').value;
+    const wrap = document.getElementById('agentsList'); wrap.innerHTML='';
+    agents.forEach(a=>{
+      if(q && !a.name.toLowerCase().includes(q)) return;
+      if(f && a.status!==f) return;
+      const div = document.createElement('div'); div.className='agent';
+      div.innerHTML = `
+        <i class="dot ${a.status==='ok'?'ok':(a.status==='away'?'away':'busy')}"></i>
+        <div><strong>${a.name}</strong><div class="pill">${statusLabel(a.status)}</div></div>
+        <div class="actions">
+          <button onclick="focusAgent(${a.id})">Ver</button>
+          <button class="primary" onclick="assignAgent(${a.id})">Asignar</button>
+        </div>`;
+      wrap.appendChild(div);
+    });
+  }
+
+  function focusAgent(id){
+    const a = agents.find(x=>x.id===id); if(!a) return;
+    map.flyTo([a.lat, a.lng], 17, { duration:0.5 });
+    const l = agentLayers.get(id); if(l) l.openPopup();
+    addSysMsg(`Enfocando ${a.name} en el mapa.`);
+  }
+
+  function assignAgent(id){
+    const a = agents.find(x=>x.id===id); if(!a) return;
+    if(a.status==='ok') a.status='away';
+    addSysMsg(`Se asignó <b>${a.name}</b> a la incidencia activa.`);
+    renderAgentsOnMap(); renderAgentsList();
+  }
+
+  function asignarCercanos(incId){
+    // tomar 2 disponibles más cercanos al centro del mapa (simple)
+    const center = map.getCenter();
+    const dist = x => Math.hypot((x.lat-center.lat),(x.lng-center.lng));
+    const picks = agents.filter(a=>a.status==='ok').sort((a,b)=>dist(a)-dist(b)).slice(0,2);
+    if(!picks.length){ addSysMsg('No hay agentes disponibles para asignar.'); return; }
+    picks.forEach(a=>{ a.status='away'; addSysMsg(`Asignado <b>${a.name}</b> a ${incId}.`); });
+    renderAgentsOnMap(); renderAgentsList();
+  }
+
+  function abrirCaso(id){
+    const inc = incidents.find(i=>i.id===id);
+    if(!inc) return;
+    map.flyTo([inc.lat, inc.lng], 16, { duration:0.4 });
+    const layer = incidentLayers.get(id); if(layer) layer.openPopup();
+    addSysMsg(`Abierto caso <b>${id}</b> · ${inc.tipo}.`);
+  }
+
+  function cerrarCaso(id){
+    const inc = incidents.find(i=>i.id===id);
+    if(!inc) return;
+    inc.estado='Cerrada';
+    addSysMsg(`Incidencia <b>${id}</b> cerrada.`);
+    renderIncidents();
+  }
+
+  // ======= Chat & Quick Actions =======
+  const messages = document.getElementById('messages');
+  function addMsg(text, who='you'){ const el=document.createElement('div'); el.className='msg '+who; el.innerHTML=text+`<div class='meta'>${new Date().toLocaleTimeString()}</div>`; messages.appendChild(el); messages.scrollTop=messages.scrollHeight; }
+  function addSysMsg(text){ addMsg(text,'sys'); }
+  function send(){
+    const v=document.getElementById('input').value.trim(); if(!v) return;
+    addMsg(v,'you'); document.getElementById('input').value=''; handleIntent(v);
+  }
+
+  function handleIntent(v){
+    const s = v.toLowerCase();
+    if(s.includes('accidente')){
+      createIncident('Accidente','Reportado por chat');
+    } else if(s.includes('robo')){
+      createIncident('Robo','Reportado por chat');
+    } else if(s.includes('cerrar')){
+      const open = incidents.findLast(i=>i.estado!=='Cerrada');
+      if(open) cerrarCaso(open.id); else addSysMsg('No hay incidencias abiertas.');
+    } else if(s.includes('asigna')){
+      const open = incidents.findLast(i=>i.estado!=='Cerrada');
+      if(open) asignarCercanos(open.id); else addSysMsg('No hay incidencias abiertas para asignar.');
+    } else {
+      addSysMsg('Comandos: "Accidente", "Robo", "Asignar cercanos", "Cerrar incidencia". También puedes hacer click en el mapa o en la bandeja.');
+    }
+  }
+
+  function createIncident(tipo, desc){
+    const id = `INC-${Math.floor(1000+Math.random()*9000)}`;
+    const target = map.getCenter();
+    const inc = { id, tipo, desc, estado:'Abierta', lat:target.lat+((Math.random()-0.5)*0.01), lng:target.lng+((Math.random()-0.5)*0.01), prioridad:'Alta' };
+    incidents.push(inc);
+    addSysMsg(`${tipo} creada: <b>${id}</b>. Marcada cerca del centro del mapa.`);
+    renderIncidentsOnMap(); renderIncidents();
+  }
+
+  // Quick Actions
+  function qaAccidente(){ handleIntent('accidente'); }
+  function qaRobo(){ handleIntent('robo'); }
+  function qaAsigna(){ handleIntent('asignar'); }
+  function qaCerrar(){ handleIntent('cerrar'); }
+  function qaUbicar(){ centerMiraflores(); addSysMsg('Mapa centrado en Miraflores.'); }
+
+  // ======= Simulación movimiento =======
+  function jitter(){
+    agents.forEach(a=>{ a.lat+=(Math.random()-0.5)*0.00035; a.lng+=(Math.random()-0.5)*0.00035; });
+    renderAgentsOnMap();
+  }
+
+  // ======= Control de llamadas (simulado) =======
+  let callTimer=null, callSeconds=0, callState='idle';
+  function setCallUI(state, info, color){
+    callState=state;
+    document.getElementById('callInfo').textContent = info;
+    document.getElementById('callInd').style.background = color;
+    const en = (ids,enabled)=>ids.forEach(id=>document.getElementById(id).disabled=!enabled);
+    if(state==='ringing'){ en(['btnResponder','btnTransferir','btnGrabar','btnColgar'], true); document.getElementById('btnResponder').classList.add('primary'); }
+    if(state==='active'){ en(['btnResponder'], false); document.getElementById('btnResponder').classList.remove('primary'); en(['btnTransferir','btnGrabar','btnColgar'], true); }
+    if(state==='idle'){ en(['btnResponder','btnTransferir','btnGrabar','btnColgar'], false); }
+  }
+  function simularLlamada(){
+    if(callState!=='idle') return;
+    setCallUI('ringing', 'Llamada entrante: +51 999 888 777', '#f1c40f');
+  }
+  function responder(){
+    if(callState!=='ringing') return;
+    callSeconds=0;
+    if(callTimer) clearInterval(callTimer);
+    callTimer=setInterval(()=>{
+      callSeconds++;
+      document.getElementById('callInfo').textContent = `En llamada (00:${String(callSeconds).padStart(2,'0')}) – +51 999 888 777`;
+    },1000);
+    setCallUI('active','En llamada (00:00) – +51 999 888 777', '#32d583');
+    addSysMsg('📞 Llamada atendida. ¿Deseas registrar incidencia a partir de esta llamada?');
+  }
+  function transferir(){
+    if(callState!=='active') return;
+    addSysMsg('🔁 Llamada transferida al Supervisor.');
+  }
+  function grabar(){
+    if(callState!=='active') return;
+    addSysMsg('⏺️ Grabación iniciada (simulada).');
+  }
+  function colgar(){
+    if(callTimer) clearInterval(callTimer);
+    setCallUI('idle','Sin llamadas','#aaa');
+    addSysMsg('☎️ Llamada finalizada. Puedes generar una incidencia con los datos recibidos.');
+  }
+
+  // ======= Init =======
+  addSysMsg('Bienvenido. Usa Quick Actions o escribe: "Accidente", "Robo", "Asignar cercanos", "Cerrar incidencia".');
+  renderAgentsOnMap(); renderIncidentsOnMap(); renderIncidents(); renderAgentsList();
+  setInterval(jitter, 3500);
+</script>
+</body>

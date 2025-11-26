@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <meta charset="utf-8" />
+  <title>Zona restringida vehiculo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+  
+  #main-chart, #main-chart2, #main-chart3, #main-chart4, #pie-chart, #line-chart, #pie-chart-zrtipo, #main-chart-zrtipo {
+      width: 100%;
+      min-height: 300px;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map, #map1, #map-zrtipo {
+      position: relative;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      min-height: 300px;
+    }
+    
+    .legend-box {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    #lineChart {
+      width: 100%;
+      min-height: 300px;
+      position: relative; /* necesario para posicionar las etiquetas absolutas */
+    }
+    .data-point-label {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<div>
+    <h2>
+        Visión General
+    </h2>
+</div>
+<div class="row h-100" style="min-height: 400px;"> <!-- altura mínima -->
+  <!-- Columna izquierda -->
+  <div class="col-md-4 d-flex flex-column">
+    <div class="panel panel-filled panel-c-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Total zonas restringidas vehiculares
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none">200</h1>
+      </div>
+    </div>
+
+    <div class="panel panel-b-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Total de vehiculos en zonas restringidas
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none">1746</h1>
+      </div>
+    </div>
+
+    <div class="panel panel-filled panel-c-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Promedio Mensual de vehiculos en zonas restringidas
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none">145</h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna derecha -->
+  <div class="col-md-8 d-flex">
+    <div class="panel flex-fill d-flex flex-column">
+      <div class="panel-heading">
+        <div class="panel-tools">
+          <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+        </div>
+        Cantidad de vehiculos en zonas restringidas por mes (últimos 12 meses)
+      </div>
+      <div class="panel-body flex-fill d-flex">
+        <div id="main-chart" style="width:100%; height:100%;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div>
+    <h2>
+        Distribución y segmentación
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Cantidad pr tipo de zona restringida
+            </div>
+            <div class="panel-body">
+                <div id="pie-chart-zrtipo" ></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Cantidad de zonas restringidas en zonas objetivo
+            </div>
+            <div class="panel-body">
+                <div id="main-chart-zrtipo"></div>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Mapa de Calor (Tipo de Zona Restringida)
+            </div>
+            <div class="panel-body">
+                <div id="map-zrtipo"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Gráfico de tipo de vehiculos
+            </div>
+            <div class="panel-body">
+                <div id="pie-chart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Cantidad de vehiculos en zonas objetivo
+            </div>
+            <div class="panel-body">
+                <div id="main-chart4"></div>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Mapa de Calor (Zonas Objetivo)
+            </div>
+            <div class="panel-body">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h2>
+        Gráfico Evolutivo
+    </h2>
+</div>
+<div class="row">
+    <!--div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Gráfico de comportamiento evolutivo
+            </div>
+            <div class="panel-body">
+                <div id="main-chart"></div>
+            </div>
+        </div>
+    </div-->
+        <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Top Cámaras con vehiculos en zonas restringidas
+            </div>
+            <div class="panel-body">
+                <div id="main-chart2"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Cantidad de vehiculos por tipo de zona restringida
+            </div>
+            <div class="panel-body">
+                <div id="main-chart3"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Comportamineto de vehiculos en zonas restringidas (ultimas dos semanas)
+            </div>
+            <div class="panel-body">
+                <div id="line-chart"></div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    
+</div>
+
+<script>
+    
+  // Inicializa el gráfico en el contenedor con el ID 'main-chart'
+    const graficobarraspormes = echarts.init(document.getElementById('main-chart'));
+
+    // Configuración y opciones del gráfico
+    const graficobarraspormescontent = {
+      // Título opcional del gráfico
+      title: {
+        text: ''
+      },
+      // Configuración de la leyenda
+      tooltip: {},
+      xAxis: {
+        type: 'category',
+        data: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          name: 'Ventas',
+          type: 'bar',
+          data: [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16],
+          // Configuración de los colores
+          itemStyle: {
+            color: '#f67200',
+            borderColor: '#f67200',
+            borderWidth: 1
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#fff', // Color del texto del label: blanco
+            fontWeight: 'bold' // Opcional: para que el texto sea más legible
+          }
+        }
+      ]
+    };
+
+    // Aplica las opciones y renderiza el gráfico
+    graficobarraspormes.setOption(graficobarraspormescontent);    
+    
+  const myChart1 = echarts.init(document.getElementById('pie-chart'));
+
+  const data1 = [
+    { value: 10, name: 'auto' },
+    { value: 2, name: 'camión' },
+    { value: 4, name: 'bus' }
+  ];
+
+  const option1 = {
+    legend: {
+      orient: 'horizontal',
+      bottom: 'bottom',
+      textStyle: {
+        color: '#fff'
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c} ({d}%)'
+    },
+    series: [
+      {
+        name: 'Valores',
+        type: 'pie',
+        radius: ['0%', '60%'], 
+        center: ['50%', '45%'],
+        data: data1,
+        label: {
+          show: true,
+          position: 'outside',
+          formatter: '{d}%',
+          color: '#fff',
+          fontSize: 12
+        },
+        labelLine: {
+          show: true,
+          length: 5
+        },
+        itemStyle: {
+          color: (params) => {
+            const colors = ['#f6a821', '#ffffff', 'red'];
+            return colors[(params.dataIndex) % colors.length];
+          },
+          borderColor: '#000',
+          borderWidth: 1
+        },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  };
+    myChart1.setOption(option1);
+  
+      window.addEventListener('resize', function() {
+    myChart1.resize();
+  });
+  
+  const piezrtipo = echarts.init(document.getElementById('pie-chart-zrtipo'));
+
+  const datapiezrtipo = [
+    { value: 50, name: 'Zona peatonal' },
+    { value: 8, name: 'Zona de metropolitano' },
+    { value: 20, name: 'Zona rigida' },
+    { value: 20, name: 'Zona de monumento' }
+  ];
+
+  const optionzrtipo = {
+    legend: {
+      orient: 'horizontal',
+      bottom: 'bottom',
+      textStyle: {
+        color: '#fff'
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c} ({d}%)'
+    },
+    series: [
+      {
+        name: 'Valores',
+        type: 'pie',
+        radius: ['0%', '60%'], 
+        center: ['50%', '45%'],
+        data: datapiezrtipo,
+        label: {
+          show: true,
+          position: 'outside',
+          formatter: '{c}',
+          color: '#fff',
+          fontSize: 12
+        },
+        labelLine: {
+          show: true,
+          length: 5
+        },
+        itemStyle: {
+          color: (params) => {
+            const colors = ['#f6a821', '#ffffff', 'red', 'blue'];
+            return colors[(params.dataIndex) % colors.length];
+          },
+          borderColor: '#000',
+          borderWidth: 1
+        },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  };
+
+  piezrtipo.setOption(optionzrtipo);
+  
+  // Mantiene el gráfico responsivo si el tamaño de la ventana cambia.
+  window.addEventListener('resize', function() {
+    piezrtipo.resize();
+  });
+    
+    const myChart2 = echarts.init(document.getElementById('main-chart2'));
+    
+      const dataValues2 = [90, 100, 150, 200, 250, 300];
+      const categoryNames2 = ["Cámara 1", "Cámara 2", "Cámara 3", "Cámara 4", "Cámara 5", "Cámara 6"];
+    
+      const option2 = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '10%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false
+        },
+        yAxis: {
+          type: 'category',
+          data: categoryNames2,
+          axisTick: {
+            show: false
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'white'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'bar',
+            data: dataValues2,
+            label: {
+              show: true,
+              position: 'right', // Posiciona la etiqueta a la derecha de la barra
+              color: 'white',
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              color: '#f67200'
+            }
+          }
+        ]
+      };
+    
+      myChart2.setOption(option2);
+    
+      window.addEventListener('resize', function() {
+        myChart2.resize();
+      });
+
+    const myChart3 = echarts.init(document.getElementById('main-chart3'));
+    
+      const dataValues3 = [8, 26, 12, 35, 60, 100];
+      const categoryNames3 = ["Zona tipo 1", "Zona tipo 2", "Zona tipo 3", "Zona tipo 4", "Zona tipo 5", "Zona tipo 6"];
+    
+      const option3 = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '10%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false
+        },
+        yAxis: {
+          type: 'category',
+          data: categoryNames3,
+          axisTick: {
+            show: false
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'white'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'bar',
+            data: dataValues3,
+            label: {
+              show: true,
+              position: 'right', // Posiciona la etiqueta a la derecha de la barra
+              color: 'white',
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              color: '#f67200'
+            }
+          }
+        ]
+      };
+    
+      myChart3.setOption(option3);
+    
+      window.addEventListener('resize', function() {
+        myChart3.resize();
+      });
+      
+    const myChart4 = echarts.init(document.getElementById('main-chart4'));
+    
+      const dataValues4 = [15, 20, 12, 25, 18, 30];
+      const categoryNames4 = ["Valor 1", "Valor 2", "Valor 3", "Valor 4", "Valor 5", "Valor 6"];
+    
+      const option4 = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '10%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false
+        },
+        yAxis: {
+          type: 'category',
+          data: categoryNames4,
+          axisTick: {
+            show: false
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'white'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'bar',
+            data: dataValues4,
+            label: {
+              show: true,
+              position: 'right', // Posiciona la etiqueta a la derecha de la barra
+              color: 'white',
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              color: '#f67200'
+            }
+          }
+        ]
+      };
+    
+      myChart4.setOption(option4);
+    
+      window.addEventListener('resize', function() {
+        myChart4.resize();
+      });
+      const myChartzrtipo = echarts.init(document.getElementById('main-chart-zrtipo'));
+    
+      const dataValueszrtipo = [15, 20, 12, 25, 18, 30];
+      const categoryNameszrtipo = ["Valor 1", "Valor 2", "Valor 3", "Valor 4", "Valor 5", "Valor 6"];
+    
+      const optionzrtipobar = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '10%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false
+        },
+        yAxis: {
+          type: 'category',
+          data: categoryNameszrtipo,
+          axisTick: {
+            show: false
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'white'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'bar',
+            data: dataValueszrtipo,
+            label: {
+              show: true,
+              position: 'right', // Posiciona la etiqueta a la derecha de la barra
+              color: 'white',
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              color: '#f67200'
+            }
+          }
+        ]
+      };
+    
+      myChartzrtipo.setOption(optionzrtipobar);
+    
+      window.addEventListener('resize', function() {
+        myChartzrtipo.resize();
+      });
+      
+    
+    /* logica de mapa-zrtipo*/
+    document.addEventListener("DOMContentLoaded", function () {
+      // Inicializar el mapa en Miraflores
+      var map = L.map('map').setView([-12.1211, -77.0305], 14);
+
+      // Capa base (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Forzar a Leaflet a recalcular dimensiones al inicio
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+
+      // Recalcular también cuando la ventana cambie de tamaño
+      window.addEventListener("resize", () => {
+        map.invalidateSize();
+      });
+
+      // Datos de ejemplo (lat, lng, intensidad opcional)
+      var heatPoints = [
+        [-12.1211, -77.0305, 0.9],  // Parque Kennedy
+        [-12.1175, -77.0283, 0.8],  // Larcomar
+        [-12.1230, -77.0320, 0.7],  // Av. Pardo
+        [-12.1200, -77.0355, 0.6],  // Reducto
+        [-12.1150, -77.0300, 0.5]   // Malecón
+      ];
+
+      // Crear capa de calor (más grande por defecto)
+      L.heatLayer(heatPoints, {
+        radius: 40,   // 🔥 radio más grande
+        blur: 25,     // más difuminado
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+          0.4: 'blue',
+          0.6: 'lime',
+          0.8: 'orange',
+          1.0: 'red'
+        }
+      }).addTo(map);
+    });
+    
+    /* logica de mapa*/
+    document.addEventListener("DOMContentLoaded", function () {
+      // Inicializar el mapa en Miraflores
+      var map = L.map('map-zrtipo').setView([-12.1211, -77.0305], 14);
+
+      // Capa base (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Forzar a Leaflet a recalcular dimensiones al inicio
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+
+      // Recalcular también cuando la ventana cambie de tamaño
+      window.addEventListener("resize", () => {
+        map.invalidateSize();
+      });
+
+      // Datos de ejemplo (lat, lng, intensidad opcional)
+      var heatPoints = [
+        [-12.1211, -77.0305, 0.9],  // Parque Kennedy
+        [-12.1175, -77.0283, 0.8],  // Larcomar
+        [-12.1230, -77.0320, 0.7],  // Av. Pardo
+        [-12.1200, -77.0355, 0.6],  // Reducto
+        [-12.1150, -77.0300, 0.5]   // Malecón
+      ];
+
+      // Crear capa de calor (más grande por defecto)
+      L.heatLayer(heatPoints, {
+        radius: 40,   // 🔥 radio más grande
+        blur: 25,     // más difuminado
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+          0.4: 'blue',
+          0.6: 'lime',
+          0.8: 'orange',
+          1.0: 'red'
+        }
+      }).addTo(map);
+    });
+    
+    
+    // Inicializa el gráfico en el contenedor con el ID 'main-chart'
+    const myChart = echarts.init(document.getElementById('main-chart'));
+
+    // Configuración y opciones del gráfico
+    const option = {
+      // Configuración de la leyenda
+      tooltip: {},
+              grid: {
+          left: '5%',
+          right: '5%',
+          bottom: '3%',
+          containLabel: true
+        },
+      xAxis: {
+        type: 'category',
+        data: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      },
+      yAxis: {
+        type: 'value',
+        show: false // Esta línea oculta el eje Y
+      },
+      series: [
+        {
+          name: 'Ventas',
+          type: 'bar',
+          data: [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16],
+          // Configuración de los colores
+          itemStyle: {
+            color: '#f67200',
+            borderColor: '#f67200',
+            borderWidth: 1
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#fff', // Color del texto del label: blanco
+            fontWeight: 'bold' // Opcional: para que el texto sea más legible
+          }
+        }
+      ]
+    };
+    
+    // Aplica las opciones y renderiza el gráfico
+    myChart.setOption(option);
+    
+    /*
+    $(document).ready(function () {
+        myChart.resize()
+        myChart1.resize()
+        myChart2.resize()
+        myChart3.resize()
+        myChart4.resize()
+    });
+    */
+    
+    const myChart5 = echarts.init(document.getElementById('line-chart'));
+
+      const xAxisData5 = ['Dia 1', 'Dia 2', 'Dia 3', 'Dia 4', 'Dia 5', 'Dia 6', 'Dia 7', 'Dia 8', 'Dia 9', 'Dia 10', 'Dia 11', 'Dia 12'];
+      const seriesData5 = [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16];
+    
+      const option5 = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: xAxisData5,
+          axisLine: {
+            lineStyle: {
+              color: '#fff' // Color del eje X
+            }
+          }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: {
+            lineStyle: {
+              color: '#fff' // Color del eje Y
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'line',
+            data: seriesData5,
+            itemStyle: {
+              color: '#f67200' // Color de la línea y los puntos
+            },
+            lineStyle: {
+              width: 2 // Grosor de la línea
+            },
+            label: {
+              show: true,
+              position: 'top',
+              color: '#fff' // Color de los valores en cada punto
+            }
+          }
+        ]
+      };
+    
+      myChart5.setOption(option5);
+    
+      window.addEventListener('resize', function() {
+        myChart5.resize();
+      });
+    
+</script>
+
+<!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Plugin Leaflet Heat -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>

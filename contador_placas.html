@@ -1,0 +1,390 @@
+<!-- ====== ESTILOS ====== -->
+<style>
+  /* Toolbar de filtro (naranja futurista) */
+  .cam-toolbar {
+    display:flex; align-items:center; gap:12px;
+    margin: 6px 0 14px 0; padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255,123,0,0.05);
+    border: 1px solid rgba(255,123,0,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .cam-toolbar label {
+    min-width:120px; margin:0; font-weight:600; color:#fff; opacity:.9;
+  }
+  #camFilterSelect {
+    flex:1; min-width:280px; padding:10px 12px;
+    border-radius:10px; border:1px solid rgba(255,123,0,.35);
+    background:rgba(20,20,20,.85); color:#fff; outline:none;
+    font-weight:600;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+    transition: all .2s ease;
+  }
+  #camFilterSelect:hover { border-color: rgba(255,123,0,.65); }
+  #camFilterSelect:focus {
+    border-color: rgba(255,123,0,.9);
+    box-shadow: 0 0 0 3px rgba(255,123,0,.25);
+  }
+  .cam-counter {
+    color:#ff7b00; font-weight:800; letter-spacing:.3px;
+    text-shadow: 0 0 6px rgba(255,123,0,.35);
+    white-space: nowrap;
+  }
+
+  /* Arte general de paneles (respeta colores, suma “glow” naranja) */
+  #panel-events-camera {
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  #panel-events-camera .panel {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.2));
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  #panel-events-camera .panel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,123,0,0.4);
+  }
+  #panel-events-camera .panel-heading {
+    position: relative;
+    padding: 12px 16px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(90deg, rgba(255,123,0,0.85), rgba(255,123,0,0.65) 60%, rgba(255,123,0,0.25));
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  }
+  #panel-events-camera .panel-body { padding: 18px; color: #ddd; }
+  #panel-events-camera .panel .m-b-none {
+    margin: 0; font-weight: 800; font-size: 28px; letter-spacing: .4px; color: #ff7b00;
+    text-shadow: 0 0 6px rgba(255,123,0,0.4), 0 2px 6px rgba(0,0,0,0.6);
+  }
+
+  /* Tarjetitas del panel de 15 min */
+  #kpi-placas-detalle .panel-body {
+    display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  #kpi-placas-detalle .panel-body > div {
+    flex: 1 1 180px; text-align: center; padding: 14px 10px; border-radius: 14px;
+    background: rgba(20,20,20,0.6);
+    border: 1px solid rgba(255,123,0,0.2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(255,123,0,0.05);
+    transition: all .2s ease;
+  }
+  #kpi-placas-detalle .panel-body > div:hover {
+    border-color: rgba(255,123,0,0.5);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.55), inset 0 0 14px rgba(255,123,0,0.08);
+    transform: translateY(-2px);
+  }
+  #kpi-placas-detalle .panel-body > div > div[style*="opacity:.8"] {
+    opacity: .9 !important; font-size: 12px; font-weight: 600; color: #aaa; margin-bottom: 6px; letter-spacing: .3px;
+  }
+  #kpi-placas-detalle .panel-body h3.m-b-none {
+    font-size: 24px; font-weight: 800; margin: 0; color: #ff7b00;
+    text-shadow: 0 0 6px rgba(255,123,0,0.3);
+  }
+
+  /* Bloque info cámara con realce sutil */
+  #panel-events-camera #panel-events-camera .panel-body > div[style*="font-size:80%"] {
+    background: rgba(255,123,0,0.05); border-radius: 12px; padding: 12px;
+  }
+  #panel-events-camera #panel-events-camera .panel-body > div[style*="font-size:80%"] > div {
+    padding: 6px 0; border-bottom: 1px dashed rgba(255,123,0,0.2);
+  }
+  #panel-events-camera #panel-events-camera .panel-body > div[style*="font-size:80%"] > div:last-child {
+    border-bottom: none;
+  }
+</style>
+
+<!-- ====== FILTRO DESPLEGABLE (ACTIVAS / INACTIVAS) + CONTADOR ====== -->
+<div class="cam-toolbar">
+  <label for="camFilterSelect">Filtrar cámara:</label>
+  <select id="camFilterSelect">
+    <option value="">Todas las cámaras</option>
+  </select>
+  <div id="camCounter" class="cam-counter">Activas: 0 / 0</div>
+</div>
+
+<!-- ====== TUS PANELES (SIN CAMBIAR LÓGICA) ====== -->
+<div id="panel-events-camera">
+  <div class="col-md-6">
+    <div class="panel panel-filled panel-c-accent" id="panel-events-camera">
+      <div class="panel-body">
+        <div style="font-size:80%;height:auto">
+          <div><span class="c-white" style="float:right" id="info-camera-nombre"></span>Nombre de Cámara:</div>
+          <div><span class="c-white" style="float:right" id="info-camera-localidad"></span>Localidad:</div>
+          <div><span class="c-white" style="float:right" id="info-camera-zona"></span>Zona:</div>
+          <div><span class="c-white" style="float:right" id="info-camera-SubZ"></span>Subzona:</div>
+          <div><span class="c-white" style="float:right" id="info-camera-Objetivo"></span>Objetivo:</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="panel panel-filled  panel-c-accent">
+      <div class="panel-heading">Total de Detecciones</div>
+      <div class="panel-body text-center"><h2 class="m-b-none" id="totaleventos"></h2></div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="panel panel-filled  panel-c-accent">
+      <div class="panel-heading">Total de Personas</div>
+      <div class="panel-body text-center"><h2 class="m-b-none" id="totalpersonas"></h2></div>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="panel panel-filled  panel-c-accent">
+      <div class="panel-heading">Total de Vehiculos</div>
+      <div class="panel-body text-center"><h2 class="m-b-none" id="totalvehiculos"></h2></div>
+    </div>
+  </div>
+
+  <!-- Detalle de placas por vehículo (últimos 15 min) -->
+  <div class="col-md-6">
+    <div class="panel panel-filled panel-c-accent" id="kpi-placas-detalle">
+      <div class="panel-heading">Placas por vehículo (últimos 15 min)</div>
+      <div class="panel-body" style="display:flex; gap:16px; flex-wrap:wrap">
+        <div style="flex:1 1 180px; text-align:center;">
+          <div style="opacity:.8">Cámaras activas</div>
+          <h3 id="total_camaras_activas" class="m-b-none">0</h3>
+        </div>
+        <div style="flex:1 1 180px; text-align:center;">
+          <div style="opacity:.8">Placas Legibles (A1B234)</div>
+          <h3 id="totalveh_conf_u" class="m-b-none">0</h3>
+        </div>
+        <div style="flex:1 1 180px; text-align:center;">
+          <div style="opacity:.8">Placas no Legibles (123ACB4)</div>
+          <h3 id="totalveh_cand_u" class="m-b-none">0</h3>
+        </div>
+        <div style="flex:1 1 180px; text-align:center;">
+          <div style="opacity:.8">Vehiculos con Placa Visible</div>
+          <h3 id="totalveh_with_plate_u" class="m-b-none">0</h3>
+        </div>
+        <div style="flex:1 1 180px; text-align:center;">
+          <div style="opacity:.8">Vehiculos sin Placa</div>
+          <h3 id="totalveh_no_plate" class="m-b-none">0</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCRIPT (SIN TOCAR callAPI NI EL ENDPOINT PRINCIPAL) ====== -->
+<script>
+  // ===== Helpers =====
+  if (!String.prototype.qs) { String.prototype.qs = function(){ return document.querySelector(this); }; }
+  const $id = (s) => document.getElementById(s);
+  const setVal = (selOrId, val) => {
+    if (typeof selOrId === 'string' && selOrId.startsWith('#') && selOrId.qs) ("".concat(selOrId)).qs().innerHTML = val;
+    else if ($id(selOrId)) $id(selOrId).innerText = val;
+  };
+
+  // ===== Estado =====
+  let CURRENT_CAM_FILTER = null;     // null = todas
+  let MASTER_CAMS = new Map();       // value -> {value,label,active:false}
+  let LAST_ACTIVE_SET = new Set();   // activas del último summary GLOBAL (sin filtro)
+  let LAST_TOTAL = 0;                // último camera_total global
+  let LAST_RETURNED = 0;             // último camera_returned global
+
+  // ===== Maestro de cámaras (opcional, no bloquea UI) =====
+  function loadMasterCamerasNonBlocking() {
+    const adopt = (arr) => {
+      if (!Array.isArray(arr) || !arr.length) return false;
+      MASTER_CAMS.clear();
+      for (const it of arr) {
+        const id   = it?.camera_id ?? it?.id ?? it?.cam ?? it?.camera;
+        const code = it?.camera_code ?? it?.code;
+        const name = it?.camera_name ?? it?.name ?? it?.nombre ?? null;
+        const value = (id != null && String(id).trim() !== '') ? String(id)
+                     : (code ? String(code) : null);
+        if (!value) continue;
+        const label = name ? `${name} (${value})` : (code ? `${code}` : `Cam ${value}`);
+        MASTER_CAMS.set(String(value), { value: String(value), label, active: false });
+      }
+      return true;
+    };
+
+    callAPI({
+      method: 'cameras/list',
+      params: { limit: 2000 },
+      ok: (data) => {
+        if (adopt(Array.isArray(data) ? data : data?.items)) {
+          renderCamSelect(LAST_ACTIVE_SET, LAST_TOTAL, LAST_RETURNED);
+        } else {
+          callAPI({
+            method: 'gestion/camaras_all',
+            params: {},
+            ok: (d2) => { if (adopt(Array.isArray(d2) ? d2 : d2?.items)) renderCamSelect(LAST_ACTIVE_SET, LAST_TOTAL, LAST_RETURNED); },
+            error: ()=>{}
+          });
+        }
+      },
+      error: ()=>{}
+    });
+  }
+
+  // ===== Render del <select> usando SOLO el global =====
+  // activeSet: cámaras activas (del último GLOBAL)
+  // totals: camera_total y camera_returned del último GLOBAL
+  function renderCamSelect(activeSet = new Set(), camera_total = 0, camera_returned = 0) {
+    LAST_ACTIVE_SET = new Set(Array.from(activeSet));  // mantener referencia
+    LAST_TOTAL = Number(camera_total) || LAST_TOTAL;
+    LAST_RETURNED = Number(camera_returned) || LAST_RETURNED;
+
+    const sel = $id('camFilterSelect');
+    const counter = $id('camCounter');
+    if (!sel) return;
+
+    // Marca activas dentro del maestro (si existe)
+    if (MASTER_CAMS.size) {
+      MASTER_CAMS.forEach((obj, key) => { obj.active = activeSet.has(String(key)); });
+    } else if (activeSet.size && sel.options.length <= 1) {
+      // Degradado: sin maestro, al menos lista las activas conocidas
+      MASTER_CAMS.clear();
+      activeSet.forEach(v => MASTER_CAMS.set(String(v), { value: String(v), label: `Cam ${v}`, active: true }));
+    }
+
+    const actives = [], inactives = [];
+    MASTER_CAMS.forEach(obj => (obj.active ? actives : inactives).push(obj));
+    actives.sort((a,b)=> a.label.localeCompare(b.label,'es',{numeric:true}));
+    inactives.sort((a,b)=> a.label.localeCompare(b.label,'es',{numeric:true}));
+
+    // Reconstruir <select> sin perder selección
+    const current = sel.value;
+    sel.innerHTML = '';
+    const optAll = document.createElement('option');
+    optAll.value = ''; optAll.textContent = 'Todas las cámaras';
+    sel.appendChild(optAll);
+
+    if (actives.length) {
+      const ogA = document.createElement('optgroup');
+      ogA.label = `Activas (${actives.length})`;
+      actives.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.value; o.textContent = c.label; ogA.appendChild(o);
+      });
+      sel.appendChild(ogA);
+    }
+
+    // Mostrar inactivas (🔴). Si el maestro no trae todas (faltan), igual el contador reflejará totals.
+    if (inactives.length) {
+      const ogI = document.createElement('optgroup');
+      ogI.label = `Sin actividad (${inactives.length})`;
+      inactives.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.value; o.textContent = `🔴 ${c.label}`; ogI.appendChild(o);
+      });
+      sel.appendChild(ogI);
+    }
+
+    // Reseleccionar lo que el usuario tenía (o “todas”)
+    sel.value = (current && MASTER_CAMS.has(current)) ? current : (CURRENT_CAM_FILTER ?? '');
+
+    // Contador y KPI de cámaras activas desde TOTALES DEL GLOBAL
+    const total = (Number(camera_total) || MASTER_CAMS.size || actives.length + inactives.length);
+    const activeCount = (Number(camera_returned) || actives.length);
+    if (counter) counter.textContent = `Activas: ${activeCount} / ${total}`;
+    setVal('total_camaras_activas', activeCount);
+  }
+
+  // ===== MISMA lógica de KPIs. OJO:
+  // - Cuando camOrCode == null → GLOBAL: actualizo dropdown y contadores
+  // - Cuando camOrCode != null → SOLO pinto KPIs (no toco dropdown)
+  function loadVehiclesKPIsGlobal(camOrCode = null) {
+    const now  = Date.now();
+    const from = now - (15 * 60 * 1000);
+    const to   = now;
+
+    const params = { granularity: 'minute', from, to };
+    if (camOrCode !== null && camOrCode !== '') params.cam = camOrCode; // SIN tocar callAPI
+
+    callAPI({
+      method: 'dashboards/summary',
+      params,
+      ok: (data) => {
+        try {
+          const vehTotal = Number(data?.global_total_veh || 0);
+          const gp = Array.isArray(data?.global_points) ? data.global_points : [];
+          const agg = gp.reduce((a, r) => {
+            a.conf_u       += Number(r?.conf_u || 0);
+            a.cand_u       += Number(r?.cand_u || 0);
+            a.with_plate_u += Number(r?.with_plate_u || 0);
+            a.no_plate     += Number(r?.no_plate || 0);
+            return a;
+          }, {conf_u:0, cand_u:0, with_plate_u:0, no_plate:0});
+
+          setVal('#totalvehiculos', vehTotal);
+          setVal('totalveh_conf_u',       agg.conf_u);
+          setVal('totalveh_cand_u',       agg.cand_u);
+          setVal('totalveh_with_plate_u', agg.with_plate_u);
+          setVal('totalveh_no_plate',     agg.no_plate);
+          setVal('#totaleventos',  '');
+          setVal('#totalpersonas', '');
+
+          // Sólo en GLOBAL (sin filtro) actualizamos el dropdown y contadores.
+          if (camOrCode === null || camOrCode === '') {
+            const activeSet = new Set();
+            const items = Array.isArray(data?.items) ? data.items : [];
+            for (const it of items) {
+              const id = it?.camera_id ?? it?.cam ?? it?.id ?? it?.camera ?? it?.camera_code ?? it?.code;
+              if (id != null && String(id).trim() !== '') activeSet.add(String(id));
+            }
+            const total = Number(data?.camera_total) || 0;
+            const returned = Number(data?.camera_returned) || activeSet.size;
+            renderCamSelect(activeSet, total, returned);
+          }
+          // Si es filtrado, NO tocamos el select (se queda con el último GLOBAL)
+        } catch(e) {
+          console.error('Error pintando KPIs:', e);
+          if (camOrCode === null || camOrCode === '') renderCamSelect(new Set(), LAST_TOTAL, LAST_RETURNED);
+        }
+      },
+      error: (xhr) => {
+        console.error('dashboards/summary error', xhr?.status, xhr?.responseText);
+        setVal('#totalvehiculos', 0);
+        setVal('totalveh_conf_u', 0);
+        setVal('totalveh_cand_u', 0);
+        setVal('totalveh_with_plate_u', 0);
+        setVal('totalveh_no_plate', 0);
+        if (camOrCode === null || camOrCode === '') renderCamSelect(new Set(), LAST_TOTAL, LAST_RETURNED);
+      }
+    });
+  }
+
+  // ===== Listeners =====
+  function setupCamSelect() {
+    const sel = $id('camFilterSelect');
+    if (!sel) return;
+    sel.addEventListener('change', () => {
+      const val = sel.value;
+      CURRENT_CAM_FILTER = val || null;
+      loadVehiclesKPIsGlobal(CURRENT_CAM_FILTER); // ← sólo pinta KPIs; no re-clasifica el dropdown
+    });
+  }
+
+  // ===== Init =====
+  $(document).ready(function () {
+    setupCamSelect();
+    loadVehiclesKPIsGlobal(null);       // 1) Pinta GLOBAL → clasifica activas/inactivas y usa camera_total/returned
+    loadMasterCamerasNonBlocking();     // 2) Carga maestro en paralelo y re-render con nombres completos
+    // // Opcional: refrescar cada 60s manteniendo filtro y manteniendo dropdown global
+    // setInterval(()=> {
+    //   // refresca global para mantener actualizado el dropdown y contadores
+    //   loadVehiclesKPIsGlobal(null);
+    //   // refresca KPIs de la cámara seleccionada (si hay)
+    //   if (CURRENT_CAM_FILTER) loadVehiclesKPIsGlobal(CURRENT_CAM_FILTER);
+    // }, 60000);
+  });
+</script>
+
+
+
+
+

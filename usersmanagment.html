@@ -1,0 +1,436 @@
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Filtros
+            </div>
+            <div class="panel-body">
+
+                <div class="row">
+                    <div class="col-lg-8 col-md-6">
+                        <div class="form-group" >
+                            <input id="txsearch" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-4  col-md-6 text-center" style="">
+                        <div class="form-group" style="display: inline;" >
+                            <button id="btnnew" type="button" href="#" class="btn btn-w-md btn-primary ">
+                                <i class="fa pe-7s-plus"></i> Nuevo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>    
+    <div class="col-md-6">
+        <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Usuarios
+            </div>
+            <div class="panel-body text-center row">
+                <div class="col-lg-3">
+                    Total
+                    <h4 class="m-b-none " id="totalusers">0</h4>
+                </div>
+                <div class="col-lg-2">
+                    Activos
+                    <h4 class="m-b-none " id="isenabled">0</h4>
+                </div>
+                <div class="col-lg-2">
+                    Bloqueados
+                    <h4 class="m-b-none " id="isblock">0</h4>
+                </div>
+                <div class="col-lg-2">
+                    MultiSessions
+                    <h4 class="m-b-none " id="ismultidevice">0</h4>
+                </div>
+                <div class="col-lg-2">
+                    WithApps
+                    <h4 class="m-b-none " id="hasapps">0</h4>
+                </div>
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel ">
+            <div >
+                <div class="table-responsive">
+                    <table class="table table-hover-1">
+                        <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Perfiles</th>
+                            <!--<th>Contacto</th>-->
+                            <th>Activo</th>
+                            <th>Bloqueado</th>
+                            <!--<th>Ultimo Acceso</th>-->
+                            <th>Multisesiones</th>
+                            <!--<th># Sesiones</th>-->
+                            <th>Apps</th>
+                        </tr>
+                        </thead>
+                        <tbody>                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>  
+</div>
+
+<div class="modal fade in" id="usermodal" tabindex="-1" role="dialog" aria-hidden="true" >
+    <div class="modal-dialog modal-lg" >
+        <div class="modal-content">
+            <div class="modal-header text-left">
+                <h4 class="modal-title"></h4>
+                <small></small>
+            </div>
+            <div class="modal-body " >
+                <div class="row" >
+                    <div class="col-md-12">
+
+                        <div class="panel panel-filled panel-c-accent" id="panel-generales">
+                            <input type="hidden" id="check">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h4>Datos Generales</h4>                                
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="userid">Email address</label> 
+                                        <input type="email" class="form-control" id="userid" placeholder="Email">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="fullname">Nombre completo</label> 
+                                        <input type="text" class="form-control" id="fullname" placeholder="Nombre completo">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="phonecontact">Teléfono contacto</label> 
+                                        <input type="text" class="form-control" id="phonecontact" placeholder="Teléfono contacto">
+                                    </div>
+                                </div>      
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="sliderSwitch">Multi Dispósitivo</label>
+                                        <div class="switch-wrapper">
+                                            <span class="switch-label">Habilitar</span>
+                                            <label class="mac-slider" style="float:right">
+                                                <input type="checkbox" id="ismultidevice" value="1">
+                                                <span></span>
+                                            </label>                        
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="sliderSwitch">Estado del usuario</label>
+                                        <div class="switch-wrapper">
+                                            <span class="switch-label">Habilitar</span>
+                                            <label class="mac-slider" style="float:right">
+                                                <input type="checkbox" id="isenabled" value="1">
+                                                <span></span>
+                                            </label>                        
+                                        </div>
+                                    </div>
+                                </div>    
+                            </div>    
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <div class="panel panel-c-accent" id="panel-perfiles">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h4>Perfiles de la aplicación</h4>
+                                <div class="small">Tome en cuenta que si bien puede marcar varias opciones estas son incrementales y que marcar 
+                                varias puede conceder muchos acceso mas de los que el usuario necesita
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                            </div>    
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="panel panel-c-accent" id="panel-apps">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h4>Funciones Especiales</h4>
+                                <div class="small">Al marcar estas opciones estara otorgando permiso a 
+                                    diversas aplicaciones de este sistema. Valide con cuidado si el usuario realmente
+                                    necesita estos accesos.
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                            </div>    
+                        </div>
+                    </div>
+
+                </div>   
+
+               
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default  " data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-accent  " id="btnsend">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+var _L=[];
+var _servicio="";
+
+/*
+Funciones
+*/
+{
+    function limpiarCampos(divId) {
+        $('#' + divId).find(':input').each(function () {
+            const $el = $(this);
+            const type = $el.attr('type');
+
+            if (type === 'checkbox' || type === 'radio') {
+                $el.prop('checked', false);
+            } else {
+                $el.val('');
+            }
+
+            if ($el.is('select')) {
+                $el.prop('selectedIndex', -1);
+            }
+        });
+    }
+
+    function getFormDataById(divId) {
+        let data = {};
+
+        $('#' + divId).find(':input').each(function () {
+            let $el = $(this);
+            let id = $el.attr('id');
+            let type = $el.attr('type');
+
+            if (!id) return; // Ignorar si no tiene id
+
+            if (type === 'checkbox') {
+                if ($el.is(':checked')) {
+                    data[id] = $el.val(); // Devuelve el value si está marcado
+                }
+                // Si no está marcado, no se guarda nada
+            } else if (type === 'radio') {
+                if ($el.is(':checked')) {
+                    data[id] = $el.val();
+                }
+            } else {
+                data[id] = $el.val();
+            }
+        });
+
+        return data;
+    }
+
+    function setFormDataById(divId, values) {
+        $('#' + divId).find(':input').each(function () {
+            let $el = $(this);
+            let id = $el.attr('id');
+            let type = $el.attr('type');
+
+            if (!id || !(id in values)) return; // Ignorar si no tiene id o no está en el JSON
+
+            let value = values[id];
+
+            if (type === 'checkbox') {
+                // Marcar si el valor coincide o si es true
+                if (value === $el.val() || value === true) {
+                    $el.prop('checked', true);
+                } else {
+                    $el.prop('checked', false);
+                }
+            } else if (type === 'radio') {
+                // Marcar si el valor coincide con este radio
+                if ($el.val() == value) {
+                    $el.prop('checked', true);
+                }
+            } else {
+                $el.val(value);
+            }
+        });
+    }
+
+    function drawlist(data){
+        log(data)
+        _L=data;
+                let html="";
+                let n=0,isenabled=0,isblock=0,ismultidevice=0,hasapps=0;
+                for(let x of data){
+                    html+="<tr onclick='showusermodal({row:"+n+",edit:true})'>"+
+                            "<td><spam style='color:#fff'>"+x.userid+"</spam><br><small>"+x.fullname+"</small><br>"+x.phonecontact+"</td>"+
+                            "<td>"+relevant(x.perfiles||{},'primary')+"</td>"+
+                            //"<td>"+x.phonecontact+"</td>"+
+                            "<td>"+((x.isenabled)?"<spam class='btn btn-success btn-xs'>Activo</spam>":"<spam class='btn btn-default btn-xs'>No</spam>")+"</td>"+
+                            "<td>"+((x.isblock)?"<spam class='btn btn-success btn-xs'>Si</spam>":"<spam class='btn btn-default btn-xs'>No</spam>")+"</td>"+
+                            //"<td>"+(x.lastaccess||'04/08/2025 12:33:18')+"</td>"+
+                            "<td>"+((x.ismultidevice)?"<spam class='btn btn-success btn-xs'>Si</spam>":"<spam class='btn btn-default btn-xs'>No</spam>")+"</td>"+
+                            //"<td>"+(x.sessions||'2')+"</td>"+
+                            "<td>"+relevant(x.apps||{},'danger')+"</td>"+                        
+                        "</tr>";
+                    n++;
+                    isenabled+=((x.isenabled)?1:0);
+                    isblock+=((x.isblock)?1:0);
+                    ismultidevice+=((x.ismultidevice)?1:0);
+                    hasapps+=((Object.keys(x.apps||{}).length>0)?1:0);
+
+                    log(x.apps.size)
+
+
+                }
+                $("#totalusers").html(data.length)
+                $("#isenabled").html(isenabled)
+                $("#isblock").html(isblock)
+                $("#ismultidevice").html(ismultidevice)
+                $("#hasapps").html(hasapps)
+                $("tbody").html(html)
+    }
+
+    function showusermodal(params){
+        $('#usermodal .modal-title').html("Modificar datos del Usuario")
+        $('#usermodal small').html("Este formulario le permite agregar un usuario. Verifique con cuidado las opciones que marque")
+        limpiarCampos("usermodal");
+        $('#usermodal').modal('show');
+        $('#userid').attr("readonly",1)
+
+        const row=_L[params.row];
+
+        setFormDataById("panel-generales",row)
+        setFormDataById("panel-perfiles",row.perfiles)
+        setFormDataById("panel-apps",row.apps)
+
+        //log(row)
+
+        _servicio="authrequest/updateuser";
+
+
+    }
+
+    function relevant(list, type){
+        let format=""
+        if(!list)return ""
+        for(const itemname in list)format+=`<spam class=' btn-${type} btn-xs'>${itemname}</spam> `;
+    
+        return format
+    }
+
+}
+
+/*
+Eventos
+*/
+{
+
+    $("#btnnew").on("click",()=>{
+        _servicio="authrequest/adduser";
+        $('#userid').attr("readonly",null)
+        $('#usermodal .modal-title').html("Nuevo Usuario")
+        $('#usermodal small').html("Este formulario le permite agregar un usuario. Verifique con cuidado las opciones que marque")
+        limpiarCampos("usermodal");
+        $('#usermodal').modal('show');
+    })
+
+    $("#btnsend").on("click",()=>{
+
+        let datos=getFormDataById('panel-generales'); 
+        datos.perfiles=getFormDataById('panel-perfiles');
+        datos.apps=getFormDataById('panel-apps'); 
+
+        callAPI({
+            method:_servicio,   
+            post:1,
+            params:datos,         
+            ok:(data)=>{
+                $('#usermodal').modal('hide');
+                drawlist(data);
+            }
+        });
+    })
+
+}
+
+
+$(document).ready(function () {
+    //authrequest/getusers
+    callAPI({
+        method:"authrequest/getusers",            
+        ok:(data)=>{ drawlist(data)}
+    });
+
+    //authrequest/getapps
+    callAPI({
+        method:"authrequest/getapps",            
+        ok:(data)=>{
+            for(let x in data){                
+                const description=data[x].description;
+                const name=data[x].name;
+                $("#panel-apps .panel-body").append(`
+                    <div class="switch-wrapper">
+                        <span class="switch-label">${description}</span>
+                        <label class="mac-slider" style="float:right">
+                            <input type="checkbox" id="${name}" value="1">
+                            <span></span>
+                        </label>                        
+                    </div>
+                `)
+            }
+        }
+    });
+    
+    //authrequest/getperfiles
+    callAPI({
+        method:"authrequest/getperfiles",            
+        ok:(data)=>{
+            for(let x of data){                
+                const description=x.description;
+                const name=x.name;
+                const small=x.small;
+                $("#panel-perfiles .panel-body").append(`
+                    <div class="switch-wrapper">
+                        <span class="switch-label">${description}</span>
+                        <label class="mac-slider" style="float:right">
+                            <input type="checkbox" id="${name}" value="1">
+                            <span></span>
+                        </label>   
+                        <div class="small" style="padding-left:15px">${small}</div>                              
+                    </div>                    
+                `)
+            }
+        }
+    });
+
+
+});
+
+
+</script>

@@ -1,0 +1,38 @@
+<body class="p-4">
+
+  <h2>📷 Lista de Cámaras</h2>
+  
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Ubicación</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tablaCamaras">
+      <!-- Se llena dinámicamente -->
+    </tbody>
+  </table>
+
+  <a href="camaramant.html" class="btn btn-primary">➕ Registrar Nueva Cámara</a>
+
+  <script>
+    // Ejemplo: Cargar desde localStorage o simular datos
+    const camaras = JSON.parse(localStorage.getItem("camaras")) || [];
+
+    const tabla = document.getElementById("tablaCamaras");
+    camaras.forEach((cam, index) => {
+      tabla.innerHTML += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${cam.camera_id}</td>
+          <td>${cam.location}</td>
+          <td>
+            <a href="camaramant.html?id=${cam.camera_id}" class="btn btn-sm btn-warning">Editar</a>
+          </td>
+        </tr>`;
+    });
+  </script>
+</body>

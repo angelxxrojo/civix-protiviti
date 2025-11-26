@@ -1,0 +1,3563 @@
+<!-- En la sección de estilos, agrega esto: -->
+<style>
+
+
+/* === PANEL FIJO A 1/5 DEL ANCHO DE PANTALLA === */
+:root {
+  --panel-max-width: 20%; /* equivale a 1/5 del ancho */
+}
+
+/* Aplica cuando el tablero está en fullscreen */
+#app:fullscreen .alert-panel,
+#app:-webkit-full-screen .alert-panel,
+#app:-moz-full-screen .alert-panel {
+  flex: 0 0 var(--panel-width);
+  max-width: var(--panel-width);
+  min-width: var(--panel-width);
+}
+
+/* Contenedor general: mantiene los 5 paneles alineados */
+#app:fullscreen .alert-panels-wrapper,
+#app:-webkit-full-screen .alert-panels-wrapper,
+#app:-moz-full-screen .alert-panels-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+/* === Responsividad fuera de fullscreen === */
+@media (max-width: 1600px) {
+  .alert-panel {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .alert-panel {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
+@media (max-width: 900px) {
+  .alert-panel {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
+@media (max-width: 600px) {
+  .alert-panel {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
+@media (max-width: 1920px) {
+  .alert-panel {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
+/*.container{width:100%;height:100%;padding:12px;display:none;gap:12px}*/
+.btn-toggle-bbox {
+  background: #1d3557;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-toggle-bbox.active {
+  background: #457b9d;
+}
+/* === Frame dinámico aislado dentro de la card === */
+.slot-frame-container {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  background: #000;        /* negro sólido detrás del frame */
+  overflow: hidden;
+  border-bottom: 1px solid rgba(34,230,217,0.2);
+}
+
+.slot-frame-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Indicador de carga para frames */
+.frame-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--teal);
+  font-size: 12px;
+}
+
+:root {
+    --bg: #0b1f2a;
+    --panel: #102a35;
+    --ink: #e8fbff;
+    --teal: #22e6d9;
+    --orange: #ff7a2f;
+    --gap: 16px;
+    --panel-count: 1;
+}
+
+/* === MODAL DE VIDEO SIEMPRE SOBRE FULLSCREEN === */
+#videoOvl {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999 !important; /* 🔺 más alto que cualquier panel fullscreen */
+  pointer-events: all;
+}
+
+/* cuando está visible dentro de fullscreen 
+:fullscreen #videoOvl,
+:-webkit-full-screen #videoOvl {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  z-index: 999999 !important;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.92);
+  display: flex !important;
+}
+
+/* opcional: animación de entrada 
+#videoOvl.show {
+  display: flex !important;
+  animation: fadeIn 0.25s ease;
+}+/
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
+
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: "Segoe UI", Roboto, sans-serif; }
+
+/* Pantalla de inicio */
+#startScreen { height: 100vh; display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; color: var(--ink); }
+#startScreen h1 { color: var(--teal); margin: 0; font-size: 28px; }
+
+.btn:hover, .btn-dashboard:hover { filter: brightness(1.06); transform: translateY(-1px); }
+
+
+/* Aplicación principal */
+#app { display: none; height: 100vh; flex-direction: column; background: var(--bg); }
+
+/* Encabezado */
+.board-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: #061922; border-bottom: 2px solid var(--teal); flex-shrink: 0; }
+.board-header h2 { color: var(--teal); font-size: 20px; font-weight: 600; margin: 0; }
+.btn-add-panel { background: var(--teal); color: #061922; border: none; border-radius: 6px; font-weight: 600; padding: 6px 12px; cursor: pointer; transition: all 0.3s ease; }
+.btn-exit-fullscreen { background: var(--orange); color: white; border: none; border-radius: 6px; padding: 6px 12px; margin-left: 10px; cursor: pointer; font-weight: 600; }
+.btn-exit-fullscreen:hover { background: #e06a25; }
+
+/* Contenedor de paneles */
+.alert-panels-wrapper { display: flex; flex-direction: row; gap: var(--gap); padding: var(--gap); overflow: hidden; flex: 1; width: 100%; }
+
+/* Panel individual */
+.alert-panel { flex: 1 1 calc((100% - (var(--gap) * (var(--panel-count) - 1))) / var(--panel-count)); background: var(--panel); border: 1px solid rgba(34,230,217,0.3); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.alert-panel-header { background: rgba(34,230,217,0.15); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(34,230,217,0.3); }
+.alert-panel-header h5 { color: var(--teal); margin: 0; font-size: 15px; font-weight: 600; }
+.alert-panel-header button { background: none; border: none; color: var(--orange); font-size: 18px; cursor: pointer; }
+.alert-cards-container { padding: 10px; overflow-y: auto; flex-grow: 1; }
+
+   
+     .modal-footer {
+      border-top: 1px solid rgba(181,214,223,0.2);
+      padding: 16px;
+      text-align: right;
+      background: unset !important;
+    }
+    
+        .modal-footer .btn-default:hover {
+      background: #1cb5a9;
+    }
+
+/* Card */
+
+.alert-card { background: rgba(11,31,42,0.8); border: 1px solid rgba(34,230,217,0.2); border-radius: 8px; overflow: hidden; transition: all 0.2s ease; }
+.alert-card.highlighted { border-color: var(--teal); box-shadow: 0 0 12px rgba(34,230,217,0.6); }
+.alert-card img, .alert-card video { width: 100%; height: 140px; object-fit: cover; border-bottom: 1px solid rgba(34,230,217,0.2); }
+.alert-info { padding: 8px; }
+.alert-info p { margin: 0; font-size: 13px; color: #b5d6df; }
+.btn-video { background: var(--teal); color: #0b1f2a; border: none; border-radius: 6px; font-weight: 600; width: 100%; margin-top: 6px; padding: 6px; cursor: pointer; }
+.btn-video:hover { filter: brightness(1.06); }
+
+/* Modal selección */
+.modal-camaras { width: min(700px,95vw); max-height: 85vh; background: #0b1f2a; border-radius: 12px; color: var(--ink); box-shadow: 0 0 24px rgba(34,230,217,.3); position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 3000; display: none; flex-direction: column; }
+
+.modal-body { padding: 10px 16px; max-height: 60vh; overflow-y: auto; }
+.alert-type-item { padding: 8px 10px; border: 1px solid rgba(34,230,217,0.2); border-radius: 6px; margin-bottom: 8px; background: #0b1f2a; cursor: pointer; transition: all 0.3s ease; }
+.alert-type-item:hover { background: rgba(34,230,217,0.1); }
+.alert-type-item.selected { border-color: var(--teal); background: rgba(34,230,217,0.2); }
+.type-code { display: inline-block; background: rgba(34,230,217,0.2); padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-size: 12px; }
+
+/* Slot de video */
+.video-slot-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6,25,34,0.95); z-index: 4000; display: none; flex-direction: column; }
+.video-slot-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #061922; border-bottom: 2px solid var(--teal); }
+.video-slot-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.video-slot-player { width: 90%; max-width: 1200px; background: #0b1f2a; border-radius: 12px; overflow: hidden; box-shadow: 0 0 30px rgba(34,230,217,0.4); }
+.video-slot-player video { width: 100%; height: auto; display: block; }
+.video-slot-info { padding: 15px 20px; background: #102a35; border-top: 1px solid rgba(34,230,217,0.3); }
+.video-slot-info h4 { margin: 0 0 10px 0; color: var(--teal); }
+.video-slot-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 14px; }
+.video-slot-details p { margin: 0; color: #b5d6df; }
+.video-slot-close { background: var(--orange); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.video-slot-close:hover { background: #e06a25; }
+
+
+ease;
+}
+
+/* === VISUALIZACIÓN DETALLADA DE PERSONAS / VEHÍCULOS === */
+.person-details-section {
+  padding: 10px 12px;
+  background: rgba(11, 31, 42, 0.85);
+  border: 1px solid rgba(34, 230, 217, 0.25);
+  border-radius: 8px;
+  color: #d8f9ff;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.person-details-title {
+  margin: 0 0 8px 0;
+  color: var(--teal);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.detail-item {
+  margin: 2px 0;
+  color: #b5d6df;
+  font-size: 13px;
+}
+
+.person-details-images {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.person-image-container {
+  flex: 1 1 48%;
+  background: #0b1f2a;
+  border: 1px solid rgba(34, 230, 217, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.person-image-label {
+  padding: 6px 10px;
+  background: rgba(34, 230, 217, 0.12);
+  border-bottom: 1px solid rgba(34, 230, 217, 0.2);
+  color: var(--teal);
+  font-size: 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.person-image {
+  height: 140px;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 🔹 Botón de video uniforme */
+.btn-video {
+  width: 100%;
+  margin-top: 8px;
+  background: var(--teal);
+  color: #061922;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-video:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .person-image-container {
+    flex: 1 1 100%;
+  }
+  .person-details-section {
+    font-size: 12px;
+  }
+  .person-image {
+    height: 120px;
+  }
+}
+
+/* Estilos para el scrollbar (coincidiendo con civix-neo) */
+.alert-panel-header::-webkit-scrollbar,
+.tabs-content::-webkit-scrollbar,
+.panel::-webkit-scrollbar,
+.alert-list::-webkit-scrollbar,
+.cam-list::-webkit-scrollbar,
+.modal-video::-webkit-scrollbar,
+.alert-details-panel::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+  background-color: transparent;
+}
+.alert-panel-header::-webkit-scrollbar-track,
+.tabs-content::-webkit-scrollbar-track,
+.panel::-webkit-scrollbar-track,
+.alert-list::-webkit-scrollbar-track,
+.cam-list::-webkit-scrollbar-track,
+.modal-video::-webkit-scrollbar-track,
+.alert-details-panel::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.alert-panel-header::-webkit-scrollbar-thumb,
+.tabs-content::-webkit-scrollbar-thumb,
+.panel::-webkit-scrollbar-thumb,
+.alert-list::-webkit-scrollbar-thumb,
+.cam-list::-webkit-scrollbar-thumb,
+.modal-video::-webkit-scrollbar-thumb,
+.alert-details-panel::-webkit-scrollbar-thumb {
+  background-color: rgba(136, 136, 136, 0.5);
+  border-radius: 10px;
+}
+
+.alert-panel-header::-webkit-scrollbar-thumb:hover,
+.tabs-content::-webkit-scrollbar-thumb:hover,
+.panel::-webkit-scrollbar-thumb:hover,
+.alert-list::-webkit-scrollbar-thumb:hover,
+.cam-list::-webkit-scrollbar-thumb:hover,
+.modal-video::-webkit-scrollbar-thumb:hover,
+.alert-details-panel::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(136, 136, 136, 0.8);
+}
+
+/* === Tarjetas de alerta (alert-card) con fondo negro === */
+.alert-card {
+  background: #000000; /* Fondo negro puro */
+  border: 1px solid rgba(34,230,217,0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+  color: #e8fbff; /* texto legible sobre negro */
+}
+
+.alert-card.highlighted {
+  border-color: var(--teal);
+  box-shadow: 0 0 12px rgba(34,230,217,0.6);
+}
+
+/* Ajustes del contenido */
+.alert-card img,
+.alert-card video {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-bottom: 1px solid rgba(34,230,217,0.2);
+}
+
+.alert-info {
+  background: #000000; /* Fondo negro también para el bloque de info */
+  padding: 8px;
+  color: #b5d6df;
+}
+
+.alert-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #b5d6df;
+}
+
+   
+/* Aplica la lógica a TODOS los elementos scrollables */
+*::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background-color: rgba(136, 136, 136, 0.5);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(136, 136, 136, 0.8);
+}
+
+/* === Frame dinámico aislado dentro de la card === */
+.slot-frame-container{
+  position: relative;
+  width: 100%;
+  height: 140px;
+  background: #000;        /* negro sólido detrás del frame */
+  overflow: hidden;
+  border-bottom: 1px solid rgba(34,230,217,0.2);
+}
+.slot-frame-container img,
+.slot-frame-container video{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* === Botón Fullscreen Individual para Slots === */
+.slot-fullscreen-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--teal);
+  border: 1px solid rgba(34, 230, 217, 0.5);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.slot-fullscreen-btn:hover {
+  background: rgba(34, 230, 217, 0.2);
+  border-color: var(--teal);
+  transform: scale(1.05);
+}
+
+.slot-fullscreen-btn:active {
+  transform: scale(0.95);
+}
+
+/* Asegurar que el botón sea visible incluso en fullscreen del tablero */
+#app:fullscreen .slot-fullscreen-btn,
+#app:-webkit-full-screen .slot-fullscreen-btn,
+#app:-moz-full-screen .slot-fullscreen-btn {
+  display: block !important;
+  z-index: 1001;
+}
+
+/* Cuando el slot individual está en fullscreen */
+.slot-frame-container:fullscreen .slot-fullscreen-btn,
+.slot-frame-container:-webkit-full-screen .slot-fullscreen-btn,
+.slot-frame-container:-moz-full-screen .slot-fullscreen-btn {
+  top: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Overlay de información en fullscreen individual */
+.slot-fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(6, 25, 34, 0.95);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.slot-fullscreen-overlay.active {
+  display: flex;
+}
+
+.slot-fullscreen-content {
+  position: relative;
+  width: 90%;
+  height: 90%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(34, 230, 217, 0.3);
+  
+}
+
+.slot-fullscreen-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.slot-fullscreen-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9));
+  padding: 20px;
+  color: white;
+}
+
+.slot-fullscreen-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--orange);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  z-index: 10000;
+}
+
+/* Mostrar cursor tipo “mover” sobre paneles arrastrables */
+.alert-panel {
+  cursor: grab;
+}
+
+.alert-panel:active {
+  cursor: grabbing;
+}
+
+
+.alert-panel.dragging {
+  opacity: 0.4;
+  transform: scale(0.98);
+  border: 2px dashed var(--teal);
+  cursor: grabbing; /* 🔹 añade esto para mantener el cursor activo */
+}
+
+/* Ocultar el código del tipo de alerta, pero mantenerlo en el DOM */
+.alert-panel-header .type-code {
+  display: none;
+}
+
+/* Nuevo estilo para el contador circular */
+.alert-count-badge {
+  background-color: var(--teal);
+  color: #061922;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 10px; /* separa del título */
+  vertical-align: middle;
+}
+
+/* Alinear bien el título y el contador */
+.alert-panel-header h5 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--teal);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* === Botón Fullscreen Individual para Slots === */
+.slot-fullscreen-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--teal);
+  border: 1px solid rgba(34, 230, 217, 0.5);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.slot-fullscreen-btn:hover {
+  background: rgba(34, 230, 217, 0.2);
+  border-color: var(--teal);
+}
+#app-container
+ {
+  position: relative;
+}
+
+
+/* 🔹 Efecto highlight temporal de 59s en nuevas alertas */
+.alert-card.highlighted-temp {
+  animation: pulseHighlight 1.5s ease-in-out infinite alternate;
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 12px rgba(34,230,217,0.8) !important;
+}
+
+@keyframes pulseHighlight {
+  0% { box-shadow: 0 0 4px rgba(34,230,217,0.4); }
+  100% { box-shadow: 0 0 18px rgba(34,230,217,1); }
+}
+
+.alert-panel.dragging {
+  opacity: 0.4;
+  transform: scale(0.98);
+  border: 2px dashed var(--teal);
+  cursor: grabbing;
+  transition: all 0.2s ease;
+}
+
+.alert-panel-header {
+  cursor: grab;
+  user-select: none;
+}
+
+/* Contenedor principal de cada item */
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* empuja el último span al extremo */
+  padding-right: 10%; /* deja 10% de espacio desde el borde derecho */
+}
+
+/* Nombre del tipo */
+.alert-name {
+  margin-right: 10px; /* separa el nombre del círculo */
+}
+
+/* Círculo naranja para la cantidad */
+.alert-count {
+  background-color: orange;
+  color: white;
+  border-radius: 50%;
+  padding: 6px 12px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  text-align: center;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}
+
+.modal-video {
+  width: min(920px, 95vw);
+  max-height: 85vh;
+  overflow: auto;
+  background: var(--panel);
+  border-radius: 12px;
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+}
+
+.modal-content {
+  background: var(--panel) !important;
+  border-radius: 12px;
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+  border: none;
+}
+
+.modal-header {
+  background: var(--panel) !important;
+  border-bottom: 1px solid rgba(181,214,223,0.2);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.modal-header h3, 
+.modal-header h5 {
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.modal-header h3 span, 
+.modal-header h5 span {
+  color: var(--teal);
+  font-weight: bold;
+}
+
+.video-player-wrapper {
+  flex-grow: 1;
+  min-width: 500px;
+  height: 400px;
+}
+
+.alert-panels-wrapper {
+  overflow-x: auto; /* antes estaba hidden */
+}
+
+/* ====== Lista de tipos de alerta (modal) ====== */
+.alert-type-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 🔹 título a la izquierda, contador a la derecha */
+  padding: 8px 12px;
+  border: 1px solid rgba(34, 230, 217, 0.2);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: #0b1f2a;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.alert-type-item:hover {
+  background: rgba(34, 230, 217, 0.1);
+}
+
+.alert-type-item.selected {
+  border-color: #22e6d9;
+  background: rgba(34, 230, 217, 0.2);
+}
+
+/* 🔹 Contenedor del nombre del tipo */
+.alert-type-name {
+  color: #e8fbff;
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+/* 🔸 Contador circular alineado a la derecha */
+.alert-count {
+  background: #22e6d9;
+  color: #0b1f2a;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 12px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+/* Cambia de color cuando hay nuevas alertas */
+.alert-count.highlight {
+  background: #ff7a2f;
+  color: white;
+  box-shadow: 0 0 10px rgba(255, 122, 47, 0.8);
+}
+
+/* ====== Texto truncado con "..." ====== */
+.truncate-text {
+  display: inline-block;
+  max-width: 95%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+/* ====== Aplicar en encabezados del panel ====== */
+.alert-panel-header h5 {
+  color: #22e6d9;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.alert-panel-header h5 .type-name {
+  flex: 1;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+/* ====== Opcional: truncar nombres largos de cámara ====== */
+.alert-card .alert-info strong {
+  font-weight: 600;
+  color: #22e6d9;
+}
+
+
+
+.alert-panel-title2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 8px;
+  margin: 0;
+  color: var(--teal);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* === Nombre del tipo de alerta === */
+.alert-type-name2 {
+  flex: 1;
+  line-height: 1.2;
+  overflow: hidden;
+  color: var(--teal);
+  word-break: break-word;
+  white-space: normal; /* Permite salto de línea si es necesario */
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Máximo 2 líneas */
+  -webkit-box-orient: vertical;
+}
+
+/* === Círculo contador === */
+.alert-count-badge {
+  background-color: var(--orange);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.3s ease;
+}
+
+.alert-count-badge:hover {
+  background-color: #ff9357;
+}
+
+/* =================== Imagen de detección recortada =================== */
+#cropped-detection-detail {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  background: rgba(10, 20, 30, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(34, 230, 217, 0.25);
+}
+
+#cropped-detection-detail canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.alert-group {
+  transition: all 0.2s ease-in-out;
+}
+.toggle-group-btn {
+  font-size: 12px;
+  line-height: 1;
+  width: 94%;
+  height: 26px;
+  border-radius: 6px;
+  text-align: center;
+  padding: 0;
+  margin-bottom: 6px ;
+  margin-left: 8px ;
+  margin-right: 8px ;
+  background: rgba(10, 20, 30, 0.8); 
+}
+
+.person-details-images {
+  display: flex;
+  flex-direction: row; /* comportamiento actual */
+  gap: 10px;
+}
+
+.person-details-images.vertical-layout {
+  flex-direction: column; /* fuerza disposición vertical */
+  gap: 14px;
+}
+
+.person-image-container {
+  flex: 1;
+  text-align: center;
+}
+
+.person-image {
+  background-size: cover;
+  background-position: center;
+  height: 120px;
+  border-radius: 6px;
+  background-color: #333;
+}
+
+.person-image-label {
+  font-size: 13px;
+  color: #9eeaf9;
+  margin-bottom: 4px;
+}
+
+
+
+
+
+
+
+.toggle-row, .related-container .d-flex {
+  padding: 0 10px;
+}
+
+
+
+.toggle-group-btn:hover {
+  background: rgba(255, 145, 0, 0.25);
+}
+
+.btn-video {
+  flex: 1;
+  text-align: center;
+}
+
+</style>
+
+
+
+<!-- Pantalla de inicio -->
+<section id="startScreen">
+  <h1>🚨 Tablero de Alertas</h1>
+
+  <button class="btn btn-accent" id="btnGoDashboard">Ir al Dashboard</button>
+</section>
+<div class="container" id="app-container">
+<!-- Aplicación principal -->
+    <section id="app">
+      <div class="board-header">
+        <h2>📊 Tablero de Alertas</h2>
+        <div>
+          <button class="btn-add-panel" onclick="openAlertTypeModal()">➕ Agregar tipo de alerta</button>
+          <!--button class="btn-exit-fullscreen" onclick="exitFullscreen()">Salir de Pantalla Completa</button-->
+        </div>
+      </div>
+    
+      <div class="alert-panels-wrapper" id="alertPanelsContainer"></div>
+    
+      <!-- Modal selección tipo -->
+      <div class="modal-camaras" id="alertTypeModal">
+        <div class="modal-header"><h3>Lista de tipos de alertas</h3></div>
+        <div class="modal-body" id="alertTypeList"></div>
+        <div class="modal-footer">
+          <button class="btn btn-success" id="btnAddAlertType" disabled>Agregar Panel</button>
+          <button class="btn btn-accent" onclick="closeAlertTypeModal()">Cancelar</button>
+        </div>
+      </div>
+      
+           <div class="overlay" id="videoOvl" aria-hidden="true" style="display: none;">
+      <div class="modal-video" role="dialog" aria-modal="true">
+        <div class="modal-content">
+          <div class="modal-header text-left" style="display: flex;justify-content: space-between;">
+            <div style="width:100%">
+              <span class="c-white" style="float:right" id="showtime"></span>
+              <h3>Identificador: <span class="c-white" id="showId"></span></h3>
+              <h5>Alerta: <span class="c-white" id="showAlert"></span></h5>
+              <h5>Cámara: <span class="c-white" id="showcamera"></span></h5>
+              <h5>Ubicación: <span class="c-white" id="showUbication"></span></h5>
+              <h5>Fecha y hora: <span class="c-white" id="fechahoravideo"> </span></h5>
+              <div id="showlocation"></div>
+            </div>
+            <div id="photo-short" style="display:none; width:100%; justify-content:end; gap: 1em;">
+              <div class="image-section" style="overflow:hidden;">
+                <div class="image-label">Detección Recortada</div>
+                <div class="image-container" id="cropped-detection"></div>
+              </div>
+              <div class="image-section" id="photo-name">
+                <div class="image-label">Foto de Referencia</div>
+                <div class="image-container" id="person-photo"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="modal-body">
+            <div class="video-player-wrapper"></div>  
+            <div class="person-info-panel" id="person-info-panel" style="display: none;">
+              <h4>Detección</h4>
+              <div id="person-data"></div>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger btn-rounded" id="closeVideoModal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    
+    </section>
+    
+    
+
+    
+    <!-- Slot de Video (alternativo) -->
+    <div class="video-slot-container" id="videoSlot">
+      <div class="video-slot-header">
+        <h3>Reproducción de Video</h3>
+        <button class="video-slot-close" onclick="closeVideoSlot()">✕ Cerrar</button>
+      </div>
+      <div class="video-slot-content">
+        <div class="video-slot-player">
+          <video id="videoSlotPlayer" controls autoplay muted></video>
+          <div class="video-slot-info">
+            <h4>Información del Video</h4>
+            <div class="video-slot-details" id="videoSlotDetails"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<!-- Modal de Video - Estilo civix-neo -->
+
+
+<script>
+/* =================== Estado =================== */
+const MAX_PANELS = 5;
+const MAX_ALERTS = 50;
+let selectedType = null;
+let listalertas = [];
+let alertas = [];
+/** panels: array de objetos { id: '5', name: 'congestion vehicular' } */
+let panels = [];
+let _alertTimersByType = {}; // timers por tipo
+let videoPlayer = null;
+/* === Mapa de tipos (fallback local) === */
+let alertFrameIntervals = {};
+let currentAlertFrames = {};
+
+
+const tiposAlertas = {
+  '1': 'accidentes de transito',
+  '3': 'zonas restringidas de vehículos',
+  '5': 'congestion vehicular',
+  '6': 'vehiculos en listas',
+  '7': 'zonas de estacionamiento',
+  '8': 'zonas de pasajes peatonales',
+  '9': 'zonas de evacuación',
+  '10': 'zonas de ciclovias',
+  '11': 'zonas de centros de salud',
+  '12': 'zonas de restricción temporal por obras',
+  '13': 'zonas de proximidad a monumentos',
+  '14': 'zonas de puentes y viaductos',
+  '15': 'zonas restringida de personas',
+  '16': 'personas en lista',
+  '17': 'Aglomeracion de personas',
+  '18': 'Agresión física'
+};
+let listAlertaNuevas  = [];
+let nuevas = [];
+let anteriores =  [];
+let nuevosDatos =  [];
+let idsPrevios =  [];
+
+/**
+ * Inicia el ciclo de actualización de alertas:
+ * - Primer render rápido en 2 segundos.
+ * - Luego pasa a un intervalo normal de 30 segundos.
+ */
+function iniciarCicloDeAlertas() {
+  // Cancela cualquier ciclo previo
+  if (window.alertCycleInterval) clearInterval(window.alertCycleInterval);
+
+  console.log("⏱️ Iniciando render rápido de alertas (2s)...");
+
+  // Primer refresco rápido tras 2 segundos
+  setTimeout(() => {
+    console.log("⚡ Refrescando alertas iniciales...");
+    refrescarTodasLasAlertas();
+  }, 2000);
+
+  // Luego cada 30 segundos
+  window.alertCycleInterval = setInterval(() => {
+    if (!window.isModalOpen && !window.isSlotFullscreen) {
+      refrescarTodasLasAlertas();
+    }
+  }, 30000);
+}
+
+/**
+ * Refresca las alertas de todos los paneles visibles
+ */
+function refrescarTodasLasAlertas() {
+  if (!window.panels || !panels.length) return;
+  panels.forEach(p => {
+    getAlertasPorTipo(p.id, true);
+  });
+
+  // Actualiza el contador en el modal si está visible
+  if (document.getElementById("alertTypeModal")?.style.display !== "none") {
+    updateAlertTypeListWithCounts();
+  }
+}
+
+/* =================== Helpers de API =================== */
+/** Llama por tipo. Usa callAPI real; si falla, usa sample. Refresca y renderiza solo ese panel */
+async function getAlertasPorTipo(typeCode, autoRefresh=true){
+  const code = String(typeCode);
+  // Limpia/renueva timer por tipo
+  if (_alertTimersByType[code]) clearTimeout(_alertTimersByType[code]);
+
+  /*if (typeof callAPI !== 'function'){
+    const nuevas = generateSampleAlerts().filter(a => String(a.type_event_code) === code);
+    mergeAlertasPorTipo(code, nuevas);
+    renderPanelByType(code);
+    programarRefreshTipo(code, autoRefresh);
+    return;
+  }
+*/
+
+detenerFrames();
+clearAllAlertFrames();
+  callAPI({
+    method: 'gestion/getalerts',
+    //params: { type_event: code },
+    ok: function (vals) {
+      const nuevas = Array.isArray(vals) ? vals : (vals && vals.data) ? vals.data : [];
+      //log("vals",vals)
+        
+         anteriores = Array.isArray(listalertas) ? listalertas : [];
+         nuevosDatos = Array.isArray(vals.data) ? vals.data : [];
+        //log("anteriores",anteriores)
+        //log("nuevosDatos",nuevosDatos)
+        // Crear un Set con los IDs previos para búsqueda rápida O(1)
+         idsPrevios = new Set(anteriores.map(a => a.id));
+        
+        // Filtrar solo los nuevos registros
+        nuevosDatos.forEach(alerta => {
+            if (!idsPrevios.has(alerta.id)) {
+                nuevas.push(alerta);
+            }
+        });
+   //log("nuevas",nuevas)
+      listAlertaNuevas = nuevas;
+      listalertas = vals.data;
+      //loadAlertTypes();
+
+      mergeAlertasPorTipo(code, nuevas);
+      renderPanelByType(code);
+      programarRefreshTipo(code, autoRefresh);
+      reanudarFrames();
+      
+    },
+    error: function (err) {
+      console.error('❌ Error getAlertasPorTipo:', err);
+      // fallback a sample para no dejar vacío
+      const nuevas = generateSampleAlerts().filter(a => String(a.type_event_code) === code);
+      mergeAlertasPorTipo(code, nuevas);
+      renderPanelByType(code);
+      programarRefreshTipo(code, autoRefresh);
+      reanudarFrames();
+    }
+  });
+}
+
+
+
+
+
+function mergeAlertasPorTipo(typeCode, nuevas) {
+  const code = String(typeCode);
+  
+  //log("typecode",typeCode)
+  const otras = (listalertas || []).filter(a => String(a.type_event_code) !== code);
+  // log("otras",otras)
+  // 🔹 Eliminar duplicados (mismo id)
+  const existentes = new Set(otras.map(a => a.id));
+//log("existentes",existentes)
+  const nuevasUnicas = (nuevas || []).filter(it => !existentes.has(it.id));
+  
+  //log("nuevasUnicas",nuevasUnicas)
+  const todas = [...otras, ...nuevasUnicas];
+//log("todas",todas)
+
+  // 🔹 Ordenar y limitar a MAX_ALERTS
+  todas.sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame));
+  alertas = todas.slice(0, MAX_ALERTS);
+//log("todas",todas)
+
+  //saveAlertData(alertas);
+}
+
+
+/** Programa refresh de 30s por tipo */
+function programarRefreshTipo(typeCode, enable){
+  if (!enable) return;
+  const code = String(typeCode);
+  _alertTimersByType[code] = setTimeout(() => getAlertasPorTipo(code, true), 30000);
+}
+
+/* =================== Render =================== */
+function renderPanelByType(typeCode){
+  const panel = document.querySelector('.alert-panel[data-type="'+typeCode+'"]');
+  if (!panel) return;
+
+  renderListTimeline(panel);
+}
+
+
+/* =================== Guardado optimizado (máx. 100 alertas por tipo) =================== */
+function saveAlertData(data) {
+  try {
+    if (!Array.isArray(data)) return;
+    const byType = {};
+    for (const a of data) {
+      const t = String(a.type_event_code || a.type_event_name || '0');
+      if (!byType[t]) byType[t] = [];
+      byType[t].push(a);
+    }
+    const trimmed = [];
+    Object.keys(byType).forEach(t => {
+      const sorted = byType[t].sort((A, B) => new Date(B.init_time_frame) - new Date(A.init_time_frame));
+      trimmed.push(...sorted.slice(0, MAX_ALERTS));
+    });
+    localStorage.setItem('lastAlertData_v3', JSON.stringify(trimmed));
+  } catch (e) {
+    console.warn('saveAlertData error:', e);
+  }
+}
+
+
+function renderListTimelineold5(panel) {
+  const typeCode = panel.dataset.type;
+  const typeName = panel.dataset.name || 'Tipo';
+  
+  const alerts = listalertas.filter(a => String(a.type_event_id) === String(typeCode))
+    .sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame))
+    .slice(0, 100);
+  
+  const box = panel.querySelector('.alert-cards-container');
+  //const count = panel.querySelector('.alert-count');
+  const count = panel.querySelector('.alert-count-badge');
+
+  if (count) count.textContent = alerts.length;
+  box.innerHTML = '';
+  
+  alerts.forEach((alert) => {
+      
+        // ✅ Verificar si ya existe una card con el mismo id
+  if (document.getElementById(`frame-${alert.id}`)) return;
+  
+  const card = document.createElement('div');
+  card.className = 'alert-card';
+  card.dataset.cameraId = alert.camera_id; // Para identificar la cámara
+  
+  // Crear contenedor para el frame dinámico
+  const frameContainer = document.createElement('div');
+  frameContainer.className = 'slot-frame-container';
+  frameContainer.id = `frame-${alert.id}`;
+  
+  // Imagen temporal de carga
+  frameContainer.innerHTML = `
+    <div class="frame-loading">Cargando video...</div>
+    <img src="" style="display:none;" alt="Frame en vivo">
+  `;
+  
+  card.appendChild(frameContainer);
+
+  // 🔹 Caso 1: Alerta de Persona o Vehículo Detectado
+  if (alert.person_coords_face || alert.vehicle_coords_plate) {
+    const personName = alert.nombre ? `${alert.nombre} ${alert.apellido}` : (alert.vehicle_plate || '—');
+    const personTitle = alert.nombre ? 'Persona Detectada' : 'Vehículo Detectado';
+    const subTitle = alert.nombre ? 'Nombre:' : 'Placa:';
+    const regTime = new Date(alert.fecha_registro || alert.fecha_robo || alert.init_time_frame || Date.now());
+    const formattedRegTime = regTime.toLocaleString('es-PE');
+    const refImg = alert.person_coords_face
+      ? `/personimages/inputs/${alert.matched_ident}.jpg`
+      : (alert.foto || alert.foto_frame || '');
+
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'alert-info';
+    infoDiv.innerHTML = `
+      <div class="person-details-section">
+        <h4 class="person-details-title">${personTitle}</h4>
+        <div class="detail-item">${subTitle} ${personName}</div>
+        ${alert.documento_contacto || alert.num_documento ?
+          `<div class="detail-item">${alert.tipo_documento || alert.vtipo_documento || 'Documento'}: ${alert.documento_contacto || alert.num_documento}</div>` : ''}
+        <div class="detail-item">Reportado: ${formattedRegTime}</div>
+        <div class="detail-item">Precisión: ${alert.person_accuracy || alert.vehicle_accuracy || '—'}%</div>
+        ${alert.persona_contacto || alert.nombre_propietario ?
+          `<div class="detail-item">Contacto: ${alert.parentesco || 'Propietario'} - ${alert.persona_contacto || alert.nombre_propietario}</div>` : ''}
+        ${alert.numero_contacto || alert.contacto_propietario ?
+          `<div class="detail-item">Teléfono: ${alert.numero_contacto || alert.contacto_propietario}</div>` : ''}
+        <div class="person-details-images">
+          <div class="person-image-container">
+            <div class="person-image-label">Referencia</div>
+            <div class="person-image" style="background-image:url('${refImg}')"></div>
+          </div>
+        </div>
+        <button class="btn-video" onclick="event.stopPropagation(); verVideo('${alert.id}')">▶ Ver video</button>
+      </div>
+    `;
+    card.appendChild(infoDiv);
+  }
+  // 🔹 Caso 2: Alerta general
+  else {
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'alert-info';
+    infoDiv.innerHTML = `
+      <p><strong>${alert.camera_name || alert.camera_id || 'Cámara'}</strong></p>
+      <p>${alert.location || 'Ubicación no disponible'}</p>
+      <p>${formatDate(alert.init_time_frame)}</p>
+      <button class="btn-video" onclick="event.stopPropagation(); verVideo('${alert.id}')">▶ Ver video</button>
+    `;
+    card.appendChild(infoDiv);
+  }
+
+  box.appendChild(card);
+
+  // === 🔹 NUEVO BLOQUE DE CONTROL ===
+  // Solo iniciar render en vivo si la alerta es nueva (no tenía intervalo antes)
+  if (!alertFrameIntervals[alert.id]) {
+    startFrameForAlert(alert); // activa el refresco del frame
+  }
+});
+
+}
+
+// === FULLSCREEN INDIVIDUAL PARA SLOTS ===
+function toggleSlotFullscreen(event, frameId) {
+  event.stopPropagation();
+  const frameContainer = document.getElementById(frameId);
+  if (!frameContainer) return;
+
+  if (document.fullscreenElement === frameContainer) {
+    document.exitFullscreen();
+  } else {
+    if (frameContainer.requestFullscreen) frameContainer.requestFullscreen();
+    else if (frameContainer.webkitRequestFullscreen) frameContainer.webkitRequestFullscreen();
+    else if (frameContainer.msRequestFullscreen) frameContainer.msRequestFullscreen();
+  }
+}
+
+
+
+function renderListTimeline(panel) {
+  const typeCode = panel.dataset.type;
+  const typeName = panel.dataset.name || 'Tipo';
+
+  const alerts = listalertas
+    .filter(a => String(a.type_event_id) === String(typeCode))
+    .sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame))
+    .slice(0, MAX_ALERTS);
+
+  const box = panel.querySelector('.alert-cards-container');
+  const count = panel.querySelector('.alert-count-badge');
+  if (count) count.textContent = alerts.length;
+  box.innerHTML = '';
+
+  const alertsnuevas = listAlertaNuevas
+    .filter(a => String(a.type_event_id) === String(typeCode))
+    .sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame))
+    .slice(0, MAX_ALERTS);
+
+  // === Agrupar alertas por cámara ===
+  const groupedByCamera = alerts.reduce((acc, alert) => {
+    const cam = alert.camera_id || 'desconocida';
+    if (!acc[cam]) acc[cam] = [];
+    acc[cam].push(alert);
+    return acc;
+  }, {});
+
+  // === Estado persistente de expansión ===
+  window.expandedGroups = window.expandedGroups || {};
+
+  // === Render por grupo de cámara ===
+  Object.keys(groupedByCamera).forEach(cameraId => {
+    const group = groupedByCamera[cameraId];
+    const mainAlert = group[0];
+
+    if (document.getElementById(`frame-${mainAlert.id}`)) return;
+
+    // === CARD PRINCIPAL ===
+    const card = document.createElement('div');
+    card.className = 'alert-card';
+    card.dataset.cameraId = mainAlert.camera_id;
+
+    // === FRAME PRINCIPAL ===
+    const frameContainer = document.createElement('div');
+    frameContainer.className = 'slot-frame-container';
+    frameContainer.id = `frame-${mainAlert.id}`;
+    frameContainer.innerHTML = `
+      <div class="frame-loading">Cargando video...</div>
+      <img src="" style="display:none;" alt="Frame en vivo">
+      <button 
+        class="slot-fullscreen-btn" 
+        title="Pantalla completa"
+        onclick="toggleSlotFullscreen(event, 'frame-${mainAlert.id}')">
+        ⛶
+      </button>
+    `;
+    card.appendChild(frameContainer);
+
+    // === INFORMACIÓN PRINCIPAL ===
+    if (mainAlert.person_coords_face || mainAlert.vehicle_coords_plate) {
+      const personName = mainAlert.nombre ? `${mainAlert.nombre} ${mainAlert.apellido}` : (mainAlert.vehicle_plate || '—');
+      const personTitle = mainAlert.nombre ? 'Persona Detectada' : 'Vehículo Detectado';
+      const subTitle = mainAlert.nombre ? 'Nombre:' : 'Placa:';
+      const regTime = new Date(mainAlert.fecha_registro || mainAlert.fecha_robo || mainAlert.init_time_frame || Date.now());
+      const formattedRegTime = regTime.toLocaleString('es-PE');
+      const refImg = mainAlert.person_coords_face
+        ? `/personimages/inputs/${mainAlert.matched_ident}.jpg`
+        : (mainAlert.foto || mainAlert.foto_frame || '');
+
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'alert-info';
+      infoDiv.innerHTML = `
+        <div class="person-details-section">
+          <h4 class="person-details-title">${personTitle}</h4>
+          <div class="detail-item">${subTitle} ${personName}</div>
+          ${mainAlert.documento_contacto || mainAlert.num_documento ?
+            `<div class="detail-item">${mainAlert.tipo_documento || mainAlert.vtipo_documento || 'Documento'}: ${mainAlert.documento_contacto || mainAlert.num_documento}</div>` : ''}
+          <div class="detail-item">Reportado: ${formattedRegTime}</div>
+          <div class="detail-item">Precisión: ${mainAlert.person_accuracy || mainAlert.vehicle_accuracy || '—'}%</div>
+          ${mainAlert.persona_contacto || mainAlert.nombre_propietario ?
+            `<div class="detail-item">Contacto: ${mainAlert.parentesco || 'Propietario'} - ${mainAlert.persona_contacto || mainAlert.nombre_propietario}</div>` : ''}
+          ${mainAlert.numero_contacto || mainAlert.contacto_propietario ?
+            `<div class="detail-item">Teléfono: ${mainAlert.numero_contacto || mainAlert.contacto_propietario}</div>` : ''}
+          <div class="person-details-images">
+              <div class="person-details-images vertical-layout">
+  <div class="person-image-container">
+    <div class="person-image-label">Detección</div>
+    <div id="cropped-detection-detail-${mainAlert.id}" class="person-image"></div>
+  </div>
+  <div class="person-image-container mt-2">
+    <div class="person-image-label">Referencia</div>
+    <div class="person-image" style="background-image:url('${refImg}')"></div>
+  </div>
+</div>
+
+          </div>
+          <button class="btn-video" onclick="event.stopPropagation(); verVideo('${mainAlert.id}')">▶ Ver video</button>
+        </div>
+      `;
+      card.appendChild(infoDiv);
+    } else {
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'alert-info';
+      infoDiv.innerHTML = `
+        <p><strong>${mainAlert.camera_name || mainAlert.camera_id || 'Cámara'}</strong></p>
+        <p>${mainAlert.location || 'Ubicación no disponible'}</p>
+        <p>${formatDate(mainAlert.init_time_frame)}</p>
+        <button class="btn-video" onclick="event.stopPropagation(); verVideo('${mainAlert.id}')">▶ Ver video</button>
+      `;
+      card.appendChild(infoDiv);
+    }
+
+    // === REFRESCO DE FRAME ===
+    box.appendChild(card);
+    refreshAlertFrame(mainAlert.camera_id, mainAlert.id);
+
+    const ids = listAlertaNuevas.map(a => a.id);
+    const existe = ids.includes(0) || ids.includes(mainAlert.id);
+    const ahora = Date.now();
+    const hace5Min = ahora - (5 * 60 * 1000);
+
+    if (existe && mainAlert.epoch_frame > hace5Min) {
+      alertFrameIntervals[mainAlert.id] = setInterval(() => {
+        refreshAlertFrame(mainAlert.camera_id, mainAlert.id);
+      }, 1000);
+    }
+
+    if (mainAlert.tracking_id !== null && mainAlert.foto) {
+      setTimeout(() => applyImageCropping(mainAlert), 100);
+    }
+
+    // === ALERTAS SECUNDARIAS ===
+    if (group.length > 1) {
+      const relatedContainer = document.createElement('div');
+      relatedContainer.className = 'related-container mt-2';
+
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'btn toggle-group-btn w-100';
+      toggleBtn.textContent = window.expandedGroups[cameraId]
+        ? `▲ Ocultar ${group.length - 1} alertas relacionadas`
+        : `▼ Ver ${group.length - 1} alertas relacionadas`;
+      toggleBtn.onclick = (e) => toggleGroupVisibility(e, cameraId);
+
+      const related = document.createElement('div');
+      related.className = 'related-alerts';
+      related.style.display = window.expandedGroups[cameraId] ? 'block' : 'none';
+
+      group.slice(1).forEach(alert => {
+        const subCard = document.createElement('div');
+        subCard.className = 'alert-card bg-secondary text-light mt-2 p-2 rounded';
+        subCard.innerHTML = `
+          <div class="alert-info">
+            <p><strong>${alert.type_event_name}</strong></p>
+            <p>${alert.location || 'Ubicación no disponible'}</p>
+            <p>${formatDate(alert.init_time_frame)}</p>
+            <button class="btn btn-video w-100 mt-1" onclick="event.stopPropagation(); verVideo('${alert.id}')">▶ Ver video</button>
+          </div>
+        `;
+        related.appendChild(subCard);
+      });
+
+      relatedContainer.appendChild(toggleBtn);
+      relatedContainer.appendChild(related);
+      card.appendChild(relatedContainer);
+    }
+  });
+}
+
+// === FUNCION DE TOGGLE PERSISTENTE ===
+function toggleGroupVisibility(e, cameraId) {
+  const btn = e.currentTarget;
+  const related = btn.nextElementSibling;
+  if (!related) return;
+  const expanded = related.style.display === 'block';
+  related.style.display = expanded ? 'none' : 'block';
+  btn.textContent = expanded
+    ? btn.textContent.replace('▲ Ocultar', '▼ Ver')
+    : btn.textContent.replace('▼ Ver', '▲ Ocultar');
+  // Guardar estado
+  window.expandedGroups[cameraId] = !expanded;
+}
+
+
+
+/*
+function toggleGroupVisibility(e) {
+  const btn = e.currentTarget;
+  const targetId = btn.dataset.target;
+  const target = document.getElementById(targetId);
+  if (!target) return;
+
+  const isHidden = target.style.display === 'none';
+  target.style.display = isHidden ? 'block' : 'none';
+  btn.textContent = isHidden ? '▲' : '▼';
+}
+
+*/
+
+
+/*
+// Aplica el recorte dinámico de la detección dentro del contenedor
+function applyImageCropping(alert) {
+  const croppedDetection = document.getElementById('cropped-detection-detail');
+  if (!croppedDetection) return;
+
+  croppedDetection.innerHTML = '';
+
+  createCroppedImagePrecise(
+    croppedDetection,
+    alert.foto,
+    alert.person_coords_face || alert.vehicle_coords_plate
+  );
+}
+
+
+// Crea una versión recortada ajustada al área detectada
+function createCroppedImagePrecise(container, imageUrl, coordsString) {
+  if (!coordsString || !imageUrl) return;
+
+  // Coords: formato esperado "x1,y1,x2,y2"
+  const coords = coordsString.split(',').map(Number);
+  if (coords.length < 4) return;
+
+  const [x1, y1, x2, y2] = coords;
+  const w = x2 - x1;
+  const h = y2 - y1;
+
+  const img = new Image();
+  img.crossOrigin = "anonymous"; // evita errores CORS si aplica
+  img.src = imageUrl;
+
+  img.onload = () => {
+    const imgW = img.naturalWidth;
+    const imgH = img.naturalHeight;
+
+    // 🔹 Crear canvas proporcional al contenedor visible
+    const containerWidth = container.clientWidth || 240;
+    const containerHeight = container.clientHeight || 180;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 🔹 Escalamos para llenar el contenedor manteniendo proporción
+    const scale = Math.min(containerWidth / w, containerHeight / h);
+    const drawW = w * scale;
+    const drawH = h * scale;
+
+    canvas.width = containerWidth;
+    canvas.height = containerHeight;
+
+    // 🔹 Centramos el recorte dentro del canvas
+    const offsetX = (containerWidth - drawW) / 2;
+    const offsetY = (containerHeight - drawH) / 2;
+
+    // 🔹 Dibujamos solo el área recortada
+    ctx.drawImage(img, x1, y1, w, h, offsetX, offsetY, drawW, drawH);
+
+    // 🔹 Limpieza y reemplazo visual
+    container.innerHTML = '';
+    container.appendChild(canvas);
+  };
+
+  img.onerror = (e) => {
+    console.warn('Error cargando imagen para recorte:', imageUrl, e);
+  };
+}
+
+*/
+// Función para aplicar recorte de imagen
+function applyImageCropping(alert) {
+ // const croppedDetection = document.getElementById("cropped-detection-detail-'${alert.id}'");
+   const croppedDetection = document.getElementById(`cropped-detection-detail-${alert.id}`)
+  if (!croppedDetection) return;
+
+  croppedDetection.innerHTML = '';
+
+  createCroppedImage(croppedDetection, alert.foto,
+                    (alert.person_coords_face || alert.vehicle_coords_plate),
+                    'Detección',
+                    (alert.person_coords_obj || alert.vehicle_coords_obj),
+                    190, 150);
+}
+
+// Función auxiliar para crear imagen recortada
+function createCroppedImageold(container, imageUrl, coords, label, objCoords, width, height) {
+  const img = document.createElement('img');
+  img.src = imageUrl;
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  container.appendChild(img);
+}
+
+
+// Función para crear imagen recortada
+function createCroppedImage(parentElement, imageUrl, coordsString, label, coordsObj, width, height) {
+  if (!coordsString) return;
+  
+  const coords = coordsString.split(",").map(Number);
+  const coords1 = coordsObj.split(",").map(Number);
+  const [xf1, yf1, xf2, yf2] = coords;
+  const [xb1, yb1] = coords1;
+  
+  const containerW = width;
+  const containerH = height;
+  
+  const x1 = xf1 + xb1;
+  const y1 = yf1 + yb1;
+  const w = xf2 - xf1;
+  const h = yf2 - yf1;
+
+  const [xo1, yo1, xo2, yo2] = coordsObj.split(",").map(Number);
+  const w_obj = xo2 - xo1;
+  const h_obj = yo2 - yo1;
+
+  const container = document.createElement('div');
+  container.className = 'image-section';
+
+  const img = new Image();
+  img.src = imageUrl;
+  img.onload = () => {
+    const imgW = img.naturalWidth;
+    const imgH = img.naturalHeight;
+    const scale = Math.min(containerW / w, containerH / h);
+    const bgW = imgW * scale;
+    const bgH = imgH * scale;
+
+    const bgX = (containerW - w * scale) / 2 - x1 * scale;
+    const bgY = (containerH - h * scale) / 2 - y1 * scale;
+
+    container.style.backgroundImage = `url(${imageUrl})`;
+    container.style.backgroundSize = `${bgW}px ${bgH}px`;
+    container.style.backgroundPosition = `${bgX}px ${bgY}px`;
+    container.style.backgroundRepeat = "no-repeat";
+    container.style.width = `${containerW}px`;
+    container.style.height = `${containerH}px`;
+  };
+  parentElement.appendChild(container);
+}
+
+/* === HIGHLIGHT AUTOMÁTICO PARA ALERTAS NUEVAS (59s) === */
+
+// Mantenemos un set global con las alertas ya vistas
+window.renderedAlertIds = window.renderedAlertIds || new Set();
+
+// Función que aplica el efecto visual
+function highlightNewAlert(card) {
+  if (!card) return;
+  card.classList.add("highlighted-temp");
+  setTimeout(() => card.classList.remove("highlighted-temp"), 59000);
+}
+
+// Parchear renderListTimeline sin romper su comportamiento actual
+const _renderListTimeline_original = renderListTimeline;
+renderListTimeline = function(panel) {
+  // Ejecuta el render original
+  _renderListTimeline_original(panel);
+
+  // Luego detecta nuevas alertas renderizadas
+  const cards = panel.querySelectorAll(".alert-card");
+  cards.forEach(card => {
+    const alertId = card.id?.replace("frame-", "") || card.dataset.id || "";
+    if (alertId && !window.renderedAlertIds.has(alertId)) {
+      window.renderedAlertIds.add(alertId);
+      highlightNewAlert(card);
+    }
+  });
+  
+  
+};
+
+
+// Variables globales para el manejo de frames
+
+
+// Función para iniciar la actualización de frames para una alerta
+function startFrameForAlert(alert) {
+  if (!alert.camera_id) return;
+  
+  const frameContainer = document.getElementById(`frame-${alert.id}`);
+  if (!frameContainer) return;
+  
+  // Limpiar intervalo anterior si existe
+  if (alertFrameIntervals[alert.id]) {
+    clearInterval(alertFrameIntervals[alert.id]);
+  }
+  
+  // Obtener frame inmediatamente
+  refreshAlertFrame(alert.camera_id, alert.id);
+  
+  // Configurar intervalo de actualización (cada 2 segundos)
+  alertFrameIntervals[alert.id] = setInterval(() => {
+    refreshAlertFrame(alert.camera_id, alert.id);
+  }, 1000);
+}
+ 
+ /*
+function getframesAlerts () {
+    
+          const cameraIds = [...new Set(listAlertaNuevas.map(d => d.camera_id))];
+          const cameraIdsStr = cameraIds.join(",");
+          
+ callAPI({
+    method: 'dashboards/lastframe',
+    params: { cameras: cameraIdsStr },
+    ok: function(data) {
+      if (data && data.foto) {
+         // updateAlertFrame(alertId, data.foto, data.persons_info, data.vehicles_info);
+        
+        // Actualizar timestamp si existe
+        const frameContainer = document.//& data.epoch_frame) {
+          const timeEl = frameContainer.querySelector('.frame-time');
+          if (!timeEl) {
+            const timeElement = document.createElement('div');
+            timeElement.className = 'frame-time';
+            timeElement.style.cssText = `
+              position: absolute;
+              bottom: 5px;
+              right: 5px;
+              background: rgba(0,0,0,0.7);
+              color: #22e6d9;
+              padding: 2px 6px;
+              border-radius: 4px;
+              font-size: 10px;
+              font-family: monospace;
+            `;
+            frameContainer.appendChild(timeElement);
+          }
+          
+          const frameDate = new Date(data.epoch_frame);
+          frameContainer.querySelector('.frame-time').textContent = frameDate.toLocaleTimeString('es-PE', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+        }
+      }
+    },
+    error: function(error) {
+      console.error(`Error al obtener frame para alerta ${alertId}:`, error);
+    }
+  });
+}
+*/
+// Función para refrescar el frame de una alerta específica
+async function refreshAlertFrame(cameraId, alertId) {
+  if (!cameraId || cameraId === "Selecciona cámara") return;
+  if(!alertId) return;
+  
+  const frameEl = document.getElementById(`frame-${alertId}`);
+  if (!frameEl || document.hidden) {
+    // 🔒 Evita render si el elemento no existe o la pestaña no está activa
+    clearInterval(alertFrameIntervals[alert_id]);
+    delete alertFrameIntervals[alert_id];
+    console.log(`🛑 Frame detenido: ${alert_id}`);
+    return;
+  }
+
+
+  callAPI({
+    method: 'dashboards/lastframe',
+    params: { camera_id: cameraId },
+    ok: function(data) {
+      if (data && data.foto) {
+        updateAlertFrame(alertId, data.foto, data.persons_info, data.vehicles_info);
+        
+        // Actualizar timestamp si existe
+        const frameContainer = document.getElementById(`frame-${alertId}`);
+        if (frameContainer && data.epoch_frame) {
+          const timeEl = frameContainer.querySelector('.frame-time');
+          if (!timeEl) {
+            const timeElement = document.createElement('div');
+            timeElement.className = 'frame-time';
+            timeElement.style.cssText = `
+              position: absolute;
+              bottom: 5px;
+              right: 5px;
+              background: rgba(0,0,0,0.7);
+              color: #22e6d9;
+              padding: 2px 6px;
+              border-radius: 4px;
+              font-size: 10px;
+              font-family: monospace;
+            `;
+            frameContainer.appendChild(timeElement);
+          }
+          
+          const frameDate = new Date(data.epoch_frame);
+          frameContainer.querySelector('.frame-time').textContent = frameDate.toLocaleTimeString('es-PE', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+        }
+      }
+    },
+    error: function(error) {
+      console.error(`Error al obtener frame para alerta ${alertId}:`, error);
+    }
+  });
+}
+
+// Función para actualizar el frame visualmente
+function updateAlertFrame(alertId, frameUrl, personsInfo = [], vehiclesInfo = []) {
+  const frameContainer = document.getElementById(`frame-${alertId}`);
+  if (!frameContainer) return;
+
+  const oldImg = frameContainer.querySelector('img');
+  const loadingEl = frameContainer.querySelector('.frame-loading');
+  //log("Update frame")
+  if (!oldImg) return;
+
+  const newImg = new Image();
+  newImg.style.width = '100%';
+  newImg.style.height = '100%';
+  newImg.style.objectFit = 'cover';
+  newImg.style.display = 'block';
+
+  newImg.onload = () => {
+    // Reemplazar imagen anterior
+    if (oldImg.parentNode) {
+      oldImg.parentNode.replaceChild(newImg, oldImg);
+    }
+    
+    // Ocultar loading
+    if (loadingEl) {
+      loadingEl.style.display = 'none';
+    }
+    
+    // Dibujar bounding boxes si está activado
+    if (window.showBoundingBoxes) {
+      drawBoundingBoxesForAlert(frameContainer, personsInfo, vehiclesInfo);
+    }
+  };
+
+  newImg.onerror = () => {
+    console.warn(`⚠️ Error al cargar frame para alerta ${alertId}`);
+    if (loadingEl) {
+      loadingEl.textContent = 'Error cargando video';
+    }
+  };
+
+  // Forzar recarga con timestamp
+  const timestamp = Date.now();
+  newImg.src = `${frameUrl}${frameUrl.includes('?') ? '&' : '?'}_=${timestamp}`;
+}
+
+// Función para dibujar bounding boxes en las alertas
+function drawBoundingBoxesForAlert(container, personsInfo = [], vehiclesInfo = []) {
+  // Limpiar canvas anterior
+  const existingCanvas = container.querySelector('canvas.bbox-overlay');
+  if (existingCanvas) {
+    existingCanvas.remove();
+  }
+
+  if (!window.showBoundingBoxes || (personsInfo.length === 0 && vehiclesInfo.length === 0)) {
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'bbox-overlay';
+  Object.assign(canvas.style, {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+    zIndex: 15
+  });
+  
+  container.style.position = 'relative';
+  container.appendChild(canvas);
+
+  const img = container.querySelector('img');
+  if (!img) return;
+
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+
+  const imgRect = img.getBoundingClientRect();
+  const scaleX = rect.width / (img.naturalWidth || imgRect.width);
+  const scaleY = rect.height / (img.naturalHeight || imgRect.height);
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 2;
+  ctx.font = '10px monospace';
+  ctx.textBaseline = 'top';
+
+  // Función para dibujar un objeto
+  function drawObj(p) {
+    if (!p.bbox) return;
+
+    const { x1, y1, x2, y2 } = p.bbox;
+    const color = "#007bff";
+
+    let label = `${p.category_name || 'obj'} ${Math.round(p.accuracy || 0)}%`;
+    if (p.category_name === "person" && p.emotion_id) {
+      label += ` ${p.emotion_id}`;
+    }
+
+    const x = x1 * scaleX;
+    const y = y1 * scaleY;
+    const w = (x2 - x1) * scaleX;
+    const h = (y2 - y1) * scaleY;
+
+    // Dibujar rectángulo
+    ctx.strokeStyle = color;
+    ctx.strokeRect(x, y, w, h);
+
+    // Texto
+    let lines = [label];
+    if (p.category_name === "person") {
+      if (p.upper_color_name) lines.push(`Uc: ${p.upper_color_name}`);
+      if (p.lower_color_name) lines.push(`Lc: ${p.lower_color_name}`);
+    } else {
+      if (p.plate) lines.push(`Placa: ${p.plate}`);
+      if (p.vehicle_color_name) lines.push(`Color: ${p.vehicle_color_name}`);
+    }
+
+    const lineHeight = 12;
+    const textWidth = Math.max(...lines.map(t => ctx.measureText(t).width)) + 6;
+    const totalHeight = lines.length * lineHeight;
+    
+    ctx.fillStyle = color + '88';
+    ctx.fillRect(x, Math.max(0, y - totalHeight), textWidth, totalHeight);
+
+    ctx.fillStyle = '#fff';
+    lines.forEach((txt, i) => {
+      ctx.fillText(txt, x + 3, y - totalHeight + (i * lineHeight) + 1);
+    });
+  }
+
+  personsInfo.forEach(drawObj);
+  vehiclesInfo.forEach(drawObj);
+}
+
+// Función para limpiar todos los intervals de frames de alertas
+function clearAllAlertFrames() {
+  Object.values(alertFrameIntervals).forEach(interval => {
+    clearInterval(interval);
+  });
+  alertFrameIntervals = {};
+  currentAlertFrames = {};
+}
+
+// Modifica la función removePanel para limpiar sus frames
+function removePanel(btn) {
+  const panel = btn.closest('.alert-panel');
+  const code = panel.dataset.type;
+  
+  // Limpiar timers de alertas
+  if (_alertTimersByType[code]) { 
+    clearTimeout(_alertTimersByType[code]); 
+    delete _alertTimersByType[code]; 
+  }
+  
+  // Limpiar frames de las alertas en este panel
+  const alerts = listalertas.filter(a => String(a.type_event_id) === String(code));
+  alerts.forEach(alert => {
+    if (alertFrameIntervals[alert.id]) {
+      clearInterval(alertFrameIntervals[alert.id]);
+      delete alertFrameIntervals[alert.id];
+    }
+  });
+  
+  // Eliminar del array y DOM
+  panels = panels.filter(p => String(p.id) !== String(code));
+  panel.remove();
+  
+  savePanels();
+  updatePanelCount();
+}
+/** Modal simple de detalles */
+function showExpand(alert) {
+  const infoHTML = `
+    <div style="background:#102a35;padding:20px;border-radius:12px;color:#e8fbff;max-width:520px">
+      <h3 style="margin-top:0;color:var(--teal)">${alert.type_event_name || 'Alerta'}</h3>
+      <p><b>Cámara:</b> ${alert.camera_name || alert.camera_id || '-'}</p>
+      <p><b>Ubicación:</b> ${alert.location || '-'}</p>
+      <p><b>Fecha:</b> ${formatDate(alert.init_time_frame)}</p>
+      <p><b>ID:</b> ${alert.id || '-'}</p>
+      <div style="text-align:center;margin-top:10px;">
+        <button class="btn" onclick="this.closest('.__modal__').remove()">Cerrar</button>
+      </div>
+    </div>
+  `;
+  const wrapper = document.createElement('div');
+  wrapper.className = '__modal__';
+  Object.assign(wrapper.style, { position:'fixed', inset:0, background:'rgba(0,0,0,.75)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999 });
+  wrapper.innerHTML = infoHTML;
+  document.body.appendChild(wrapper);
+}
+
+/* =================== Paneles =================== */
+function openAlertTypeModal() {
+    if (panels.length >= MAX_PANELS) { return;}
+  //if (panels.length >= MAX_PANELS) { alert('⚠️ Máximo 5 paneles permitido.'); return; }
+  document.getElementById('alertTypeModal').style.display = 'flex';
+  loadAlertTypes();
+}
+function closeAlertTypeModal() {
+  document.getElementById('alertTypeModal').style.display = 'none';
+  selectedType = null;
+  const btn = document.getElementById('btnAddAlertType');
+  if (btn) btn.disabled = true;
+}
+function loadAlertTypesold() {
+  const list = document.getElementById('alertTypeList');
+  list.innerHTML = '';
+  /*if (typeof callAPI !== 'function') {
+    // fallback local
+    for (const code of Object.keys(tiposAlertas)) {
+      const item = document.createElement('div');
+      item.className = 'alert-type-item';
+      item.innerHTML = `<span class="type-code">${code}</span> <span>${tiposAlertas[code]}</span>`;
+      item.onclick = () => selectType(item, code, tiposAlertas[code]);
+      list.appendChild(item);
+    }
+    return;
+  }*/
+  callAPI({
+    method: 'gestion/getTypeAlerts',
+    params: { mode: 1 },
+    ok: function (data) {
+      const tipos = Array.isArray(data) ? data : (data && data.data) ? data.data : [];
+      if (!tipos.length) { list.innerHTML = "<div class='no-results'>No hay tipos de alerta disponibles.</div>"; return; }
+      tipos.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'alert-type-item';
+          const alertsbytype = listalertas
+            .filter(a => String(a.type_event_id) === String(c.id))
+            .sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame))
+            .slice(0, MAX_ALERTS);
+          
+        
+        //item.innerHTML = `<span class="type-code">${c.id}</span> <span>${c.name}</span> <span>${alertsbytype.length}</span>`;
+        item.innerHTML = `
+          <span class="type-code" style="display:none;">${c.id}</span>
+          <span class="alert-name">${c.name}</span>
+          <span class="alert-count">${alertsbytype.length}</span>
+        `;
+
+        item.onclick = () => selectType(item, String(c.id), String(c.name));
+        list.appendChild(item);
+      });
+    },
+    error: function (e) {
+      console.error('Error al obtener tipos:', e);
+      list.innerHTML = "<div style='opacity:.8'>No se pudieron cargar los tipos de alerta.</div>";
+    }
+  });
+}
+
+async function loadAlertTypesold2() {
+  const list = document.getElementById("alertTypeList");
+  list.innerHTML = "";
+  callAPI({
+    method: "gestion/getTypeAlerts",
+    params: { mode: 1 },
+    ok: function (data) {
+      const tipos = Array.isArray(data) ? data : data.data || [];
+
+      tipos.forEach(t => {
+        const item = document.createElement("div");
+        item.className = "alert-type-item";
+        
+          const alertsbytype = listalertas
+            .filter(a => String(a.type_event_id) === String(t.id))
+            .sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame))
+            .slice(0, MAX_ALERTS);
+        item.innerHTML = `
+          <div class="alert-type-name">
+            <span class="type-code">${t.id}</span> ${t.name}
+          </div>
+          <span class="alert-count" id="alertCount-${t.id}">${alertsbytype.length}</span>
+        `;
+         item.onclick = () => selectType(item, String(t.id), String(t.name));
+        // Selección visual
+       /* item.addEventListener("click", () => {
+          document.querySelectorAll(".alert-type-item").forEach(i => i.classList.remove("selected"));
+          item.classList.add("selected");
+          selectedType = t.id;
+          document.getElementById("btnAddAlertType").disabled = false;
+        });
+*/
+        list.appendChild(item);
+      });
+    },
+    error: function (err) {
+      console.error("❌ Error al obtener tipos de alerta:", err);
+      list.innerHTML = `<div style="opacity:0.8;">No se pudieron cargar los tipos de alerta.</div>`;
+    }
+  });
+}
+async function loadAlertTypes() {
+  const list = document.getElementById("alertTypeList");
+  list.innerHTML = "";
+  clearAllAlertFrames();
+
+  // 1️⃣ Obtener alertas actuales
+  callAPI({
+    method: 'dashboards/alertscache',
+    params: { window: '30m' },
+    ok: function (vals) {
+      const nuevas = Array.isArray(vals)
+        ? vals
+        : (vals && vals.data)
+        ? vals.data
+        : [];
+
+      // 2️⃣ Obtener tipos de alerta
+      callAPI({
+        method: "gestion/getTypeAlerts",
+        params: { mode: 1 },
+        ok: function (data) {
+          const tipos = Array.isArray(data) ? data : data.data || [];
+
+          // 3️⃣ Renderizar cada tipo
+          tipos.forEach(t => {
+            const item = document.createElement("div");
+            item.className = "alert-type-item";
+
+            // filtrar alertas por tipo
+            const alertsByType = nuevas
+              .filter(a => String(a.type_event_id) === String(t.id))
+              .sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame))
+              .slice(0, MAX_ALERTS);
+
+            // contenido del ítem
+            item.innerHTML = `
+              <div class="alert-type-name">
+                <span class="type-code">${t.id}</span> ${t.name}
+              </div>
+              <span class="alert-count" id="alertCount-${t.id}">
+                ${alertsByType.length}
+              </span>
+            `;
+
+            // evento de selección
+            item.onclick = () => selectType(item, String(t.id), String(t.name));
+
+            list.appendChild(item);
+          });
+        },
+        error: function (err) {
+          console.error("❌ Error al obtener tipos de alerta:", err);
+          list.innerHTML = `<div style="opacity:0.8;">No se pudieron cargar los tipos de alerta.</div>`;
+        }
+      });
+    },
+    error: function (err) {
+      console.error('❌ Error al obtener alertas:', err);
+      list.innerHTML = `<div style="opacity:0.8;">No se pudieron cargar las alertas.</div>`;
+    }
+  });
+}
+
+
+
+function selectType(item, code, name) {
+  document.querySelectorAll('.alert-type-item').forEach(i => i.classList.remove('selected'));
+  item.classList.add('selected');
+  selectedType = { id: String(code), name: String(name || tiposAlertas[code] || 'Tipo') };
+  const btn = document.getElementById('btnAddAlertType');
+  if (btn) btn.disabled = false;
+}
+document.getElementById('btnAddAlertType').addEventListener('click', () => {
+    
+    log("selectedType",selectedType)
+  if (!selectedType) return;
+  if (panels.some(p => p.id === selectedType.id)) {
+    //alert('⚠️ Este tipo de alerta ya está agregado.');
+    closeAlertTypeModal();
+    return;
+  }
+  
+  if (panels.length >= MAX_PANELS) { return; }
+  //if (panels.length >= MAX_PANELS) { alert('⚠️ Máximo 5 paneles permitido.'); return; }
+  panels.push({ id: selectedType.id, name: selectedType.name });
+  createPanel(selectedType.id, selectedType.name);
+  savePanels();
+  closeAlertTypeModal();
+  // Cargar inmediatamente las alertas de ese tipo
+ // getAlertasPorTipo(selectedType.id, true);
+});
+function createPanel(typeCode, typeName) {
+  const container = document.getElementById('alertPanelsContainer');
+  const panel = document.createElement('div');
+  panel.className = 'alert-panel';
+  panel.dataset.type = String(typeCode);
+  panel.dataset.name = String(typeName || tiposAlertas[String(typeCode)] || 'Tipo');
+  const typeDescription = panel.dataset.name;
+  /*panel.innerHTML = `
+    <div class="alert-panel-header">
+      <h5><span class="type-code">${typeCode}</span> ${typeDescription} (<span class="alert-count">0</span>)</h5>
+      <button onclick="removePanel(this)">✕</button>
+    </div>
+    <div class="alert-cards-container"></div>`;*/
+    panel.innerHTML = `
+<div class="alert-panel-header">
+  <h5 class="alert-panel-title2">
+    <span class="type-code" style="display:none;">${typeCode}</span>
+    <span class="alert-type-name">${typeDescription}</span>
+    <span class="alert-count-badge">0</span>
+  </h5>
+  <button onclick="removePanel(this)">✕</button>
+</div>
+
+  <div class="alert-cards-container"></div>`;
+  container.appendChild(panel);
+  renderListTimeline(panel);
+  updatePanelCount();
+  
+    // ✅ importante: inicializa/actualiza el DnD tras insertar el nuevo panel
+  initDragDropNow();
+}
+function removePanelold(btn) {
+  const panel = btn.closest('.alert-panel'); 
+  const code = panel.dataset.type;
+  // elimina timer de ese tipo
+  if (_alertTimersByType[code]) { clearTimeout(_alertTimersByType[code]); delete _alertTimersByType[code]; }
+  // elimina del array
+  panels = panels.filter(p => String(p.id) !== String(code));
+  // quita del DOM
+  panel.remove();
+  // guarda
+  savePanels();
+  updatePanelCount();
+  console.log(`🗑️ Panel tipo ${code} eliminado y almacenamiento actualizado.`);
+}
+function updatePanelCount() {
+  document.documentElement.style.setProperty('--panel-count', Math.max(panels.length, 1));
+}
+function savePanels() {
+  localStorage.setItem('alertPanels', JSON.stringify(panels));
+  updatePanelCount();
+}
+function restorePanels() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('alertPanels') || '[]');
+    panels = [];
+    const container = document.getElementById('alertPanelsContainer');
+    container.innerHTML = '';
+    saved.forEach(p => {
+      if (!panels.some(x => x.id === p.id) && panels.length < MAX_PANELS) {
+        panels.push({ id: String(p.id), name: String(p.name) });
+        createPanel(p.id, p.name);
+      }
+    });
+    updatePanelCount();
+    
+        // ✅ tras restaurar todos, activa DnD
+    //initDragDropNow();
+    
+    setTimeout(enablePanelDragDrop, 500);
+  } catch (e) {
+    console.error('Error restaurando paneles:', e);
+    panels = [];
+  }
+}
+
+/* =================== Pantalla completa =================== */
+async function startDashboard() {
+  try {
+    const appElement = document.getElementById('app');
+    if (appElement.requestFullscreen)  appElement.requestFullscreen();
+    else if (appElement.webkitRequestFullscreen)  appElement.webkitRequestFullscreen();
+    else if (appElement.msRequestFullscreen)  appElement.msRequestFullscreen();
+  } catch (e) { console.warn('Fullscreen error', e); }
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  // Si no hay paneles guardados, crea hasta 5 por defecto (primeros 5 tipos locales)
+  const saved = JSON.parse(localStorage.getItem('alertPanels') || '[]');
+ /* if (!saved.length) {
+    panels = Object.keys(tiposAlertas).slice(0, MAX_PANELS).map(id => ({ id, name: tiposAlertas[id] }));
+    savePanels();
+  }*/
+  restorePanels();
+
+  // Lanza getAlertasPorTipo por cada panel al entrar a fullscreen
+  panels.forEach(p => getAlertasPorTipo(p.id, true));
+  
+    // ✅ por si acaso: reactiva DnD una vez que todo está en pantalla
+  initDragDropNow(100);
+  
+ //  iniciarCicloDeAlertas(); // 🔹 Aquí se activa el render inicial 
+}
+function exitFullscreen() {
+  if (document.exitFullscreen) document.exitFullscreen();
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  else if (document.msExitFullscreen) document.msExitFullscreen();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+}
+
+/* =================== Utilidades =================== */
+function saveAlertDataold(data) {
+  try {
+    sessionStorage.setItem('lastAlertData_v3', JSON.stringify(data.slice(-100)));
+  } catch (err) {
+    console.warn('⚠️ No se pudieron guardar alertas en sessionStorage:', err);
+  }
+}
+
+function formatDate(ts) {
+  try { const d = isNaN(ts) ? new Date(ts) : new Date(parseInt(ts)); return d.toLocaleString('es-PE', { hour12:false }); }
+  catch(e){ return ts || ''; }
+}
+function generateSampleAlerts() {
+  const sample = [];
+  const cams = ['Cámara Norte','Cámara Sur','Cámara Este','Cámara Oeste','Cámara Centro'];
+  const locs = ['Av. Principal','Plaza Central','Zona Comercial','Parque Industrial','Centro Histórico'];
+  Object.entries(tiposAlertas).forEach(([code, name]) => {
+    const n = 4 + Math.floor(Math.random()*3); // 4-6 alertas por tipo
+    for (let i=0;i<n;i++) {
+      const recent = Math.random() > 0.7;
+      sample.push({
+        id: `${code}-${Date.now()}-${i}`,
+        type_event_code: code,
+        type_event_name: name,
+        camera_name: cams[Math.floor(Math.random()*cams.length)],
+        camera_id: `CAM${Math.floor(Math.random()*1000)}`,
+        location: locs[Math.floor(Math.random()*locs.length)],
+        init_time_frame: new Date(Date.now() - Math.random()*7*24*60*60*1000).toISOString(),
+        epoch_frame: Date.now() - Math.floor(Math.random()*1000000),
+        video: recent ? 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' : null,
+        foto: 'https://via.placeholder.com/400x225/0b1f2a/22e6d9?text=Alerta'
+      });
+    }
+  });
+  return sample;
+}
+
+/* =================== Video (reutiliza tus funciones existentes) =================== */
+function verVideoAlerta(camera_id, epoch_frame, type_event_code, type_event_name){
+  try{
+    if (typeof callAPI !== 'function'){
+      const url = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+      abrirModalVideo(url, type_event_name || 'Alerta', camera_id, epoch_frame, null, type_event_name || '');
+      return;
+    }
+    callAPI({
+      method: 'gestion/getVideo',
+      params: { camera_id: camera_id, epoch_frame: epoch_frame, mode: 'alert' },
+      ok: function(resp){
+        const url = (resp && resp.data && resp.data.url) ? resp.data.url : (resp.url || resp.video || '');
+        abrirModalVideo(url, type_event_name || 'Alerta', camera_id, epoch_frame, null, type_event_name || '');
+      },
+      error: function(e){
+        console.error('verVideoAlerta error:', e);
+        const url = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+        abrirModalVideo(url, type_event_name || 'Alerta', camera_id, epoch_frame, null, type_event_name || '');
+      }
+    });
+  }catch(err){ console.error(err); }
+}
+
+function abrirModalVideo(videoUrl, titulo, camera_id, epoch_frame, person_id, typeLabel){
+  try{
+    const player = document.getElementById('videoPlayerModal');
+    const titleEl = document.getElementById('verVideoLabel');
+    const infoCam = document.getElementById('vinfoCamera');
+    const infoType = document.getElementById('vinfoType');
+    const infoTime = document.getElementById('vinfoTime');
+
+    titleEl.textContent = '🎥 ' + (titulo || 'Reproducción');
+    player.src = videoUrl || '';
+    infoCam.textContent = camera_id || '-';
+    infoType.textContent = typeLabel || (titulo || '-');
+    try{
+      const dt = isNaN(epoch_frame) ? new Date(epoch_frame) : new Date(parseInt(epoch_frame));
+      infoTime.textContent = dt.toLocaleString('es-PE', { hour12:false });
+    }catch(_){ infoTime.textContent = epoch_frame || '-'; }
+
+    // Mostrar modal simple (sin depender de jQuery)
+    document.getElementById('verVideoModal').style.display = 'block';
+    player.play().catch(()=>{});
+  }catch(err){ console.error(err); }
+}
+
+function cerrarModalVideo(){
+  try{
+    const player = document.getElementById('videoPlayerModal');
+    document.getElementById('verVideoModal').style.display = 'none';
+    if (player){
+      player.pause();
+      player.src = '';
+    }
+  }catch(err){ console.error(err); }
+}
+
+function verVideoNormal2(item) {
+  // En esta versión, abrimos el modal Bootstrap-like con el stream principal del ítem
+  const code = item.type_event_code || '';
+  const name = item.type_event_name || '';
+  verVideoAlerta(item.camera_id, item.epoch_frame, code, name);
+}
+
+function verVideoPersona(item) {
+  // En esta versión simplificada, también abrimos el modal con un stream alternativo
+  // Si tu backend requiere otra ruta, aquí es donde se ajusta
+  const code = item.type_event_code || '';
+  const name = item.type_event_name || '';
+  verVideoAlerta(item.camera_id, item.epoch_frame, code, name);
+}
+
+/* =================== Listeners =================== */
+document.getElementById('btnGoDashboard').addEventListener('click', startDashboard);
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'flex';
+  }
+});
+//document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeVideoSlot(); });
+
+// === 🔹 ESCAPE: Detener TODO (frames, alertas, video) ===
+/*document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    console.log("⛔ Escape presionado → Deteniendo renderización y frames activos");
+
+    // 1️⃣ Detener timers de actualización de alertas
+    Object.keys(_alertTimersByType || {}).forEach(code => {
+      clearTimeout(_alertTimersByType[code]);
+      delete _alertTimersByType[code];
+    });
+
+    // 2️⃣ Detener intervalos de frames individuales
+    Object.values(alertFrameIntervals || {}).forEach(intervalId => clearInterval(intervalId));
+    alertFrameIntervals = {};
+
+    // 3️⃣ Detener ciclo general de alertas (si existiera)
+    if (window.alertCycleInterval) {
+      clearInterval(window.alertCycleInterval);
+      window.alertCycleInterval = null;
+    }
+
+    // 4️⃣ Detener cualquier reproducción de video
+    if (window.videoPlayer) {
+      try { window.videoPlayer.stop(); } catch(e){ console.warn(e); }
+      window.videoPlayer = null;
+    }
+
+    // 5️⃣ Cerrar modales abiertos
+    closeVideoSlot();
+    closeVideoModal();
+
+    console.log("✅ Todos los procesos de render y frames han sido detenidos.");
+  }
+});
+*/
+
+
+/* ============== Video-slot alterno ============== */
+function openVideoSlot(cameraId, epochFrame, isAlert=false, personId=null, typeCode=null, typeDescription=null) {
+  const videoSlot = document.getElementById('videoSlot');
+  const videoPlayer = document.getElementById('videoSlotPlayer');
+  const videoDetails = document.getElementById('videoSlotDetails');
+  const url = isAlert
+    ? 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+    : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
+  videoPlayer.src = url;
+  videoDetails.innerHTML = `
+    <p><strong>Cámara:</strong> ${cameraId || '-'}</p>
+    <p><strong>Timestamp:</strong> ${formatDate(epochFrame)}</p>
+    ${typeCode ? `<p><strong>Tipo de Alerta:</strong> <span class="type-code">${typeCode}</span> ${typeDescription || ''}</p>` : ''}
+    ${personId ? `<p><strong>ID Persona:</strong> ${personId}</p>` : ''}
+  `;
+  videoSlot.style.display = 'flex';
+  videoPlayer.play().catch(()=>{});
+}
+function closeVideoSlot() {
+  const videoSlot = document.getElementById('videoSlot');
+  const videoPlayer = document.getElementById('videoSlotPlayer');
+  videoPlayer.pause();
+  videoPlayer.src = '';
+  videoSlot.style.display = 'none';
+}
+
+// Función para ver video (MEJORADA)
+function verVideoold(alertId) {
+  alertItem = listalertas.find(a => a.id == alertId);
+ log("alertItem",alertItem)
+  // Determinar si es una alerta normal o de persona/vehículo
+  if (alertItem.person_coords_face !== null || alertItem.vehicle_coords_plate !== null) {
+      log("persona")
+    verVideoPersona(alertItem);
+  } else {
+      log("vehiculo")
+    verVideoNormal(alertItem);
+  }
+}
+
+// Función para ver video de alerta normal
+function verVideoNormalold(item) {
+  resetVideoModal('regular');
+  
+  // Actualizar información en el modal
+  document.getElementById("showcamera").textContent = item.camera_name;
+  document.getElementById("showUbication").textContent = item.location;
+  document.getElementById("showAlert").textContent = item.type_event_name;
+  document.getElementById("showId").textContent = item.id;
+    const fechaFormateada = item.created_at.substring(0, item.created_at.indexOf('.')).replace('T', ' ');
+
+  document.getElementById("fechahoravideo").textContent = fechaFormateada;//+" (-30 seg. / +30 seg.)";
+  
+
+  let coords_data = null;
+  if(item.coords_zone){
+    try {
+      let poligono = JSON.parse(item.coords_zone);
+      coords_data = [{
+        points: poligono,
+        lineColor: "blue",
+        fillColor: "rgba(0,0,255,0.3)",
+        lineWidth: 3
+      }];
+    } catch (e) {
+      log("Error parsing coords_zone:", e);
+    }
+  }
+  
+  // Mostrar el modal primero
+  showVideoModal();
+  
+  // Luego cargar el video
+  callAPI({
+    method: 'gestion/dolistimgevents',
+    params: {
+      camid: item.camera_id,
+      date_start: item.init_time_frame,
+      tracking_id: item.tracking_id
+    },
+    ok: function (data) {
+      const videoContainer = document.querySelector(".video-player-wrapper");
+      if (!videoContainer) return;
+      
+      videoContainer.innerHTML = '';
+      try {
+        videoPlayer = new videoplay(videoContainer);
+      } catch (e) {
+        log("Error al crear video player:", e);
+        return;
+      }
+      
+      const grouped = Object.values(
+        data[1].reduce((acc, item) => {
+          if (!acc[item.foto]) {
+            acc[item.foto] = {
+              foto: item.foto,
+              coords_obj: []
+            };
+          }
+          acc[item.foto].coords_obj.push({
+            categoria: item.category,
+            accuracy_obj: item.accuracy_obj,
+            colorupper: item.color_name_upper,
+            colorlower: item.color_name_lower,
+            plate: item.plate,
+            coords: item.coords_obj.split(","),
+            coordsplate: (item.coords_plate || '').split(",")
+          });
+          return acc;
+        }, {})
+      );
+      
+      try {
+        videoPlayer.update(grouped, "foto", "coords_obj", coords_data);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 500);
+      } catch (e) {
+        log("Error al actualizar video player:", e);
+      }
+    },
+    error: function(error) {
+      log("Error al cargar el video:", error);
+    }
+  });
+}
+
+
+
+
+// Función para ver video de persona
+function verVideoPersonaold(item) {
+  resetVideoModal('person');
+  
+  // Actualizar información en el modal
+  document.getElementById("showcamera").textContent = item.camera_name;
+  document.getElementById("showUbication").textContent = item.location;
+  document.getElementById("showAlert").textContent = item.type_event_name;
+  document.getElementById("showId").textContent = item.id;
+  const fechaFormateada = item.created_at.substring(0, item.created_at.indexOf('.')).replace('T', ' ');
+
+  document.getElementById("fechahoravideo").textContent = fechaFormateada;//+" (-30 seg. / +30 seg.)";
+  
+
+  const personInfoPanel = document.getElementById('person-info-panel');
+  const photoShort = document.getElementById('photo-short');
+  photoShort.style.display = 'none';
+  if (personInfoPanel) {
+    personInfoPanel.style.display = 'block';
+    photoShort.style.display = 'flex';
+    
+    //log("item",item);
+    
+    dataPerson =  document.getElementById('person-data');
+    const personName = item.nombre ? `${item.nombre} ${item.apellido}` : item.vehicle_plate;
+    const personTitle = item.nombre ? "Persona Detectada" : "Vehículo Detectado";
+    const subTitle = item.nombre ? "Nombre:" : "Placa:";
+    const regTime = new Date(item.fecha_registro || item.fecha_robo);
+    const formattedRegTime = regTime.toLocaleString('es-PE');
+    
+    dataPerson.innerHTML = `
+        <div class="detail-item">${subTitle} ${personName}</div>
+          ${item.documento_contacto || item.num_documento ? 
+            `<div class="detail-item">${item.tipo_documento || item.vtipo_documento}: ${item.documento_contacto || item.num_documento}</div>` : ''}
+          <div class="detail-item">Reportado: ${formattedRegTime}</div>
+          <div class="detail-item">Precisión: ${item.person_accuracy || item.vehicle_accuracy}%</div>
+          ${item.persona_contacto || item.nombre_propietario ? 
+            `<div class="detail-item">Persona de Contacto: ${item.parentesco || 'Propietario'} - ${item.persona_contacto || item.nombre_propietario}</div>` : ''}
+          ${item.numero_contacto || item.contacto_propietario ? 
+            `<div class="detail-item">Teléfono de contacto: ${item.numero_contacto || item.contacto_propietario}</div>` : ''}
+        `;
+    
+    const personPhoto = document.getElementById('person-photo');
+    if(item.person_coords_face != null){
+      personPhoto.style.backgroundImage = `url(/personimages/inputs/${item.matched_ident}.jpg)`;
+    } else {
+      // Lógica para vehicle photo
+      const containerW = 90;
+      const containerH = 100;
+      const [xf1, yf1, xf2, yf2] = (item.vehicle_coords_plate || "0,0,1,1").split(",").map(Number);
+      const [xb1, yb1] = (item.vehicle_coords_obj || "0,0").split(",").map(Number);
+      
+      const x1 = xf1 + xb1;
+      const y1 = yf1 + yb1;
+      const w = xf2 - xf1;
+      const h = yf2 - yf1;
+
+      const [xo1, yo1, xo2, yo2] = (item.vehicle_coords_obj || "0,0,1,1").split(",").map(Number);
+      const w_obj = xo2 - xo1;
+      const h_obj = yo2 - yo1;
+      
+      const img = new Image();
+      img.src = item.foto;
+      img.onload = () => {
+        const imgW = img.naturalWidth;
+        const imgH = img.naturalHeight;
+        const scale_ = Math.min(containerW / w_obj, containerH / h_obj);
+        const bgW_ = imgW * scale_;
+        const bgH_ = imgH * scale_;
+        const bgX_ = (containerW - w_obj * scale_) / 2 - xo1 * scale_;
+        const bgY_ = (containerH - h_obj * scale_) / 2 - yo1 * scale_;
+    
+        personPhoto.style.backgroundImage = `url(${item.foto})`;
+        personPhoto.style.backgroundSize = `${bgW_}px ${bgH_}px`;
+        personPhoto.style.backgroundPosition = `${bgX_}px ${bgY_}px`;
+      };
+    }   
+    
+    const croppedDetection = document.getElementById('cropped-detection');
+    croppedDetection.innerHTML = '';
+    
+    createCroppedImage(croppedDetection, item.foto, 
+                      (item.person_coords_face||item.vehicle_coords_plate), 
+                      'Detección', 
+                      (item.person_coords_obj||item.vehicle_coords_obj),
+                      90, 100);
+  } else {
+    if (personInfoPanel) personInfoPanel.style.display = 'none';
+  }
+
+  // Mostrar el modal primero
+  showVideoModal();
+  
+  // Luego cargar el video según el tipo
+  if(item.person_coords_face != null){
+    callAPI({
+      method: 'gestion/getframesperson',
+      params: {
+        camara: item.camera_id,
+        tracking_id: item.tracking_id,
+        documento: item.matched_ident,
+      },
+      ok: function (data) {
+        const videoContainer = document.querySelector(".video-player-wrapper");
+        if (!videoContainer) return;
+        
+        videoContainer.innerHTML = '';
+        videoPlayer = new videoplay(videoContainer);
+        
+        const frames = data;
+        const grouped = Object.values(
+          frames.reduce((acc, frame) => {
+            if (!acc[frame.foto]) {
+              acc[frame.foto] = { foto: frame.foto, coords_obj: [] };
+            }
+            acc[frame.foto].coords_obj.push({
+              categoria: frame.category,
+              accuracy_obj: frame.acc_parecido,
+              colorupper: frame.color_name_upper,
+              colorlower: frame.color_name_lower,
+              coords: (frame.coords_obj || '').split(","),
+              coordsplate: (frame.coords_face || '').split(","),
+              plate: item.nombre + " " + item.apellido
+            });
+            return acc;
+          }, {})
+        ).sort((a, b) => a.foto.localeCompare(b.foto));
+        
+        videoPlayer.update(grouped, "foto", "coords_obj", null);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 100);
+      },
+      error: function(error) {
+        log("Error al cargar video de persona:", error);
+      }
+    });
+  } else {
+    callAPI({
+      method: 'gestion/dolistimgbytrackid',
+      params: { 
+        cameraid: item.camera_id,
+        tracking_id: item.tracking_id
+      },
+      ok: function(data) {
+        const videoContainer = document.querySelector(".video-player-wrapper");
+        if (!videoContainer) return;
+        
+        videoContainer.innerHTML = '';
+        videoPlayer = new videoplay(videoContainer);
+        
+        const frames = data[2];
+        const grouped = Object.values(
+          frames.reduce((acc, frame) => {
+            if (!acc[frame.foto]) {
+              acc[frame.foto] = { foto: frame.foto, coords_obj: [] };
+            }
+            acc[frame.foto].coords_obj.push({
+              categoria: frame.category,
+              accuracy_obj: frame.accuracy_obj,
+              colorupper: frame.color_name_upper,
+              colorlower: frame.color_name_lower,
+              coords: (frame.coords_obj || '').split(","),
+              coordsplate: (frame.coords_plate || '').split(","),
+              plate: frame.plate
+            });
+            return acc;
+          }, {})
+        ).sort((a, b) => a.foto.localeCompare(b.foto));
+        
+        videoPlayer.update(grouped, "foto", "coords_obj", null);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 100);
+      },
+      error: function(error) {
+        log("Error al cargar video por trackid:", error);
+      }
+    });
+  }
+}
+
+
+
+function verVideo(alertId) {
+  const alertItem = listalertas.find(a => a.id == alertId);
+  if (!alertItem) return;
+
+  // Determinar si es alerta de persona o de vehículo
+  if (alertItem.person_coords_face != null || alertItem.vehicle_coords_plate != null) {
+    verVideoPersona(alertItem);
+  } else {
+    verVideoNormal(alertItem);
+  }
+}
+
+function verVideoNormal(item) {
+  resetVideoModal('regular');
+  document.getElementById("showcamera").textContent = item.camera_name || '-';
+  document.getElementById("showUbication").textContent = item.location || '-';
+  document.getElementById("showAlert").textContent = item.type_event_name || '-';
+  document.getElementById("showId").textContent = item.id || '-';
+  document.getElementById("fechahoravideo").textContent = formatDate(item.init_time_frame);
+
+  showVideoModal();
+
+  callAPI({
+    method: 'gestion/dolistimgevents',
+    params: { camid: item.camera_id, date_start: item.init_time_frame, tracking_id: item.tracking_id },
+    ok: function (data) {
+      const videoContainer = document.querySelector(".video-player-wrapper");
+      if (!videoContainer) return;
+      videoContainer.innerHTML = '';
+      let player = new videoplay(videoContainer);
+
+      const grouped = Object.values(
+        data[1].reduce((acc, f) => {
+          if (!acc[f.foto]) acc[f.foto] = { foto: f.foto, coords_obj: [] };
+          acc[f.foto].coords_obj.push({
+            categoria: f.category,
+            accuracy_obj: f.accuracy_obj,
+            colorupper: f.color_name_upper,
+            colorlower: f.color_name_lower,
+            plate: f.plate,
+            coords: f.coords_obj.split(","),
+            coordsplate: (f.coords_plate || '').split(",")
+          });
+          return acc;
+        }, {})
+      );
+      player.update(grouped, "foto", "coords_obj", null);
+      setTimeout(() => player.play(), 400);
+    },
+    error: err => console.error("Error cargando video:", err)
+  });
+}
+
+function verVideoPersona(item) {
+  resetVideoModal('person');
+  document.getElementById("showcamera").textContent = item.camera_name;
+  document.getElementById("showUbication").textContent = item.location;
+  document.getElementById("showAlert").textContent = item.type_event_name;
+  document.getElementById("showId").textContent = item.id;
+  document.getElementById("fechahoravideo").textContent = formatDate(item.init_time_frame);
+
+  showVideoModal();
+
+  callAPI({
+    method: 'gestion/getframesperson',
+    params: { camara: item.camera_id, tracking_id: item.tracking_id, documento: item.matched_ident },
+    ok: function (data) {
+      const videoContainer = document.querySelector(".video-player-wrapper");
+      if (!videoContainer) return;
+      videoContainer.innerHTML = '';
+      let player = new videoplay(videoContainer);
+
+      const grouped = Object.values(
+        data.reduce((acc, f) => {
+          if (!acc[f.foto]) acc[f.foto] = { foto: f.foto, coords_obj: [] };
+          acc[f.foto].coords_obj.push({
+            categoria: f.category,
+            accuracy_obj: f.acc_parecido,
+            colorupper: f.color_name_upper,
+            colorlower: f.color_name_lower,
+            coords: (f.coords_obj || '').split(","),
+            coordsplate: (f.coords_face || '').split(","),
+            plate: item.nombre + " " + item.apellido
+          });
+          return acc;
+        }, {})
+      );
+      player.update(grouped, "foto", "coords_obj", null);
+      setTimeout(() => player.play(), 400);
+    },
+    error: err => console.error("Error cargando video persona:", err)
+  });
+}
+
+function highlightCameraSlot(cameraNameOrId) {
+  if (!cameraNameOrId) return;
+
+  const slots = document.querySelectorAll('.slot');
+  slots.forEach(slot => {
+    const placeholder = slot.querySelector('.placeholder .name');
+    if (placeholder && (
+      placeholder.textContent === cameraNameOrId ||
+      slot.querySelector('.cam-name')?.textContent === cameraNameOrId
+    )) {
+      // Efecto visual
+      slot.classList.add('alert-highlight');
+
+      // Auto quitar después de 6 s
+      setTimeout(() => slot.classList.remove('alert-highlight'), 120000);
+    }
+  });
+}
+
+function resetVideoModal(type) {
+  const personInfoPanel = document.getElementById('person-info-panel');
+  const photoShort = document.getElementById('photo-short');
+  
+  if (type === 'person') {
+    personInfoPanel.style.display = 'block';
+    photoShort.style.display = 'flex';
+  } else {
+    personInfoPanel.style.display = 'none';
+    photoShort.style.display = 'none';
+  }
+}
+
+
+function showVideoModal() {
+  /*const overlay = document.getElementById('videoOvl');
+  overlay.classList.add('show');
+  overlay.style.display = 'flex';
+  
+  // Asegura que el modal se vea aunque estemos dentro del fullscreen
+  if (document.fullscreenElement) {
+    // Si estamos en modo fullscreen, fuerza el z-index del modal
+    overlay.style.zIndex = 999999;
+  }
+  */
+    document.getElementById('videoOvl').style.display = 'flex';
+
+}
+
+function closeVideoModal() {
+  /*const overlay = document.getElementById('videoOvl');
+  overlay.classList.remove('show');
+  overlay.style.display = 'none';
+  
+  if (window.videoPlayer) {
+    try { window.videoPlayer.stop(); } catch(e){ console.warn(e); }
+    window.videoPlayer = null;
+  }
+  */
+    document.getElementById('videoOvl').style.display = 'none';
+  
+  if (videoPlayer) {
+    try {
+      videoPlayer.stop();
+    } catch (e) {
+      log("Error al detener video player:", e);
+    }
+    videoPlayer = null;
+  }
+}
+
+
+/* === DETENER REFRESCO AL SALIR DE FULLSCREEN === */
+/*document.addEventListener('fullscreenchange', () => {
+  const isFull = !!document.fullscreenElement;
+  
+  if (!isFull) {
+    console.log('⛔ Saliendo de fullscreen → Deteniendo renderización de alertas');
+    
+    // Detener timers de actualización
+    Object.keys(_alertTimersByType || {}).forEach(code => {
+      if (_alertTimersByType[code]) {
+        clearTimeout(_alertTimersByType[code]);
+        delete _alertTimersByType[code];
+      }
+    });
+
+    // Detener cualquier reproducción o render en curso
+    if (window.videoPlayer) {
+      try { window.videoPlayer.stop(); } catch(e){}
+      window.videoPlayer = null;
+    }
+
+    // Ocultar app y mostrar pantalla inicial
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'flex';
+  } else {
+    console.log('🟢 Entrando a fullscreen → Render y actualización activos');
+  }
+});*/
+/* === DETENER REFRESCO AL SALIR DE FULLSCREEN === */
+document.addEventListener('fullscreenchange', () => {
+  const isFull = !!document.fullscreenElement;
+  
+  if (!isFull) {
+    console.log('⛔ Saliendo de fullscreen → Deteniendo renderización de alertas');
+    
+    // Detener timers de actualización de alertas
+    Object.keys(_alertTimersByType || {}).forEach(code => {
+      if (_alertTimersByType[code]) {
+        clearTimeout(_alertTimersByType[code]);
+        delete _alertTimersByType[code];
+      }
+    });
+    
+    
+    detenerFrames();
+    // Detener actualización de frames
+    clearAllAlertFrames();
+
+    // Detener cualquier reproducción de video
+    if (window.videoPlayer) {
+      try { window.videoPlayer.stop(); } catch(e){}
+      window.videoPlayer = null;
+    }
+
+ // 🧱 Detener intervalos de frames individuales
+  //Object.values(alertframeIntervals).forEach(intervalId => clearInterval(intervalId));
+  alertframeIntervals = {};
+    // Ocultar app y mostrar pantalla inicial
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'flex';
+  } else {
+    console.log('🟢 Entrando a fullscreen → Render y actualización activos');
+    
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  //document.getElementById("camModal").style.display = "none";
+  //document.getElementById("alertDetailsPanel").style.display = "none";
+  document.getElementById("videoOvl").style.display = "none";
+  
+  // Asignar evento al botón de cerrar video
+  document.getElementById('closeVideoModal').addEventListener('click', closeVideoModal);
+ 
+  //document.getElementById('camFilter').addEventListener('input', filterCameras);
+});
+
+/* === DRAG & DROP DE PANELES === */
+function enablePanelDragDropold() {
+  const container = document.getElementById('alertPanelsContainer');
+  const panelNodes = container.querySelectorAll('.alert-panel');
+
+  panelNodes.forEach(panel => {
+    panel.setAttribute('draggable', true);
+
+    panel.addEventListener('dragstart', (e) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', panel.dataset.type);
+      panel.classList.add('dragging');
+    });
+
+    panel.addEventListener('dragend', () => {
+      panel.classList.remove('dragging');
+      // ✅ Recalcular orden y guardar después de soltar
+      savePanelOrder(container);
+    });
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const dragging = container.querySelector('.dragging');
+    if (!dragging) return;
+
+    const afterElement = getDragAfterElement(container, e.clientX);
+    if (afterElement == null) {
+      container.appendChild(dragging);
+    } else {
+      container.insertBefore(dragging, afterElement);
+    }
+  });
+
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const dragging = container.querySelector('.dragging');
+    if (dragging) dragging.classList.remove('dragging');
+    savePanelOrder(container);
+  });
+}
+
+/* 🔧 Determina el panel siguiente según la posición del cursor */
+function getDragAfterElementold(container, x) {
+  const panels = [...container.querySelectorAll('.alert-panel:not(.dragging)')];
+  return panels.reduce(
+    (closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = x - box.left - box.width / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset, element: child };
+      } else {
+        return closest;
+      }
+    },
+    { offset: Number.NEGATIVE_INFINITY }
+  ).element;
+}
+
+//* === DRAG & DROP DE PANELES (solo tomando el encabezado) === */
+function enablePanelDragDrop() {
+  const container = document.getElementById('alertPanelsContainer');
+  if (!container) return;
+
+  const panelsLocal = container.querySelectorAll('.alert-panel');
+  panelsLocal.forEach(panel => {
+    const header = panel.querySelector('.alert-panel-header');
+    if (!header) return;
+
+    let canDrag = false;
+
+    // Permite iniciar drag solo desde el encabezado
+    header.addEventListener('mousedown', () => {
+      canDrag = true;
+      header.style.cursor = 'grabbing';
+    });
+    header.addEventListener('mouseup', () => {
+      canDrag = false;
+      header.style.cursor = 'grab';
+    });
+    header.addEventListener('mouseleave', () => { canDrag = false; });
+
+    // Asegurar que sea arrastrable
+    panel.setAttribute('draggable', true);
+
+    panel.addEventListener('dragstart', (e) => {
+      if (!canDrag) {
+        e.preventDefault();
+        return;
+      }
+      setTimeout(() => panel.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', panel.dataset.type);
+    });
+
+    panel.addEventListener('dragend', () => {
+      panel.classList.remove('dragging');
+      header.style.cursor = 'grab';
+      savePanelOrder(container);
+    });
+  });
+
+  // 🔹 Detectar movimiento horizontal
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const dragging = container.querySelector('.dragging');
+    if (!dragging) return;
+
+    const afterElement = getDragAfterElement(container, e.clientX);
+    if (afterElement == null) {
+      container.appendChild(dragging);
+    } else {
+      container.insertBefore(dragging, afterElement);
+    }
+  });
+
+  container.addEventListener('drop', () => {
+    const dragging = container.querySelector('.dragging');
+    if (dragging) dragging.classList.remove('dragging');
+    savePanelOrder(container);
+  });
+
+  console.log('✅ Drag & Drop inicializado correctamente');
+}
+
+
+/* === Cálculo de posición (horizontal L→R) === */
+function getDragAfterElement(container, x) {
+  const draggableEls = [...container.querySelectorAll('.alert-panel:not(.dragging)')];
+  return draggableEls.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = x - (box.left + box.width / 2);
+    if (offset < 0 && offset > closest.offset) {
+      return { offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+
+/* 🔄 Guarda el nuevo orden global de paneles */
+function savePanelOrder(container) {
+  const newOrder = Array.from(container.querySelectorAll('.alert-panel')).map(p => ({
+    id: p.dataset.type,
+    name: p.dataset.name
+  }));
+  panels = newOrder; // ✅ Actualiza la variable global correctamente
+  savePanels();
+  updatePanelCount();
+}
+
+/* Inicializar drag & drop después de crear/restaurar paneles */
+document.addEventListener('DOMContentLoaded', () => {
+    
+     initDragDropNow(100); 
+  //setTimeout(enablePanelDragDrop, 500);
+});
+
+
+// === Fullscreen individual por slot ===
+function toggleSlotFullscreen(ev, alertId) {
+  ev.stopPropagation();
+  const frameContainer = document.getElementById(`frame-${alertId}`);
+  if (!frameContainer) return;
+
+  if (document.fullscreenElement === frameContainer) {
+    closeSlotFullscreen();
+  } else {
+    openSlotFullscreen(frameContainer);
+  }
+}
+
+function openSlotFullscreen(el) {
+    
+    alertRefreshPaused();
+    log("Deteniendo alertas")
+        // Detener timers de actualización de alertas
+    Object.keys(_alertTimersByType || {}).forEach(code => {
+      if (_alertTimersByType[code]) {
+        clearTimeout(_alertTimersByType[code]);
+        delete _alertTimersByType[code];
+      }
+    });
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if (el.msRequestFullscreen) el.msRequestFullscreen();
+}
+
+function closeSlotFullscreen() {
+    alertRefreshInterval();
+  if (document.exitFullscreen) document.exitFullscreen();
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  else if (document.msExitFullscreen) document.msExitFullscreen();
+}
+
+// === FULLSCREEN INDIVIDUAL PARA SLOTS ===
+function toggleSlotFullscreen(event, frameId) {
+  event.stopPropagation();
+  const frameContainer = document.getElementById(frameId);
+  if (!frameContainer) return;
+
+  if (document.fullscreenElement === frameContainer) {
+    document.exitFullscreen();
+  } else {
+    if (frameContainer.requestFullscreen) frameContainer.requestFullscreen();
+    else if (frameContainer.webkitRequestFullscreen) frameContainer.webkitRequestFullscreen();
+    else if (frameContainer.msRequestFullscreen) frameContainer.msRequestFullscreen();
+  }
+}
+
+document.addEventListener("fullscreenchange", () => {
+  const active = document.fullscreenElement;
+  const allBtns = document.querySelectorAll(".slot-fullscreen-btn");
+  allBtns.forEach(btn => {
+    if (active && btn.closest(".slot-frame-container") === active) {
+      btn.textContent = "🗕";
+      btn.title = "Minimizar";
+    } else {
+      btn.textContent = "⛶";
+      btn.title = "Pantalla completa";
+    }
+  });
+});
+
+/*
+// === CONTROL DE RENDER SEGÚN MODAL O FULLSCREEN ===
+
+// Pausa temporal de todos los intervalos activos
+function pauseAllRenders() {
+  for (const key in alertFrameIntervals) {
+    if (alertFrameIntervals[key]) {
+      clearInterval(alertFrameIntervals[key]);
+    }
+  }
+  console.log("⏸️ Renderización pausada");
+}
+
+// Reactiva los intervalos de frames en cada alerta
+function resumeAllRenders() {
+  listalertas.forEach(alert => {
+    if (!alertFrameIntervals[alert.id]) {
+      startFrameForAlert(alert);
+    }
+  });
+  console.log("▶️ Renderización reanudada");
+}
+
+// 🎬 Detectar apertura y cierre de modal de video
+const videoModal = document.getElementById("videoOvl");
+if (videoModal) {
+  const observer = new MutationObserver(() => {
+    const isVisible = videoModal.style.display !== "none";
+    if (isVisible) pauseAllRenders();
+    else resumeAllRenders();
+  });
+  observer.observe(videoModal, { attributes: true, attributeFilter: ["style"] });
+}
+
+// 🖥️ Detectar cambios de fullscreen (para slots)
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) {
+    pauseAllRenders(); // Al entrar en fullscreen
+  } else {
+    resumeAllRenders(); // Al salir o minimizar
+  }
+});
+*/
+
+/* === CONTROL SOLO PARA FULLSCREEN DE SLOT === */
+
+let isSlotFullscreen = false; // bandera global
+let alertRefreshPaused = false; // para recordar si se pausó
+
+function pauseAlertRefreshForSlot() {
+  if (window.alertRefreshInterval && !alertRefreshPaused) {
+    clearInterval(window.alertRefreshInterval);
+    alertRefreshPaused = true;
+    console.log("⏸️ Refresco de alertas pausado (fullscreen slot activo)");
+  }
+}
+
+function resumeAlertRefreshForSlot() {
+  if (alertRefreshPaused && !isSlotFullscreen) {
+    alertRefreshPaused = false;
+    console.log("▶️ Refresco de alertas reanudado (fullscreen slot cerrado)");
+
+    // reanudar el refresco cada 30 segundos
+    window.alertRefreshInterval = setInterval(() => {
+      if (!isSlotFullscreen) getAlertas();
+    }, 30000);
+  }
+}
+
+/* === EVENTOS DE FULLSCREEN === */
+document.addEventListener("fullscreenchange", () => {
+  const fsElement = document.fullscreenElement;
+
+  // Detecta si el elemento en fullscreen es un slot
+  if (fsElement && fsElement.classList.contains("slot-frame-container")) {
+    isSlotFullscreen = true;
+    pauseAlertRefreshForSlot();
+  } else {
+    isSlotFullscreen = false;
+    resumeAlertRefreshForSlot();
+  }
+});
+
+/* === PROTECCIÓN: evitar que el render de alertas cierre el fullscreen === */
+const originalGetAlertas = window.getAlertas;
+window.getAlertas = function(...args) {
+  if (isSlotFullscreen) {
+    // Evita re-render mientras está en fullscreen
+    console.log("🔇 Ignorando refresco de alertas durante fullscreen...");
+    return;
+  }
+  return originalGetAlertas.apply(this, args);
+};
+
+// Coloca esto junto a tus utilidades globales
+let _dragInitTimer = null;
+function initDragDropNow(delay = 50) {
+  clearTimeout(_dragInitTimer);
+  _dragInitTimer = setTimeout(() => {
+    if (typeof enablePanelDragDrop === 'function') {
+      enablePanelDragDrop();
+    }
+  }, delay);
+}
+
+
+/**
+ * Evita que Ctrl + Scroll modifique el zoom del navegador.
+ * Mantiene fijas las dimensiones de los paneles y alertas.
+ */
+window.addEventListener('wheel', function (e) {
+  if (e.ctrlKey) {
+    e.preventDefault(); // 🔹 Bloquea el zoom del navegador
+    e.stopPropagation();
+  }
+}, { passive: false });
+
+// También prevenir Ctrl + '+' o Ctrl + '-' del teclado
+window.addEventListener('keydown', function (e) {
+  if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+    e.preventDefault();
+  }
+});
+
+window.alertFrameIntervals = window.alertFrameIntervals || {};
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    console.log("⛔ Escape presionado → Deteniendo renderización y frames activos");
+
+    // 1️⃣ Detener timers de actualización de alertas
+    Object.keys(_alertTimersByType || {}).forEach(code => {
+      clearTimeout(_alertTimersByType[code]);
+      delete _alertTimersByType[code];
+    });
+
+    // 2️⃣ Detener intervalos de frames individuales
+    Object.values(alertFrameIntervals || {}).forEach(intervalId => clearInterval(intervalId));
+    alertFrameIntervals = {};
+    
+    clearAllAlertFrames();
+
+    // 3️⃣ Detener ciclo general de alertas (si existiera)
+    if (window.alertCycleInterval) {
+      clearInterval(window.alertCycleInterval);
+      window.alertCycleInterval = null;
+    }
+
+    // 4️⃣ Detener cualquier reproducción de video
+    if (window.videoPlayer) {
+      try { 
+        if (typeof window.videoPlayer.stop === "function") {
+          window.videoPlayer.stop();
+        } else if (typeof window.videoPlayer.pause === "function") {
+          window.videoPlayer.pause();
+        }
+      } catch(e){ console.warn(e); }
+      window.videoPlayer = null;
+    }
+
+    // 5️⃣ Cerrar modales abiertos
+    closeVideoSlot();
+    closeVideoModal();
+
+    console.log("✅ Todos los procesos de render y frames han sido detenidos correctamente.");
+  }
+});
+
+window._framesPaused = false; // estado actual de pausa
+
+// 🛑 Detiene todos los intervalos de frames activos
+function detenerFrames() {
+  if (window._framesPaused) return; // ya están pausados
+  console.log("⏸️ Deteniendo todos los frames activos...");
+  Object.values(window.alertFrameIntervals).forEach(intervalId => clearInterval(intervalId));
+  window.alertFrameIntervals = {};
+  window._framesPaused = true;
+}
+
+// ▶️ Reanuda frames de renderización
+function reanudarFrames() {
+  if (!window._framesPaused) return; // ya activos
+  console.log("▶️ Reanudando frames...");
+  // Lógica para reanudar tus frames, por ejemplo:
+  if (typeof iniciarRenderFrames === "function") {
+    iniciarRenderFrames(); // tu función que vuelve a lanzar los intervalos
+  }
+  window._framesPaused = false;
+}
+
+
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+function handleFullscreenChange() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement &&
+      !document.mozFullScreenElement && !document.msFullscreenElement) {
+    // 🚨 Se salió del modo fullscreen
+    stopAllFrameRendering();
+  }
+}
+
+function stopAllFrameRendering() {
+  if (!window.alertFrameIntervals) return;
+  Object.keys(alertFrameIntervals).forEach(id => {
+    clearInterval(alertFrameIntervals[id]);
+    delete alertFrameIntervals[id];
+  });
+  console.log('🛑 Render detenido: se salió de fullscreen');
+}
+
+
+</script>
+

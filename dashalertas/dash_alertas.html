@@ -1,0 +1,830 @@
+
+{{fragmento1}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <meta charset="utf-8" />
+  <title>Mapa de Calor - Miraflores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+  
+  #main-chart, #main-chart2, #main-chart3, #main-chart4, #pie-chart, #line-chart {
+      width: 100%;
+      min-height: 300px;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map, #map1 {
+      position: relative;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      min-height: 300px;
+    }
+    
+    .legend-box {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    #lineChart {
+      width: 100%;
+      min-height: 300px;
+      position: relative; /* necesario para posicionar las etiquetas absolutas */
+    }
+    .data-point-label {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<div>
+    <h2>
+        Visión General
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+
+        <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Periodo
+            </div>
+            <div class="panel-body">
+                <h1 class="m-b-none">
+                    08/2025 
+                </h1>
+            </div>
+        </div>
+        <div class="panel panel-b-accent">
+            <div class="panel-heading">
+                Total de Alertas
+            </div>
+            <div class="panel-body">
+                <h2 class="m-b-none">
+                    1746
+                </h2>
+            </div>
+        </div>
+        <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Promedio Mensual de Alertas
+            </div>
+            <div class="panel-body">
+                <h3 class="m-b-none">
+                    145
+                </h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Top Cámaras por Alertas
+            </div>
+            <div class="panel-body">
+                <div id="main-chart2"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Top Tipo de Alertas
+            </div>
+            <div class="panel-body">
+                <div id="main-chart3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h2>
+        Distribución y segmentación
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Gráfico de tipo de alertas
+            </div>
+            <div class="panel-body">
+                <div id="pie-chart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Cantidad de alertas por zonas
+            </div>
+            <div class="panel-body">
+                <div id="main-chart4"></div>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Mapa de Calor (Zonas)
+            </div>
+            <div class="panel-body">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h2>
+        Gráfico Evolutivo
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Gráfico de comportamiento evolutivo
+            </div>
+            <div class="panel-body">
+                <div id="main-chart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Gráfico de comportamiento evolutivo
+            </div>
+            <div class="panel-body">
+                <div id="line-chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    
+  const myChart1 = echarts.init(document.getElementById('pie-chart'));
+
+  const data1 = [
+    { value: 10, name: 'First Category' },
+    { value: 2, name: 'Second Category' },
+    { value: 4, name: 'Third Category' }
+  ];
+
+  const option1 = {
+    legend: {
+      orient: 'horizontal',
+      bottom: 'bottom',
+      textStyle: {
+        color: '#fff'
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c} ({d}%)'
+    },
+    series: [
+      {
+        name: 'Valores',
+        type: 'pie',
+        radius: ['0%', '60%'], 
+        center: ['50%', '45%'],
+        data: data1,
+        label: {
+          show: true,
+          position: 'outside',
+          formatter: '{d}%',
+          color: '#fff',
+          fontSize: 12
+        },
+        labelLine: {
+          show: true,
+          length: 5
+        },
+        itemStyle: {
+          color: (params) => {
+            const colors = ['#f6a821', '#ffffff', 'red'];
+            return colors[(params.dataIndex) % colors.length];
+          },
+          borderColor: '#000',
+          borderWidth: 1
+        },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  };
+
+  myChart1.setOption(option1);
+  
+  // ¡CLAVE! Esta línea fuerza al gráfico a redibujarse con el tamaño correcto.
+  myChart1.resize(); 
+
+  // Mantiene el gráfico responsivo si el tamaño de la ventana cambia.
+  window.addEventListener('resize', function() {
+    myChart1.resize();
+  });
+    
+    const myChart2 = echarts.init(document.getElementById('main-chart2'));
+    
+      const dataValues2 = [15, 20, 12, 25, 18, 30];
+      const categoryNames2 = ["Valor 1", "Valor 2", "Valor 3", "Valor 4", "Valor 5", "Valor 6"];
+    
+      const option2 = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '10%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false
+        },
+        yAxis: {
+          type: 'category',
+          data: categoryNames2,
+          axisTick: {
+            show: false
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'white'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'bar',
+            data: dataValues2,
+            label: {
+              show: true,
+              position: 'right', // Posiciona la etiqueta a la derecha de la barra
+              color: 'white',
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              color: '#f67200'
+            }
+          }
+        ]
+      };
+    
+      myChart2.setOption(option2);
+    
+      window.addEventListener('resize', function() {
+        myChart2.resize();
+      });
+
+    const myChart3 = echarts.init(document.getElementById('main-chart3'));
+    
+      const dataValues3 = [15, 20, 12, 25, 18, 30];
+      const categoryNames3 = ["Valor 1", "Valor 2", "Valor 3", "Valor 4", "Valor 5", "Valor 6"];
+    
+      const option3 = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '10%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false
+        },
+        yAxis: {
+          type: 'category',
+          data: categoryNames3,
+          axisTick: {
+            show: false
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'white'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'bar',
+            data: dataValues3,
+            label: {
+              show: true,
+              position: 'right', // Posiciona la etiqueta a la derecha de la barra
+              color: 'white',
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              color: '#f67200'
+            }
+          }
+        ]
+      };
+    
+      myChart3.setOption(option3);
+    
+      window.addEventListener('resize', function() {
+        myChart3.resize();
+      });
+      
+    const myChart4 = echarts.init(document.getElementById('main-chart4'));
+    
+      const dataValues4 = [15, 20, 12, 25, 18, 30];
+      const categoryNames4 = ["Valor 1", "Valor 2", "Valor 3", "Valor 4", "Valor 5", "Valor 6"];
+    
+      const option4 = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '10%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false
+        },
+        yAxis: {
+          type: 'category',
+          data: categoryNames4,
+          axisTick: {
+            show: false
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'white'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'bar',
+            data: dataValues4,
+            label: {
+              show: true,
+              position: 'right', // Posiciona la etiqueta a la derecha de la barra
+              color: 'white',
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              color: '#f67200'
+            }
+          }
+        ]
+      };
+    
+      myChart4.setOption(option4);
+    
+      window.addEventListener('resize', function() {
+        myChart4.resize();
+      });
+      
+    
+    /* logica de mapa*/
+    document.addEventListener("DOMContentLoaded", function () {
+      // Inicializar el mapa en Miraflores
+      var map = L.map('map').setView([-12.1211, -77.0305], 14);
+
+      // Capa base (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Forzar a Leaflet a recalcular dimensiones al inicio
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+
+      // Recalcular también cuando la ventana cambie de tamaño
+      window.addEventListener("resize", () => {
+        map.invalidateSize();
+      });
+
+      // Datos de ejemplo (lat, lng, intensidad opcional)
+      var heatPoints = [
+        [-12.1211, -77.0305, 0.9],  // Parque Kennedy
+        [-12.1175, -77.0283, 0.8],  // Larcomar
+        [-12.1230, -77.0320, 0.7],  // Av. Pardo
+        [-12.1200, -77.0355, 0.6],  // Reducto
+        [-12.1150, -77.0300, 0.5]   // Malecón
+      ];
+
+      // Crear capa de calor (más grande por defecto)
+      L.heatLayer(heatPoints, {
+        radius: 40,   // 🔥 radio más grande
+        blur: 25,     // más difuminado
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+          0.4: 'blue',
+          0.6: 'lime',
+          0.8: 'orange',
+          1.0: 'red'
+        }
+      }).addTo(map);
+    });
+    
+    
+    
+    
+function getAlertasPorTipo(typeCode, autoRefresh=true){
+  const code = String(typeCode);
+  // Limpia/renueva timer por tipo
+  if (_alertTimersByType[code]) clearTimeout(_alertTimersByType[code]);
+
+  /*if (typeof callAPI !== 'function'){
+    const nuevas = generateSampleAlerts().filter(a => String(a.type_event_code) === code);
+    mergeAlertasPorTipo(code, nuevas);
+    renderPanelByType(code);
+    programarRefreshTipo(code, autoRefresh);
+    return;
+  }
+*/
+  callAPI({
+    method: 'gestion/getalerts',
+    //params: { type_event: code },
+    ok: function (vals) {
+      const nuevas = Array.isArray(vals) ? vals : (vals && vals.data) ? vals.data : [];
+      //log("vals",vals)
+        
+         anteriores = Array.isArray(listalertas) ? listalertas : [];
+         nuevosDatos = Array.isArray(vals.data) ? vals.data : [];
+        //log("anteriores",anteriores)
+        //log("nuevosDatos",nuevosDatos)
+        // Crear un Set con los IDs previos para búsqueda rápida O(1)
+         idsPrevios = new Set(anteriores.map(a => a.id));
+        
+        // Filtrar solo los nuevos registros
+        nuevosDatos.forEach(alerta => {
+            if (!idsPrevios.has(alerta.id)) {
+                nuevas.push(alerta);
+            }
+        });
+   //log("nuevas",nuevas)
+      listAlertaNuevas = nuevas;
+      listalertas = vals.data;
+      programarRefreshTipo(code, autoRefresh);
+    },
+    error: function (err) {
+      console.error('❌ Error getAlertasPorTipo:', err);
+      // fallback a sample para no dejar vacío
+      const nuevas = generateSampleAlerts().filter(a => String(a.type_event_code) === code);
+      mergeAlertasPorTipo(code, nuevas);
+      renderPanelByType(code);
+      programarRefreshTipo(code, autoRefresh);
+    }
+  });
+}
+
+    // Inicializa el gráfico en el contenedor con el ID 'main-chart'
+    const myChart = echarts.init(document.getElementById('main-chart'));
+
+    // Configuración y opciones del gráfico
+    const option = {
+      // Configuración de la leyenda
+      tooltip: {},
+      xAxis: {
+        type: 'category',
+        data: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      },
+      yAxis: {
+        type: 'value',
+        show: false // Esta línea oculta el eje Y
+      },
+      series: [
+        {
+          name: 'Ventas',
+          type: 'bar',
+          data: [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16],
+          // Configuración de los colores
+          itemStyle: {
+            color: '#f67200',
+            borderColor: '#f67200',
+            borderWidth: 1
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#fff', // Color del texto del label: blanco
+            fontWeight: 'bold' // Opcional: para que el texto sea más legible
+          }
+        }
+      ]
+    };
+    
+    // Aplica las opciones y renderiza el gráfico
+    myChart.setOption(option);
+    
+    /*
+    $(document).ready(function () {
+        myChart.resize()
+        myChart1.resize()
+        myChart2.resize()
+        myChart3.resize()
+        myChart4.resize()
+    });
+    */
+    
+    const myChart5 = echarts.init(document.getElementById('line-chart'));
+
+      const xAxisData5 = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const seriesData5 = [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16];
+    
+      const option5 = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: xAxisData5,
+          axisLine: {
+            lineStyle: {
+              color: '#fff' // Color del eje X
+            }
+          }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: {
+            lineStyle: {
+              color: '#fff' // Color del eje Y
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Valores',
+            type: 'line',
+            data: seriesData5,
+            itemStyle: {
+              color: '#f67200' // Color de la línea y los puntos
+            },
+            lineStyle: {
+              width: 2 // Grosor de la línea
+            },
+            label: {
+              show: true,
+              position: 'top',
+              color: '#fff' // Color de los valores en cada punto
+            }
+          }
+        ]
+      };
+    
+      myChart5.setOption(option5);
+    
+      window.addEventListener('resize', function() {
+        myChart5.resize();
+      });
+    
+</script>
+
+<!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Plugin Leaflet Heat -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  
+  
+  <!-- === ESTILOS === -->
+<style>
+#main-chart, #main-chart2, #main-chart3, #main-chart4, #pie-chart, #line-chart {
+  width: 100%;
+  min-height: 300px;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#map, #map1 {
+  position: relative;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  min-height: 300px;
+}
+.legend-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+#line-chart {
+  width: 100%;
+  min-height: 300px;
+  position: relative;
+}
+.data-point-label {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+</style>
+
+<!-- === CONTENEDOR GRÁFICO === -->
+<div class="col-md-6">
+  <div class="panel">
+    <div class="panel-heading">
+      <div class="panel-tools">
+        <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+      </div>
+      Gráfico de comportamiento evolutivo (últimas 4 horas)
+    </div>
+    <div class="panel-body">
+      <select id="tipoAlertaFiltro" class="form-control" style="width:200px; margin-bottom:10px;">
+        <option value="">Todos los tipos</option>
+        <option value="1">Accidente</option>
+        <option value="2">Robo</option>
+        <option value="3">Congestión vehicular</option>
+        <!-- agrega más tipos si lo deseas -->
+      </select>
+      <div id="line-chart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- === SCRIPTS === -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+<script>
+// === CONFIGURACIÓN ===
+let chart = echarts.init(document.getElementById('line-chart'));
+let refreshTimer = null;
+
+// === FUNCIÓN PRINCIPAL ===
+async function getAlertasByTipo(type_event = null) {
+  try {
+    // Simulación: endpoint de tu API
+    const params = type_event ? `?type_event=${type_event}` : '';
+    const resp = await fetch(`http://10.23.62.93:90/api/gestion/getalerts${params}`);
+    const data = await resp.json();
+
+    const registros = Array.isArray(data.data) ? data.data : [];
+
+    // Filtrar las alertas de las últimas 4 horas
+    const ahora = Date.now();
+    const hace4h = ahora - (4 * 60 * 60 * 1000);
+    const recientes = registros.filter(a => a.epoch_frame > hace4h);
+
+    // Agrupar por hora
+    const conteoPorHora = {};
+    for (let alerta of recientes) {
+      const fecha = new Date(alerta.epoch_frame);
+      const horaKey = fecha.getHours(); // hora local
+      conteoPorHora[horaKey] = (conteoPorHora[horaKey] || 0) + 1;
+    }
+
+    // Crear ejes
+    const horasOrdenadas = Object.keys(conteoPorHora)
+      .sort((a, b) => Number(a) - Number(b))
+      .map(h => `${h}:00`);
+    const valores = horasOrdenadas.map(h => conteoPorHora[h.replace(':00', '')] || 0);
+
+    // Configurar gráfico
+    const option = {
+      tooltip: { trigger: 'axis' },
+      xAxis: {
+        type: 'category',
+        data: horasOrdenadas,
+        axisLine: { lineStyle: { color: '#fff' } },
+        axisLabel: { color: '#fff' }
+      },
+      yAxis: {
+        type: 'value',
+        axisLine: { lineStyle: { color: '#fff' } },
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+        axisLabel: { color: '#fff' }
+      },
+      series: [
+        {
+          name: 'Alertas',
+          type: 'line',
+          data: valores,
+          smooth: true,
+          lineStyle: { color: '#f67200', width: 3 },
+          itemStyle: { color: '#f67200' },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#fff',
+            fontWeight: 'bold'
+          }
+        }
+      ],
+      backgroundColor: 'transparent'
+    };
+
+    chart.setOption(option);
+  } catch (error) {
+    console.error('❌ Error al obtener alertas:', error);
+  }
+}
+
+// === AUTORREFRESCO ===
+function iniciarAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    const filtro = document.getElementById('tipoAlertaFiltro').value;
+    getAlertasByTipo(filtro || null);
+  }, 30000); // 30 segundos
+}
+
+// === EVENTO DE FILTRO ===
+document.getElementById('tipoAlertaFiltro').addEventListener('change', (e) => {
+  getAlertasByTipo(e.target.value || null);
+});
+
+// === INICIO ===
+getAlertasByTipo(); // carga inicial
+iniciarAutoRefresh();
+
+window.addEventListener('resize', () => chart.resize());
+</script>

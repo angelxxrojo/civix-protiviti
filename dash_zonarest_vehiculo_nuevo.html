@@ -1,0 +1,1043 @@
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <!-- Leaflet CSS -->
+<link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+  
+    #main-chart2, #main-chart3, #main-chart4, #pie-chart, #line-chart, #pie-chart-zrtipo, #main-chart-zrtipo {
+      width: 100%;
+      min-height: 360px;
+    }
+    #main-chart{
+        min-height: 400px;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map, #map1, #map-zrtipo {
+      position: relative;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      min-height: 360px;
+    }
+    
+    .legend-box {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    #lineChart {
+      width: 100%;
+      min-height: 300px;
+      position: relative; /* necesario para posicionar las etiquetas absolutas */
+    }
+    .data-point-label {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .panel-heading {
+  font-weight: bold;
+}
+  </style>
+</head>
+<div style="display:flex; justify-content: space-between">
+    <h2>
+        Visión General
+    </h2>
+    <h2>
+        Últimos 12 meses
+    </h2>
+</div>
+<div class="row h-100" style="min-height: 400px;"> <!-- altura mínima -->
+  <!-- Columna izquierda -->
+  <!--div class="col-md-2 d-flex flex-column">
+    <div class="panel panel-filled panel-c-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Período Actual<br><br>
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none" id="period">08/2025</h1>
+      </div>
+    </div>
+  </div-->
+  <div class="col-md-3 d-flex flex-column">
+    <div class="panel panel-filled panel-c-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Total de cámaras con zonas restringidas
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none" id="activeCameras">60</h1>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 d-flex flex-column">
+    <div class="panel panel-filled panel-c-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Total zonas restringidas vehiculares
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none" id="zonesAmount">200</h1>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 d-flex flex-column">
+    <div class="panel panel-b-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Total de vehiculos en zonas restringidas
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none" id="averageAmount">1746</h1>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 d-flex flex-column">
+    <div class="panel panel-b-accent flex-fill" style="flex: 1;">
+      <div class="panel-heading">
+        Tiempo de ocupación en zonas restringidas
+      </div>
+      <div class="panel-body d-flex align-items-center justify-content-center">
+        <h1 class="m-b-none" id="averageTime">145</h1>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Columna derecha -->
+<div class="col-md-12 d-flex">
+  <div class="panel flex-fill d-flex flex-column">
+    <div class="panel-heading">
+      <div class="panel-tools">
+        <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+      </div>
+      Tiempo de ocupación  en zonas restringidas por mes
+    </div>
+    <div class="panel-body flex-fill d-flex justify-content-center">
+      <!-- centrado horizontal y vertical -->
+      <div id="main-chart" style="width:100%; height:400px;"></div>
+    </div>
+  </div>
+</div>
+
+
+
+<div>
+    <h2>
+        Ocupación por cámara 
+    </h2>
+</div>
+<div class="row">
+    <!--div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Gráfico de comportamiento evolutivo
+            </div>
+            <div class="panel-body">
+                <div id="main-chart"></div>
+            </div>
+        </div>
+    </div-->
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Tiempo de ocupación en zonas restringidas por cámara
+            </div>
+            <div class="panel-body">
+                <div id="main-chart2"></div>
+            </div>
+        </div>
+    </div>
+        <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Cantidad total de vehiculos por cámara en zona restringida
+            </div>
+            <div class="panel-body">
+                <div id="main-chart3"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>          
+                </div>
+                Mapa de calor (Por cámaras)
+            </div>
+            <div class="panel-body">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    <!--div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Cantidad de vehiculos por cámara en zona restringida
+            </div>
+            <div class="panel-body">
+                <div id="main-chart3"></div>
+            </div>
+        </div>
+    </div-->
+    <!--div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Comportamiento de ocupación en zonas restringidas (ultimo trimestre)
+            </div>
+            <div class="panel-body">
+                <div id="line-chart"></div>
+            </div>
+        </div>
+    </div-->
+</div>
+<div>
+    <h2>
+        Distribución y segmentación 
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Tiempo de ocupación por tipo de zona de interes
+            </div>
+            <div class="panel-body">
+                <div id="pie-chart-zrtipo" ></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Tiempo de ocupación por zona objetivo
+            </div>
+            <div class="panel-body">
+                <div id="main-chart-zrtipo"></div>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Mapa de Calor (Zona objetivo)
+            </div>
+            <div class="panel-body">
+                <div id="map-zrtipo"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    
+    
+    $(document).ready(function() {
+        getData();
+    });
+    
+    var dataZones;
+    
+    function getData(){
+       // fetch('http://10.23.62.93:8700/evaluatezones/api/metrics/history')
+        fetch('http://10.23.62.93:8700/evaluatezones/api/metrics/split/history?type=vehiculos')
+          .then(response => {
+            // Check if the request was successful
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            // Parse the JSON data from the response
+            return response.json();
+          })
+          .then(data => {
+                log("info",(data.vehiculos));
+                dataZones = data.vehiculos.items[0];
+                
+                //log("periodo",dataZones.periodo)
+                //document.getElementById('period').textContent = dataZones.periodo;
+                document.getElementById('activeCameras').textContent = dataZones.camaras_activas;
+                document.getElementById('zonesAmount').textContent = dataZones.total_zonas_objetivo;
+                
+                // For the decimal values, you might want to round them for cleaner display
+                const ocupacionPromedio = Math.round(dataZones.ocupacion_promedio_min);
+                const permanenciaPromedio = dataZones.permanencia_promedio_min.toFixed(2);
+                
+                document.getElementById('averageAmount').textContent = ocupacionPromedio;
+                document.getElementById('averageTime').textContent = permanenciaPromedio;
+                renderMap(dataZones.mapa_camaras, 'map-zrtipo')
+                renderMap(dataZones.mapa_camaras, 'map')
+                renderChartTime('main-chart-zrtipo', dataZones.por_objetivo);
+                renderChartTime('main-chart2', dataZones.por_camara);
+               // renderChartAmount('main-chart4', dataZones.por_objetivo)
+                renderChartAmount('main-chart3', dataZones.por_camara)
+            // Work with the data retrieved from the API
+          })
+          .catch(error => {
+            // Handle any errors that occurred during the fetch
+            console.error('There was a problem with the fetch operation:', error);
+          })
+        /*
+        callAPI({
+            method:"metrics/history",
+            params:{},
+            ok:(data)=>{
+                log("info",JSON.parse(data));
+            }
+        });
+        */
+    }
+    
+    /* logica de mapa*/
+    function renderMap(mapCameras,name) {
+        const mapaCamarasData = mapCameras;
+    
+        // Inicializar el mapa en una ubicación por defecto, si no hay datos de cámaras
+        if (mapaCamarasData.length === 0) {
+            var map = L.map(name).setView([-12.1211, -77.0305], 15);
+        } else {
+            // Inicializa el mapa sin una vista fija para que `fitBounds` la determine
+            var map = L.map(name);
+        }
+    
+        // Capa base (OpenStreetMap)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+    
+        // Forzar a Leaflet a recalcular dimensiones
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 200);
+    
+        window.addEventListener("resize", () => {
+            map.invalidateSize();
+        });
+    
+        // Array para guardar las coordenadas y un objeto para los límites
+        const latLngs = [];
+    
+        // Definir un ícono de color naranja para los pines
+        var orangeIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+    
+        // Iterar sobre los datos de la API para crear marcadores
+        mapaCamarasData.forEach(function (item) {
+            const latLng = [item.latitud, item.longitud];
+            latLngs.push(latLng);
+    
+            var marker = L.marker(latLng, { icon: orangeIcon }).addTo(map);
+    
+            const popupContent = `
+                <b>Cámara:</b> ${item.camera_name}<br>
+                <b>Código:</b> ${item.camera_code}<br>
+                <b>Objetivo:</b> ${item.objetivo}<br>
+                <b>Intensidad:</b> ${item.intensidad.toFixed(2)}
+            `;
+            marker.bindPopup(popupContent);
+        });
+    
+        // Procesar los datos para crear los puntos de calor
+        var heatPoints = mapaCamarasData.map(item => [
+            item.latitud,
+            item.longitud,
+            item.intensidad*5
+        ]);
+    
+        // Crear la capa de calor con los datos procesados
+        if (heatPoints.length > 0) {
+            L.heatLayer(heatPoints, {
+                radius: 40,
+                blur: 25,
+                maxZoom: 17,
+                max: 20,
+                gradient: {
+                    0.0: 'red',
+                    0.5: '#f67200',
+                    1.0: '#ffc180'
+                }
+            }).addTo(map);
+        }
+        
+        // Si hay puntos, ajustar los límites del mapa para que todos sean visibles
+        if (latLngs.length > 0) {
+            const bounds = L.latLngBounds(latLngs);
+            map.fitBounds(bounds);
+        }
+    };
+    
+    const graficobarraspormes = echarts.init(document.getElementById('main-chart'));
+
+    // 1. Obtener la fecha de hoy
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const allMonths = ['Ene-25', 'Feb-25', 'Mar-25', 'Abr-25', 'May-25', 'Jun-25', 'Jul-25', 'Ago-25', 'Sep-24', 'Oct-24', 'Nov-24', 'Dic-24'];
+    const xAxisData = [];
+    for (let i = 0; i < 12; i++) {
+        const monthIndex = (currentMonth - i + 12) % 12;
+        xAxisData.unshift(allMonths[monthIndex]);
+    }
+    
+    // 2. Datos de ejemplo para el tiempo de ocupación
+    const dataOcupacion = [15, 20, 10, 25, 18, 20, 22, 17, 28, 19, 24, 16];
+    
+    // 3. Datos de ejemplo para las zonas restringidas
+    const dataZonasRestringidas = [7, 5, 3, 5, 4, 4, 8, 4, 5, 5, 6, 8];
+    
+    // Se renombra 'option' a 'graficobarraspormescontent'
+    const graficobarraspormescontent = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            }
+        },
+        legend: {
+            bottom: 0,
+            data: [{
+                name: 'Tiempo de Ocupación',
+                itemStyle: {
+                    color: '#f67200'
+                },
+                textStyle: {
+                    color: 'white'
+                }
+            }, {
+                name: 'Zonas Restringidas',
+                itemStyle: {
+                    color: '#4caf50'
+                },
+                textStyle: {
+                    color: 'white'
+                }
+            }]
+        },
+        grid: {
+            top: '15%',
+            left: '0%',
+            right: '3%',
+            bottom: '15%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: xAxisData,
+            axisLine: {
+                lineStyle: {
+                    color: '#bbbdbb'
+                }
+            },
+            axisLabel: {
+                color: '#bbbdbb'
+            }
+        },
+        yAxis: {
+            type: 'value',
+            show: false
+        },
+        series: [
+            {
+                name: 'Tiempo de Ocupación',
+                type: 'bar',
+                data: dataOcupacion,
+                itemStyle: {
+                    color: (params) => {
+                        const lastIndex = dataOcupacion.length - 1;
+                        if (params.dataIndex === lastIndex) {
+                            return '#f67200';
+                        } else {
+                            return 'rgba(246, 114, 0, 0.6)';
+                        }
+                    }
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    formatter: (params) => {
+                        const lastIndex = dataOcupacion.length - 1;
+                        if (params.dataIndex === lastIndex) {
+                            return `{b|${params.value}}`;
+                        } else {
+                            return params.value;
+                        }
+                    },
+                    rich: {
+                        b: {
+                            color: '#fff',
+                            fontSize: 14,
+                            fontWeight: 'bold'
+                        }
+                    }
+                }
+            },
+            {
+                name: 'Zonas Restringidas',
+                type: 'line',
+                data: dataZonasRestringidas,
+                lineStyle: {
+                    color: '#4caf50',
+                    width: 2
+                },
+                itemStyle: {
+                    color: '#4caf50'
+                },
+                label: {
+                    show: true,
+                    position: 'bottom',
+                    color: '#fff'
+                }
+            }
+        ]
+    };
+    
+    // Se utiliza la nueva variable
+    graficobarraspormes.setOption(graficobarraspormescontent);
+    
+    window.addEventListener('resize', function() {
+        graficobarraspormes.resize();
+    });
+
+function renderChartTime(name, object){
+        const myChart = echarts.init(document.getElementById(name));
+    
+        // 1. Extraer los datos y nombres en un array de objetos
+        const combinedData = object.map(item => ({
+            value: Math.round(item.permanencia_promedio_min*100)/100,
+            name: item.camera_code?item.camera_code: item.objetivo
+        }));
+        
+        // 2. Ordena el array de objetos de menor a mayor valor para que el gráfico quede ascendente
+        combinedData.sort((a, b) => a.value - b.value);
+        
+        // 3. Separa de nuevo los datos y los nombres ya ordenados
+        const sortedValues = combinedData.map(item => item.value);
+        const sortedNames = combinedData.map(item => item.name);
+        
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                top: '10%',
+                left: '3%',
+                right: '10%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                show: false
+            },
+            yAxis: {
+                type: 'category',
+                data: sortedNames,
+                axisTick: {
+                    show: false
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: 'white'
+                    }
+                }
+            },
+            series: [
+                {
+                    name: 'Horas',
+                    type: 'bar',
+                    data: sortedValues,
+                    label: {
+                        show: true,
+                        position: 'right',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        formatter: '{c}' // Muestra el valor de la barra
+                    },
+                    itemStyle: {
+                        color: '#f67200'
+                    }
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+        
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+    
+    function renderChartAmount(name, object){
+        const myChart4 = echarts.init(document.getElementById(name));
+        
+        // 1. Extraer los datos y nombres en un array de objetos, redondeando los valores
+        const combinedData4 = object.map(item => ({
+            value: Math.round(item.ocupacion_promedio_min),
+            name: item.camera_code?item.camera_code: item.objetivo
+        }));
+        
+        // 2. Ordena el array de objetos de menor a mayor valor para que el gráfico quede ascendente
+        combinedData4.sort((a, b) => a.value - b.value);
+        
+        // 3. Separa de nuevo los datos y los nombres ya ordenados
+        const sortedValues4 = combinedData4.map(item => item.value);
+        const sortedNames4 = combinedData4.map(item => item.name);
+        
+        const option4 = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                top: '10%',
+                left: '3%',
+                right: '10%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                show: false
+            },
+            yAxis: {
+                type: 'category',
+                data: sortedNames4,
+                axisTick: {
+                    show: false
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: 'white'
+                    }
+                }
+            },
+            series: [
+                {
+                    type: 'bar',
+                    data: sortedValues4,
+                    label: {
+                        show: true,
+                        position: 'right',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        formatter: '{c}' // Muestra el valor de la barra
+                    },
+                    itemStyle: {
+                        color: '#f67200'
+                    }
+                }
+            ]
+        };
+              
+        myChart4.setOption(option4);
+              
+        window.addEventListener('resize', function() {
+            myChart4.resize();
+        });
+    }
+  
+  const piezrtipo = echarts.init(document.getElementById('pie-chart-zrtipo'));
+
+    const datapiezrtipo = [
+        { value: 50, name: 'Zona peatonal' },
+        { value: 8, name: 'Zona de metropolitano' },
+        { value: 20, name: 'Zona rigida' },
+        { value: 20, name: 'Zona de viaductos' }
+    ];
+    
+    const optionzrtipo = {
+        legend: {
+            orient: 'horizontal',
+            bottom: 'bottom',
+            textStyle: {
+                color: '#fff'
+            }
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)'
+        },
+        series: [
+            {
+                name: 'Valores',
+                type: 'pie',
+                radius: ['0%', '60%'],
+                center: ['50%', '45%'],
+                data: datapiezrtipo,
+                label: {
+                    show: true,
+                    position: 'outside',
+                    formatter: '{c}',
+                    color: '#fff',
+                    fontSize: 12
+                },
+                labelLine: {
+                    show: true,
+                    length: 5
+                },
+                itemStyle: {
+                    // Función para aplicar el color con opacidad decreciente
+                    color: (params) => {
+                        const baseColor = '#f67200';
+                        const totalItems = datapiezrtipo.length;
+                        const opacidad = 1 - (params.dataIndex * (1 / totalItems));
+                        
+                        // Retorna el color en formato RGBA con la opacidad calculada
+                        return `rgba(246, 114, 0, ${opacidad})`;
+                    },
+                    borderColor: '#000',
+                    borderWidth: 1
+                },
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    };
+    
+    piezrtipo.setOption(optionzrtipo);
+    
+    // Mantiene el gráfico responsivo si el tamaño de la ventana cambia.
+    window.addEventListener('resize', function() {
+        piezrtipo.resize();
+    });
+    
+    // Inicializa la instancia de ECharts en el contenedor con el ID 'main-chart2'
+    const myChart2 = echarts.init(document.getElementById('main-chart2'));
+    
+    // Datos originales del gráfico
+    const dataValues2 = [32, 11, 2, 7, 10, 10];
+    const categoryNames2 = ["P1WPTZA1-DP", "OFICINA_GISE", "P35WFJ2A1-DP", "P69WFJ1A4-DP", "P62WPTZA4-RR", "P9WFJ1A3-DP"];;
+    
+    // 1. Combina los datos y nombres en un array de objetos
+    const combinedData2 = dataValues2.map((value, index) => ({
+        value: value,
+        name: categoryNames2[index]
+    }));
+    
+    // 2. Ordena el array de objetos de menor a mayor valor
+    combinedData2.sort((a, b) => a.value - b.value);
+    
+    // 3. Separa de nuevo los datos y los nombres ya ordenados
+    const sortedValues2 = combinedData2.map(item => item.value);
+    const sortedNames2 = combinedData2.map(item => item.name);
+    
+    // Opciones de configuración para el gráfico ECharts
+    const option2 = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        grid: {
+            top: '5%',
+            left: '3%',
+            right: '10%',
+            bottom: '3%',
+            containLabel: true // Asegura que las etiquetas del eje se contengan dentro del área del gráfico
+        },
+        xAxis: {
+            type: 'value',
+            show: false
+        },
+        yAxis: {
+            type: 'category',
+            data: sortedNames2, // Usa los nombres ya ordenados
+            axisTick: {
+                show: false
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'white'
+                }
+            }
+        },
+        series: [{
+            name: 'Horas',
+            type: 'bar',
+            data: sortedValues2, // Usa los valores ya ordenados
+            label: {
+                show: true,
+                position: 'right',
+                color: 'white',
+                fontWeight: 'bold'
+            },
+            itemStyle: {
+                color: '#f67200'
+            }
+        }]
+    };
+    
+    // Aplica la configuración al gráfico
+    myChart2.setOption(option2);
+    
+    // Asegura que el gráfico se redimensione automáticamente
+    window.addEventListener('resize', function() {
+        myChart2.resize();
+    });
+
+    // Inicializa la instancia de ECharts en el contenedor con el ID 'main-chart3'
+    const myChart3 = echarts.init(document.getElementById('main-chart3'));
+    
+    // Datos originales del gráfico
+    const dataValues3 = [23, 11, 4, 10, 30, 2];
+    const categoryNames3 = ["P1WPTZA1-DP", "OFICINA_GISE", "P35WFJ2A1-DP", "P69WFJ1A4-DP", "P62WPTZA4-RR", "P9WFJ1A3-DP"];;
+    
+    // 1. Combina los datos y nombres en un array de objetos
+    const combinedData3 = dataValues3.map((value, index) => ({
+        value: value,
+        name: categoryNames3[index]
+    }));
+    
+    // 2. Ordena el array de objetos de menor a mayor valor
+    combinedData3.sort((a, b) => a.value - b.value);
+    
+    // 3. Separa de nuevo los datos y los nombres ya ordenados
+    const sortedValues3 = combinedData3.map(item => item.value);
+    const sortedNames3 = combinedData3.map(item => item.name);
+    
+    // Opciones de configuración para el gráfico ECharts
+    const option3 = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        grid: {
+            top: '10%',
+            left: '3%',
+            right: '10%',
+            bottom: '3%',
+            containLabel: true // Asegura que las etiquetas del eje se contengan dentro del área del gráfico
+        },
+        xAxis: {
+            type: 'value',
+            show: false
+        },
+        yAxis: {
+            type: 'category',
+            data: sortedNames3, // Usa los nombres ya ordenados
+            axisTick: {
+                show: false
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'white'
+                }
+            }
+        },
+        series: [{
+            name: 'Cantidad',
+            type: 'bar',
+            data: sortedValues3, // Usa los valores ya ordenados
+            label: {
+                show: true,
+                position: 'right', // Posiciona la etiqueta a la derecha de la barra
+                color: 'white',
+                fontWeight: 'bold'
+            },
+            itemStyle: {
+                color: '#f67200'
+            }
+        }]
+    };
+    
+    // Aplica la configuración al gráfico
+    myChart3.setOption(option3);
+    
+    // Asegura que el gráfico se redimensione automáticamente
+    window.addEventListener('resize', function() {
+        myChart3.resize();
+    });
+     
+     /*
+    // Inicializa el gráfico en el contenedor con el ID 'main-chart'
+    const myChart = echarts.init(document.getElementById('main-chart'));
+
+    // Configuración y opciones del gráfico
+    const option = {
+      // Configuración de la leyenda
+      tooltip: {},
+        grid: {
+            top: '5%',
+            left: '3%',
+            right: '10%',
+            bottom: '3%',
+            containLabel: true // Asegura que las etiquetas del eje se contengan dentro del área del gráfico
+        },
+      xAxis: {
+        type: 'category',
+        data: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      },
+      yAxis: {
+        type: 'value',
+        show: true // Esta línea oculta el eje Y
+      },
+      series: [
+        {
+          name: 'Ventas',
+          type: 'bar',
+          data: [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16],
+          // Configuración de los colores
+          itemStyle: {
+            color: '#f67200',
+            borderColor: '#f67200',
+            borderWidth: 1
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#fff', // Color del texto del label: blanco
+            fontWeight: 'bold' // Opcional: para que el texto sea más legible
+          }
+        }
+      ]
+    };
+    
+    // Aplica las opciones y renderiza el gráfico
+    myChart.setOption(option);
+    */
+    
+/*
+    const myChart5 = echarts.init(document.getElementById('line-chart'));
+
+    const xAxisData5 = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const seriesData5 = [
+    15, // Lunes
+    20, // Martes
+    12, // Miércoles
+    25, // Jueves
+    18, // Viernes
+    30, // Sábado
+    22  // Domingo
+];
+        
+    const option5 = {
+        tooltip: {
+            trigger: 'axis'
+        },
+        grid: {
+            top: '5%',
+            left: '3%',
+            right: '10%',
+            bottom: '3%',
+            containLabel: true 
+        },
+        xAxis: {
+            type: 'category',
+            data: xAxisData5,
+            axisLine: {
+                lineStyle: {
+                    color: '#fff' 
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            // Oculta las líneas del eje Y
+            axisLine: {
+                show: true
+            },
+            // Oculta las líneas de la cuadrícula horizontal
+            splitLine: {
+                show: true
+            }
+        },
+        series: [
+            {
+                name: 'Valores',
+                type: 'line',
+                data: seriesData5,
+                itemStyle: {
+                    color: '#f67200'
+                },
+                lineStyle: {
+                    width: 2
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: '#fff' 
+                }
+            }
+        ]
+    };
+        
+    myChart5.setOption(option5);
+        
+    window.addEventListener('resize', function() {
+        myChart5.resize();
+    });
+    */
+</script>
+
+<!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Plugin Leaflet Heat -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Mapa de Calor - Miraflores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      height: 600px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Plugin Leaflet Heat -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Inicializar el mapa en Miraflores
+      var map = L.map('map').setView([-12.1000, -77.0300], 14);
+    
+      // Capa base (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    
+      // Forzar a Leaflet a recalcular dimensiones al inicio
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+    
+      // Recalcular también cuando la ventana cambie de tamaño
+      window.addEventListener("resize", () => {
+        map.invalidateSize();
+      });
+    
+      // Coordenadas de los puntos de la ruta
+      const coords = {
+        parqueKennedy: [-12.1211, -77.0305],
+        avAngamosArequipa: [-12.1017, -77.0300],
+        estadioNacional: [-12.0658, -77.0335]
+      };
+    
+      // 1. Trazar la ruta de auto usando Leaflet Routing Machine
+      L.Routing.control({
+        waypoints: [
+          L.latLng(coords.parqueKennedy),
+          L.latLng(coords.avAngamosArequipa),
+          L.latLng(coords.estadioNacional)
+        ],
+        routeWhileDragging: true,
+        showAlternatives: false,
+        fitSelectedRoutes: true
+      }).addTo(map);
+    
+      // 2. Marcar los hitos (opcional)
+      // Puedes seguir usando L.marker para marcar puntos específicos si lo deseas.
+      // L.marker(coords.parqueKennedy).addTo(map).bindPopup("Parque Kennedy");
+    });
+  </script>
+</body>
+</html>

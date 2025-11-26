@@ -1,0 +1,5258 @@
+<style>
+
+
+
+@keyframes pulseFilter {
+  0%, 100% {
+    box-shadow: 0 0 25px 8px rgba(34, 230, 217, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 35px 12px rgba(34, 230, 217, 1);
+  }
+}
+
+.slot-time {
+  position: absolute;
+  bottom: 6px;
+  right: 50px; /* espacio entre "🗑️" y "🎥" */stopAlertRefresh
+  background: rgba(0, 0, 0, 0.55);stopAlertRefresh
+  color: #e8fbff;
+  border-radius: 4px;
+  font-size: 8px;
+  padding: 3px 6px;
+  z-index: 12;
+  pointer-events: none;
+  font-family: monospace;
+  letter-spacing: 0.3px;
+  transition: opacity 0.3s ease;
+}
+
+/* 🕒 Cuando un SLOT (celda) entra en fullscreen individual */
+.slot:fullscreen .slot-time,
+.slot:-webkit-full-screen .slot-time,
+.slot:-moz-full-screen .slot-time {
+  font-size: 18px !important;          /* 🔼 Aumenta tamaño */
+  padding: 5px 10px !important;
+  bottom: 12px !important;
+  right: 12px !important;
+  background: rgba(0, 0, 0, 0.6);
+  color: #22e6d9;
+  border-radius: 6px;
+  text-shadow: 0 0 8px rgba(34,230,217,0.9);
+  transition: all 0.3s ease-in-out;
+  z-index: 9999 !important;
+}
+
+/* También aumenta el texto del nombre y ubicación arriba */
+.slot:fullscreen .cam-name,
+.slot:-webkit-full-screen .cam-name,
+.slot:-moz-full-screen .cam-name {
+  font-size: 18px !important;
+  color: #22e6d9 !important;
+  text-shadow: 0 0 10px rgba(34,230,217,0.8);
+}
+
+.slot:fullscreen .cam-location,
+.slot:-webkit-full-screen .cam-location,
+.slot:-moz-full-screen .cam-location {
+  font-size: 14px !important;
+  opacity: 1;
+  color: #b5d6df;
+}
+
+
+.layout, .app-container {
+  display: flex;
+  height: 100vh;
+  overflow: auto; /* mantiene fullscreen */
+}
+
+.sidebar {
+  flex-shrink: 0;
+  overflow-y: auto; /* ✅ scroll interno */
+}
+
+	.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;            /* o el ancho que uses */
+  height: 100vh;           /* altura completa del viewport */
+  overflow-y: auto;        /* ✅ activa el scroll vertical */
+  overflow-x: auto;
+  scrollbar-width: thin;   /* opcional, estilo fino */
+  scrollbar-color: #22e6d9 #0b1f2a; /* opcional, estilo civix-neo */
+}
+.toast-msg {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: rgba(255, 122, 47, 0.9);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  z-index: 999999;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  font-size: 14px;
+  animation: fadein 0.3s ease, fadeout 0.3s ease 2.7s;
+}
+.toast-msg.error { background: rgba(255, 0, 0, 0.85); }
+.toast-msg.success { background: rgba(34, 230, 217, 0.9); }
+
+@keyframes fadein { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
+@keyframes fadeout { from {opacity: 1;} to {opacity: 0; transform: translateY(10px);} }
+
+:fullscreen .col-3.panel {
+  overflow-y: auto !important;
+  
+}
+
+/* Overlay de carga cuando se asigna cámara */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--teal);
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 50;
+  border-radius: 10px;
+}
+
+.loading-overlay .spinner {
+  border: 3px solid rgba(34,230,217,0.3);
+  border-top: 3px solid var(--teal);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Overlay superior con nombre y ubicación de cámara */
+.overlay-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.45);
+  color: #e8fbff;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+  line-height: 1.2em;
+  pointer-events: none;
+}
+
+.cam-name {
+  font-weight: 600;
+  color: var(--teal);
+  text-shadow: 0 0 4px rgba(0,0,0,0.7);
+}
+
+.cam-location {
+  color: #b5d6df;
+  font-size: 11px;
+  opacity: 0.85;
+  text-shadow: 0 0 4px rgba(0,0,0,0.6);
+}
+
+
+
+:root{
+  --bg:#061922; --panel:#0b1f2a; --ink:#b5d6df; --ink-strong:#e8fbff;
+  --teal:#22e6d9; --orange:#ff7a2f; --line:#143241;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0}
+body{background:#0b1f2a;color:var(--ink);font:14px/1.45 system-ui,Segoe UI,Roboto,Arial,sans-serif;overflow:auto;}
+
+.container{width:100%;height:100%;padding:12px;display:none;gap:12px}
+
+.col-3{flex:0 0 25%}
+.col-9{flex:1;display:flex;flex-direction:column}
+
+.panel{background:var(--panel);border-radius:12px;padding:12px;display:flex;flex-direction:column;height:100%;position:relative;}
+
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hdr h3{margin:0;font-size:15px;color:var(--teal)}
+/* Grid 4x4 ocupa todo el espacio disponible */
+.grid-wall{
+  flex:1;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  grid-template-rows:repeat(4,1fr);
+  gap:8px;
+  min-height: 0; 
+}
+
+.col-9.panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;       /* ✅ evita que los slots se salgan */
+}
+
+.slot{
+  position:relative;background:#061922;border:1px dashed #204a59;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;color:#89aab5;cursor:move;overflow:auto;
+}
+.slot:hover{border-color:var(--teal)}
+.slot .label{position:absolute;top:6px;left:8px;font-size:12px;color:#87cfd6}
+.slot .video{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:none;
+  
+}
+.slot.filled .video{display:block}
+.slot.filled .placeholder{display:none}
+.placeholder .name{color:var(--ink-strong);font-size:13px}
+
+/* Botones dentro de cada slot */
+.full-btn, .select-btn{
+  position:absolute;
+  background:rgba(0,0,0,0.5);
+  color:white;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  font-size:12px;
+  z-index:10;
+  padding:2px 6px;
+  pointer-events: auto;
+}
+
+.full-btn{top:4px;right:6px;}
+
+.select-btn{bottom:6px;right:6px;}
+
+.full-btn:hover,.select-btn:hover{
+    background:rgba(0,0,0,0.8);
+opacity: 1;pointer-events: auto;}
+/* Botón para eliminar cámara */
+
+.remove-btn {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background: rgba(255, 122, 47, 0.6);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  z-index: 10;
+  padding: 2px 6px;
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
+
+.full-btn,
+ .select-btn,
+.slot.filled .remove-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+.remove-btn:hover {
+  background: rgba(255, 122, 47 , 0.9);
+}
+
+.full-btn, .select-btn, .remove-btn {
+  opacity: 1 !important;
+}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:1000}
+.modal{width:min(700px,95vw);background:var(--panel);border-radius:12px;padding:12px;max-height:90vh;overflow:auto}
+.modal .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.modal .hdr h4{margin:0;color:var(--orange)}
+.modal .x{cursor:pointer;color:var(--ink-strong);font-size:20px}
+.cam-list{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+.cam-item{padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;background:#0b1f2a}
+.cam-item:hover{outline:2px solid rgba(26,188,156,.35)}
+.cam-name{color:var(--ink-strong);font-weight:600}
+.cam-id{font-size:12px;color:#87cfd6}
+
+
+
+/* Pantalla inicial centrada */
+#startScreen{
+    
+          height:70vh; display:flex; flex-direction:column; gap:12px;
+      align-items:center; justify-content:center; color:var(--ink-strong);
+
+}
+
+.splash{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+    }
+    
+
+/* Panel de detalles de alerta - Estilo civix-neo horizontal */
+.alert-details-panel {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 800;
+    background: rgba(11, 31, 42, 1);
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(34, 230, 217, 0.3);
+    min-width: 500px;
+    max-width: 800px;
+    max-height: 70vh;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    display: none;
+    color: var(--ink);
+}
+
+.alert-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(34, 230, 217, 0.3);
+}
+
+.alert-details-header h4 {
+    margin: 0;
+    color: var(--teal);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close-details {
+    background: none;
+    border: none;
+    color: var(--ink);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.close-details:hover {
+    background: rgba(255, 122, 47, 0.1);
+    color: var(--orange);
+}
+
+.alert-details-content {
+    display: flex;
+    gap: 20px;
+}
+
+.detail-item {
+    margin-bottom: 10px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.detail-label {
+    color: var(--teal);
+    font-weight: bold;
+    margin-right: 8px;
+    display: inline-block;
+    min-width: 100px;
+}
+
+.person-details-section {
+    flex: 1 1 100%;
+    padding-left: 15px;
+
+}
+
+.person-details-title {
+    color: var(--orange);
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.person-details-images {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.person-image-container {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg);
+    border: 1px solid rgba(34, 230, 217, 0.2);
+    height: 120px;
+    width: 120px;
+ 
+}
+
+.person-image-label {
+    font-size: 11px;
+    padding: 6px 4px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    font-weight: 500;
+}
+
+.person-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-size: cover;
+    background-position: center;
+}
+
+.alert-details-footer {
+    margin-top: 20px;
+    text-align: right;
+    padding-top: 15px;
+    border-top: 1px solid rgba(34, 230, 217, 0.2);
+}
+
+/* TIMELINE STYLES - Aplicando estilos de civix-neo */
+.alert-list {
+    padding: 8px;
+    overflow: auto;
+  list-style: none;
+  margin: 0;
+}
+
+.alert-list li {
+  cursor: pointer;
+  margin: 0;
+  padding: 12px 15px 12px 25px;
+  position: relative;
+  border-left: 2px solid rgba(34,230,217,.2);
+  transition: all 0.3s ease;
+  background: rgba(11, 31, 42, 0.7);
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.alert-list li:hover {
+  background: rgba(34, 230, 217, 0.1);
+  transform: translateX(5px);
+}
+
+.alert-list li::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 16px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22e6d9;
+  box-shadow: 0 0 10px #22e6d9;
+  transition: all 0.3s ease;
+}
+
+.alert-list li[data-type*="accidente"]::before {
+  background: red;
+  box-shadow: 0 0 12px red;
+}
+
+.alert-list li[data-type*="aglomeracion"]::before,
+.alert-list li[data-type*="restringida"]::before,
+.alert-list li[data-type*="zona"]::before {
+  background: #ff7a2f;
+  box-shadow: 0 0 12px #ff7a2f;
+}
+
+.alert-list strong {
+  color: #e8fbff;
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.alert-list time {
+  display: block;
+  color: #84a9b3;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+
+/* Ajustes específicos para el video wall */
+.col-3.panel {
+  background: #0b1f2a;
+  border: 1px solid rgba(34,230,217,.12);
+}
+
+.hdr h3 {
+  color: #22e6d9;
+}
+
+.btn-refresh {
+  background: transparent;
+  border: 1px solid #22e6d9;
+  color: #22e6d9;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-refresh:hover {
+  background: rgba(34, 230, 217, 0.1);
+}
+
+
+
+
+
+/* Modal de Video - Estilo civix-neo */
+#videoOvl {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal-video {
+  width: min(920px, 95vw);
+  max-height: 85vh;
+  overflow: auto;
+  background: var(--panel);
+  border-radius: 12px;
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+}
+
+.modal-content {
+  background: var(--panel) !important;
+  border-radius: 12px;
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+  border: none;
+}
+
+.modal-header {
+  background: var(--panel) !important;
+  border-bottom: 1px solid rgba(181,214,223,0.2);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.modal-header h3, 
+.modal-header h5 {
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.modal-header h3 span, 
+.modal-header h5 span {
+  color: var(--teal);
+  font-weight: bold;
+}
+
+.c-white {
+  color: var(--ink-strong) !important;
+}
+
+.modal-body {
+  display: flex;
+  gap: 20px;
+  padding: 16px;
+  height: max-content;
+}
+
+.video-player-wrapper {
+  flex-grow: 1;
+  min-width: 500px;
+  height: 400px;
+}
+
+.person-info-panel {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(34,230,217,.1);
+  color: var(--ink);
+}
+
+.person-info-panel h4 {
+  color: var(--orange);
+  margin-top: 0;
+  border-bottom: 1px solid rgba(181, 214, 223, 0.2);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.image-section {
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.image-container {
+  max-width: 90px;
+  margin: auto;
+  height: 100px;
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.image-label {
+  font-size: 13px;
+  color: var(--ink-strong);
+  margin-bottom: 4px;
+}
+
+.modal-footer {
+  background: var(--panel) !important;
+  border-top: 1px solid rgba(181,214,223,0.2);
+  padding: 16px;
+  text-align: right;
+}
+
+.btn-default {
+  background: var(--teal);
+  color: var(--bg);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-default:hover {
+  background: #1cb5a9;
+}
+
+/* Estilos para el scrollbar (coincidiendo con civix-neo) */
+.tabs-content::-webkit-scrollbar,
+.panel::-webkit-scrollbar,
+.alert-list::-webkit-scrollbar,
+.cam-list::-webkit-scrollbar,
+.modal-video::-webkit-scrollbar,
+.alert-details-panel::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+  background-color: transparent;
+}
+
+.tabs-content::-webkit-scrollbar-track,
+.panel::-webkit-scrollbar-track,
+.alert-list::-webkit-scrollbar-track,
+.cam-list::-webkit-scrollbar-track,
+.modal-video::-webkit-scrollbar-track,
+.alert-details-panel::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.tabs-content::-webkit-scrollbar-thumb,
+.panel::-webkit-scrollbar-thumb,
+.alert-list::-webkit-scrollbar-thumb,
+.cam-list::-webkit-scrollbar-thumb,
+.modal-video::-webkit-scrollbar-thumb,
+.alert-details-panel::-webkit-scrollbar-thumb {
+  background-color: rgba(136, 136, 136, 0.5);
+  border-radius: 10px;
+}
+
+.tabs-content::-webkit-scrollbar-thumb:hover,
+.panel::-webkit-scrollbar-thumb:hover,
+.alert-list::-webkit-scrollbar-thumb:hover,
+.cam-list::-webkit-scrollbar-thumb:hover,
+.modal-video::-webkit-scrollbar-thumb:hover,
+.alert-details-panel::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(136, 136, 136, 0.8);
+}
+
+
+
+/* Estilos para el filtro de cámaras */
+.cam-filter {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--teal);
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+
+.modal-camaras {
+  width: min(800px, 95vw);
+  max-height: 85vh;
+  overflow: auto;
+  border: 1px solid var(--teal);
+  background: var(--panel);
+  border-radius: 12px;
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+}
+
+.modal-camaras .modal-header {
+  background: var(--panel) !important;
+  border-bottom: 1px solid rgba(181,214,223,0.2);
+  padding: 16px;
+  margin-bottom: 0;
+}
+
+.modal-camaras .modal-header h3 {
+  color: var(--ink);
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal-camaras .modal-body {
+  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-camaras .modal-footer {
+  background: var(--panel) !important;
+  border-top: 1px solid rgba(181,214,223,0.2);
+  padding: 16px;
+  text-align: right;
+}
+
+
+.cam-filter:focus {
+  outline: 2px solid rgba(34, 230, 217, 0.5);
+  border-color: var(--teal);
+}
+
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--ink);
+  font-style: italic;
+  background: var(--bg);
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.cam-item.selected {
+  background: rgba(34, 230, 217, 0.1);
+  border-color: var(--teal);
+}
+
+.cam-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.cam-item {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: var(--bg);
+  transition: all 0.3s ease;
+}
+
+.cam-item:hover {
+  outline: 2px solid rgba(34, 230, 217, 0.35);
+  transform: translateY(-2px);
+}
+
+.cam-name {
+  color: var(--ink-strong);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.cam-id {
+  font-size: 12px;
+  color: #87cfd6;
+}
+
+.cam-address {
+  font-size: 12px;
+  color: var(--ink);
+  margin-top: 4px;
+}
+/* === Efecto de iluminación de alerta === */
+.slot.alert-highlight {
+  box-shadow: 0 0 20px 5px rgba(255, 122, 47, 0.9);
+  border-color: #ff7a2f !important;
+  animation: pulseAlert 1.2s ease-in-out infinite;
+  z-index: 20;
+}
+
+@keyframes pulseAlert {
+  0%, 100% {
+    box-shadow: 0 0 20px 5px rgba(255, 122, 47, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 30px 10px rgba(255, 200, 100, 1);
+  }
+}
+
+.btn-filter-clear {
+  background: rgba(255, 122, 47, 0.2);
+  border: 1px solid var(--orange);
+  color: var(--orange);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-filter-clear:hover {
+  background: rgba(255, 122, 47, 0.35);
+  color: #fff;
+}
+
+#app {
+  position: relative;
+}
+
+#panel {
+  position: relative;
+}
+.btn-exit {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #e63946;
+  color: white;
+  border: none;
+  padding: 5px 6px;     /* 🔹 menos alto y menos ancho */
+  border-radius: 5px;
+  font-size: 13px;       /* 🔹 texto más pequeño */
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: background 0.2s;
+}
+
+.btn-exit:hover {
+  background: #d62828;
+}
+
+.exit-full {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  background: #e63946;
+  color: white;
+  border: none;
+  padding: 1px 8px;        /* 🔹 mucho más fino */
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transition: background 0.2s, transform 0.1s;
+  line-height: 1;          /* 🔹 compacta aún más la altura del fondo */
+}
+
+.exit-full:hover {
+  background: #d62828;
+  transform: translateX(-50%) scale(1.05);
+}
+
+.btn-filter-clear {
+  position: absolute;
+  top: 10px;
+  right: 120px;
+  background: #e63946;
+  color: white;
+  border: none;
+  padding: 5px 6px;     /* 🔹 menos alto y menos ancho */
+  border-radius: 5px;
+  font-size: 13px;       /* 🔹 texto más pequeño */
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: background 0.2s;
+}
+
+.btn-toggle-bbox {
+  position: absolute;
+  top: 10px;
+  right: 0%;
+  background: #e63946;
+  color: white;
+  border: none;
+  padding: 5px 6px;     /* 🔹 menos alto y menos ancho */
+  border-radius: 5px;
+  font-size: 13px;       /* 🔹 texto más pequeño */
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: background 0.2s;
+}
+
+.btn-toggle-bbox:hover {
+  background: #d62828;
+}
+
+
+
+
+
+    .btn-toggle-bbox {
+  background: #1d3557; /* azul oscuro */
+}
+
+.btn-toggle-bbox.active {
+  background: #457b9d; /* modo activo */
+}
+
+
+
+.full-btn::before,
+.full-btn::after,
+.select-btn::before,
+.select-btn::after {
+  content: none !important;
+}
+
+.slot {
+  position: relative;
+  z-index: 1; /* crea contexto */
+}
+
+/* ✅ aseguran que estén por encima del video y canvas */
+.full-btn, 
+.select-btn, 
+.remove-btn {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* asegúrate que la imagen no tape */
+.slot img.video {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* el canvas tampoco debe interceptar eventos */
+canvas.bbox-overlay {
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+
+/* === Tooltip personalizado estilo Civix-Neo === */
+.custom-tooltip {
+  position: fixed;
+  background: rgba(11, 31, 42, 0.95);
+  color: #e8fbff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 999999;
+  box-shadow: 0 0 8px rgba(34, 230, 217, 0.6);
+  border: 1px solid rgba(34, 230, 217, 0.4);
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.custom-tooltip.show {
+  opacity: 1;
+}
+
+/* === Estilos al entrar en modo pantalla completa === */
+.slot:fullscreen,
+.slot:-webkit-full-screen,
+.slot:-moz-full-screen {
+  background: black; /* opcional, limpia el fondo */
+  z-index: 9999;
+}
+
+/* 📍 Texto del nombre de la cámara */
+.slot:fullscreen .cam-name,
+.slot:-webkit-full-screen .cam-name,
+.slot:-moz-full-screen .cam-name {
+  font-size: 22px !important;
+  font-weight: 700;
+  color: #22e6d9 !important;
+  text-shadow: 0 0 12px rgba(34,230,217,0.9);
+  letter-spacing: 0.5px;
+}
+
+/* 📍 Ubicación (cam-location) */
+.slot:fullscreen .cam-location,
+.slot:-webkit-full-screen .cam-location,
+.slot:-moz-full-screen .cam-location {
+  font-size: 16px !important;
+  color: #b5d6df;
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+
+/* 🕒 Fecha/Hora */
+.slot:fullscreen .slot-time,
+.slot:-webkit-full-screen .slot-time,
+.slot:-moz-full-screen .slot-time {
+  font-size: 18px !important;
+  padding: 6px 10px !important;
+  bottom: 16px !important;
+  right: 16px !important;
+  background: rgba(0,0,0,0.7);
+  border-radius: 8px;
+  color: #22e6d9;
+  font-weight: 600;
+  text-shadow: 0 0 6px rgba(34,230,217,0.9);
+  z-index: 99999 !important;
+}
+
+/* ⛶ Botón de fullscreen dentro del slot */
+.slot:fullscreen .full-btn,
+.slot:-webkit-full-screen .full-btn,
+.slot:-moz-full-screen .full-btn {
+  font-size: 22px !important;
+  top: 12px !important;
+  right: 14px !important;
+  background: rgba(0,0,0,0.6);
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #22e6d9 !important;
+  text-shadow: 0 0 6px rgba(34,230,217,0.8);
+  box-shadow: 0 0 10px rgba(34,230,217,0.5);
+  transition: all 0.2s ease-in-out;
+}
+
+.slot:fullscreen .full-btn:hover,
+.slot:-webkit-full-screen .full-btn:hover,
+.slot:-moz-full-screen .full-btn:hover {
+  transform: scale(1.1);
+  background: rgba(34,230,217,0.25);
+}
+
+.slot {
+  position: relative;
+  overflow: hidden;
+}
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+canvas.bbox-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.slot {
+  position: relative;
+  overflow: hidden;
+}
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 👈 evita deformación */
+  display: block;
+}
+
+.slot:fullscreen .video {
+  object-fit: cover; /* 🔹 respaldo CSS si el JS se retrasa */
+}
+canvas.bbox-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+}
+
+
+.alert-details-inline {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  background: rgba(11,31,42,0.8);
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid rgba(34,230,217,0.2);
+  transition: all 0.3s ease;
+}
+
+.alert-details-inline.expanded {
+  display: flex;
+}
+
+.alert-frame-preview {
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid rgba(34,230,217,0.3);
+  box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+
+.btn-video {
+  align-self: center;
+  background: #22e6d9;
+  color: #0b1f2a;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-video:hover {
+  background: #1cb5a9;
+}
+
+.data-frame {
+  margin-top: 8px;
+  background: rgba(11,31,42,0.9);
+  border-radius: 8px;
+  padding: 8px;
+  transition: all 0.3s ease-in-out;
+  display: none;
+}
+.data-frame.expanded {
+  display: block;
+}
+
+#timelineList li.highlighted {
+  border: 1px solid #22e6d9;
+  box-shadow: 0 0 12px rgba(34, 230, 217, 0.7);
+  background: rgba(34, 230, 217, 0.08);
+  transition: all 0.3s ease;
+}
+ /* Métricas */
+    .metric-container {
+        padding: 10px 0;
+    }
+    
+    .metric-list {
+        margin-top: 5px;
+    }
+    
+    .metric-list-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        padding: 3px 0;
+        border-bottom: 1px solid rgba(34, 230, 217, 0.1);
+    }
+    
+    .metric-list-label {
+        font-size: 11px;
+        color: var(--ink);
+        overflow: hidden;
+        max-width: 70%;
+    }
+    
+    .metric-list-value {
+        font-size: 12px;
+        font-weight: bold;
+        color: var(--teal);
+    }
+    
+    .system-metric {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .system-metric-label {
+        font-size: 11px;
+        color: var(--ink);
+        margin-bottom: 3px;
+    }
+    
+    .system-metric-value {
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--teal);
+    }
+    
+    .no-data {
+        text-align: center;
+        color: var(--ink);
+        font-size: 11px;
+        padding: 10px 0;
+    }
+    
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .kpi-header{
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .bar-chart-container {
+        padding: 10px 0;
+    }
+    
+    .bar-label {
+        font-size: 11px;
+        color: var(--ink);
+        width: 40%;
+        overflow: hidden;
+    }
+    
+    .bar-chart {
+        flex-grow: 1;
+        margin-left: 10px;
+        background: rgba(34, 230, 217, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    
+    .bar-fill {
+        height: 15px;
+        background: var(--teal);
+        border-radius: 2px;
+        transition: width 0.5s ease;
+    }
+    
+    .bar-value {
+        font-size: 11px;
+        color: var(--teal);
+        margin-left: 8px;
+        font-weight: bold;
+        min-width: 30px;
+        text-align: right;
+    }
+        /* Nuevos estilos para el gráfico de tipos de alerta */
+    .alert-type-item, .bar-item, .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+    .alert-type-item:hover, .bar-item:hover, .legend-item:hover {
+      background: rgba(34, 230, 217, 0.1);
+    }
+    
+    .alert-type-label {
+      font-size: 11px;
+      color: var(--ink);
+      width: 40%;
+    }
+    
+    .alert-type-chart {
+      flex-grow: 1;
+      margin-left: 10px;
+      background: rgba(34, 230, 217, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .alert-type-fill {
+      height: 15px;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    
+    .alert-type-value {
+      font-size: 11px;
+      margin-left: 8px;
+      font-weight: bold;
+      min-width: 30px;
+      text-align: right;
+    }
+    
+      /* Estilos para el botón de limpiar filtros */
+  .clear-filters-btn {
+        background: var(--orange);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-bottom: 15px;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(-10px);
+        height: 0;
+        padding: 0;
+        overflow: hidden;
+        display: none;
+    }
+    
+    .clear-filters-btn.visible {
+        display: block;
+        animation: filterBtnPopup 0.5s ease forwards;
+        height: auto;
+        padding: 10px 15px;
+    }
+    
+    @keyframes filterBtnPopup {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        70% {
+            transform: translateY(5px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .clear-filters-btn:hover {
+        background: #e66625;
+    }
+    
+    .clear-filters-btn:disabled {
+        background: #84a9b3;
+        cursor: not-allowed;
+    }
+    
+    /* Estilos para el gráfico de tendencia */
+    .trend-chart {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        height: 100% !important;
+        margin-top: 5px;
+    }
+    
+    .trend-bar-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        position: relative;
+    }
+    
+    .trend-bar {
+        width: 12px;
+        background-color: var(--teal);
+        border-radius: 3px 3px 0 0;
+        margin-bottom: 5px;
+        transition: height 0.5s ease;
+    }
+    
+    .trend-label {
+        font-size: 9px;
+        color: var(--ink);
+        text-align: center;
+    }
+    
+    .trend-value {
+        font-size: 10px;
+        color: var(--teal);
+        font-weight: bold;
+        margin-bottom: 2px;
+    }
+    
+    .trend-icon {
+        font-size: 14px;
+        font-weight: bold;
+        margin-top: 2px;
+    }
+    
+    .trend-title {
+        font-weight: bold;
+        border-bottom: 1px solid rgba(34, 230, 217, 0.3);
+        padding-bottom: 4px;
+    }
+    
+    h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: var(--teal);
+}
+
+.tabs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tabs-header {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid rgba(34,230,217,0.2);
+  margin-bottom: 8px;
+}
+
+.tab-button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button.active {
+  color: var(--teal);
+  border-bottom: 2px solid var(--teal);
+}
+
+.tab-button:hover {
+  background: rgba(34,230,217,0.1);
+}
+
+.tabs-content {
+  flex: 1;
+  overflow-y: auto;
+  
+}
+
+.tab-pane {
+  display: none;
+  height: 100%;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+#timelineList li.highlighted {
+  border: 1px solid #22e6d9;
+  box-shadow: 0 0 15px rgba(34, 230, 217, 0.7);
+  background: rgba(34, 230, 217, 0.08);
+  transition: all 0.3s ease;
+}
+/* Colores para diferentes tipos de alertas */
+    .alert-type-fill.teal {
+      background: var(--teal);
+    }
+    
+    .alert-type-fill.orange {
+      background: var(--orange);
+    }
+    
+    .alert-type-fill.red {
+      background: var(--teal);
+    }
+    
+    .alert-type-value.teal {
+      color: var(--teal);
+    }
+    
+    .alert-type-value.orange {
+      color: var(--orange);
+    }
+    
+    .alert-type-value.red {
+      color: var(--teal);
+    }
+
+/* Quita el degradado del overlay-top cuando el slot tenga overlay-off */
+.slot.overlay-off .overlay-top {
+  background: transparent !important;
+}
+
+/* ✅ Overlay del modal: siempre encima de todo */
+#camModal {
+  position: fixed;        /* ocupa toda la pantalla */
+  inset: 0;
+  display: none;          /* oculto por defecto */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.85);
+  z-index: 999999 !important; /* 🔹 más alto que cualquier otro elemento */
+}
+
+/* ✅ Contenedor del modal */
+#camModal .modal-camaras {
+  position: relative;
+  z-index: 1000000 !important; /* aún más alto */
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(34,230,217,0.3);
+  color: var(--ink);
+  width: min(800px, 95vw);
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 0.25s ease;
+}
+
+/* Animación suave */
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ✅ El contenido interno */
+#camModal .modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
+#camModal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid rgba(34,230,217,0.3);
+  padding: 12px 16px;
+}
+
+.slot, .full-btn, .select-btn, .remove-btn {
+  z-index: 100 !important;
+}
+
+</style>
+
+<!-- Pantalla inicial -->
+<div class="startScreen" id="startScreen">
+    <h2 style="color:var(--ink-strong)">Monitor de cámaras y alertas</h2>
+  <button class="btn btn-accent" onclick="startWall()">Ir al Dashboard</button>
+</div>
+
+<!-- Layout oculto - ESTE es el que va a fullscreen -->
+<div class="container" id="app">
+  <!-- Botón de salir -->
+  <!--button class="btn-exit" onclick="exitWall()">Salir</button-->
+
+
+  <!-- Panel de detalles de alerta - Estilo civix-neo horizontal -->
+  <div class="alert-details-panel" id="alertDetailsPanel">
+    <div class="alert-details-header">
+      <h4 id="alert-details-title">Detalle de Alerta</h4>
+      <button class="close-details" onclick="closeAlertDetails()">✕</button>
+    </div>
+    <div class="alert-details-content" id="alert-details-content">
+      <!-- Aquí se cargarán los detalles de la alerta -->
+    </div>
+    <div class="alert-details-footer">
+      <button class="btn btn-success" id="btnViewVideoDetails">Ver Video</button>
+    </div>
+  </div>
+  <!-- Grid 4x4 -->
+  <section class="col-9 panel" >
+      <button class="btn-filter-clear" id="btnFilterClear" style="display:none;" onclick="clearAlertFilter()" title="Quitar filtro">🧹Limpiar filtro</button>
+    <button class="btn-toggle-bbox" id="toggleBboxBtn" onclick="toggleBoundingBoxes()">🧩 Activar Boxes</button>
+    <div class="exit-full">Presione la tecla ESC o F11 para salir</div>
+    <div class="hdr"><h3>Video</h3></div>
+    <div class="grid-wall" id="gridWall"></div>
+  </section>
+
+  <!-- Columna de alertas -->
+
+
+  <!-- Grid 4x4 -->
+  <!--section class="col-9 panel">
+    <div class="hdr"><h3>Video Wall (4x4)</h3></div>
+    <div class="grid-wall" id="gridWall"></div>
+  </section-->
+  
+  <section class="col-3 panel">
+
+  <div class="tabs-container">
+
+    <!-- Encabezado de pestañas -->
+    <div class="tabs-header">
+      <button class="tab-button active" data-tab="tab-kpi">📊 KPI's</button>
+      <button class="tab-button" data-tab="tab-alertas">🚨 Alertas</button>
+    </div>
+
+    <!-- Contenedor de contenido de pestañas -->
+    <div class="tabs-content">
+
+      <!-- 🟩 Pestaña 1: KPI -->
+      <div class="tab-pane active" id="tab-kpi">
+        <div id="kpiContent">
+          <div class="kpi-header">
+            <h3>KPIs</h3>
+            <span id="kpi-timestamp" style="font-size: 12px; color: var(--ink);"></span>
+            
+          </div>
+
+          <div class="kpi-grid">
+
+            <div class="kpi-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 class="kpi-title">Total Alertas</h3>
+                <h3 class="kpi-value" id="total-alerts">0</h3>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <h3 class="kpi-title">Tendencia (4h)</h3>
+              <div id="trend-chart-container" class="bar-chart-container">
+                <!--div class="loading">Cargando tendencia...</div-->
+              </div>
+            </div>
+
+            <button id="clear-filters-btn" class="clear-filters-btn" disabled>Limpiar Filtros</button>
+
+            <div class="kpi-card">
+              <h3 class="kpi-title">Top Tipos de Alertas</h3>
+              <div id="alert-type-metrics" class="bar-chart-container">
+                <!--div class="loading">Cargando...</div-->
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <h3 class="kpi-title">Top Cámaras</h3>
+              <div id="camera-metrics" class="bar-chart-container">
+                <!--div class="loading">Cargando...</div-->
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 🟥 Pestaña 2: Listado de alertas -->
+      <div class="tab-pane" id="tab-alertas">
+        <div class="hdr" style="align-items:center; gap:6px;">
+          <h3 id="alertTitle">Alertas en tiempo real</h3>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-refresh" onclick="getAlertas()" title="Actualizar">↻</button>
+            <!--button class="btn-filter-clear" id="btnFilterClearAlert" style="display:none;" onclick="clearAlertFilter()" title="Quitar filtro">🧹Filtrado</button-->
+          </div>
+        </div>
+
+        <ul class="alert-list" id="timelineList">
+          <div class="loading">Cargando alertas...</div>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+  
+
+
+  
+  
+  
+  <!-- Modal de Cámaras - Estilo civix-neo -->
+    <div class="overlay" id="camModal"  style="display: none;">
+      <div class="modal-camaras" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header text-left">
+                    <h4 id="camModalTitle">Listado de cámaras</h4>
+                </div>
+          <div class="modal-body">
+            <!-- Input de filtro para cámaras -->
+            <div style="width:100%">
+                <input type="text" id="camFilter" class="cam-filter" placeholder="Filtrar cámaras por nombre o ubicación...">
+                <ul class="cam-list" id="camList">
+                  <div class="loading">Cargando cámaras...</div>
+                </ul>
+            </div>
+          </div>
+    
+          <div class="modal-footer">
+            <button type="button" class="btn btn-accent btn-rounded" id="btnAssign" disabled onclick="assignSelected()">Asignar Cámara</button>
+            <button type="button" class="btn btn-danger btn-rounded" onclick="closeCameraModal()">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Modal de Video - Estilo civix-neo -->
+  <div class="overlay" id="videoOvl" aria-hidden="false" style="display: none;">
+    <div class="modal-video" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-header text-left" style="display: flex;justify-content: space-between;">
+          <div style="width:100%">
+            <span class="c-white" style="float:right" id="showtime"></span>
+            <h3>Identificador: <span class="c-white" id="showId"></span></h3>
+            <h5>Alerta: <span class="c-white" id="showAlert"></span></h5>
+            <h5>Cámara: <span class="c-white" id="showcamera"></span></h5>
+            <h5>Ubicación: <span class="c-white" id="showUbication"></span></h5>
+            <h5>Fecha y hora: <span class="c-white" id="fechahoravideo"> </span></h5>
+            <div id="showlocation"></div>
+          </div>
+          <div id="photo-short" style="display:none; width:100%; justify-content:end; gap: 1em;">
+            <div class="image-section" style="overflow:hidden;">
+              <div class="image-label">Detección Recortada</div>
+              <div class="image-container" id="cropped-detection"></div>
+            </div>
+            <div class="image-section" id="photo-name">
+              <div class="image-label">Foto de Referencia</div>
+              <div class="image-container" id="person-photo"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-body">
+          <div class="video-player-wrapper"></div>  
+          <div class="person-info-panel" id="person-info-panel" style="display: none;">
+            <h4>Detección</h4>
+            <div id="person-data"></div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger btn-rounded" id="closeVideoModal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ </div> 
+<script>
+// Variables globales
+let refreshInterval = null;
+let currentCameraFrames = {};
+/*const cameras = [
+  {id:'CAM-001',name:'Esquina Principal',address:'Av. Principal 123',demo:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'},
+  {id:'CAM-002',name:'Parque Central',address:'Calle Lima 456',demo:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm'},
+  {id:'CAM-003',name:'Av. Pardo',address:'Av. Pardo 789',demo:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'},
+  {id:'CAM-004',name:'Malecón',address:'Malecón Cisneros 321',demo:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm'}
+];*/
+
+let currentSlotEl = null;
+let selectedCamera = null;
+let alertas = [];
+let selectedAlert = null;
+let dragged = null;
+let videoPlayer = null;
+let allCameras = []; // Para almacenar todas las cámaras obtenidas de la API
+let allCamerastemp = []; // Para almacenar todas las cámaras obtenidas de la API
+let renderstop = 0;
+let expandedAlertId = null;
+// ==========================
+// Variables para KPI estático
+// ==========================
+let initialAlerts = []; // Almacena las alertas iniciales (sin filtros)
+let lastKPUpdate = null; // Timestamp de última actualización de KPIs
+let kpiTrendData = []; // Datos para el gráfico de tendencia
+
+// === Tooltip personalizado global ===
+let tooltipEl;
+
+function isAnyModalOpen() {
+  return Array.from(document.querySelectorAll('.overlay'))
+    .some(m => getComputedStyle(m).display === 'flex');
+}
+
+/*
+document.addEventListener('keyup', e => {
+    log("e.key: "+e.key)
+    let modal=isAnyModalOpen();
+    log("isAnyModalOpen: "+modal);
+    
+  if (e.key === 'Escape' && isAnyModalOpen()) {
+    e.stopPropagation();
+    return; // 🚫 No cerrar fullscreen ni refrescar
+  }
+
+  if (e.key === 'Escape') {
+    exitWall();
+  }
+});
+*/
+/*
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('camModal');
+    const isModalVisible = modal && modal.style.display === 'flex';
+
+    // 🧩 Si el modal está abierto, NO hacer nada
+    if (isModalVisible) {
+      e.stopPropagation();
+      e.preventDefault();
+      return;
+    }
+
+
+       if (!document.fullscreenElement) {
+    console.log("🚪 Saliste del fullscreen — deteniendo render...");
+    renderStop = 1;
+    exitWall();
+  }
+    
+  }
+});*/
+
+
+document.addEventListener("fullscreenchange", () => {
+    
+  const camModal = document.getElementById('camModal');
+  const isModalVisible = camModal && camModal.style.display === 'flex';
+  
+  // Si el modal sigue abierto y saliste de fullscreen, vuelve a entrar
+  if (isModalVisible && !document.fullscreenElement) {
+   document.documentElement.requestFullscreen().catch(() => {});   
+  }
+    
+  if (!document.fullscreenElement) {
+    console.log("🚪 Saliste del fullscreen — deteniendo render...");
+    renderStop = 1;
+    exitWall();
+  }
+});
+
+
+
+document.querySelectorAll('.tab-button').forEach(button => {
+  button.addEventListener('click', () => {
+    const targetTab = button.getAttribute('data-tab');
+
+    // Quitar "active" de todos los botones y pestañas
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(tab => tab.classList.remove('active'));
+
+    // Activar la pestaña seleccionada
+    button.classList.add('active');
+    document.getElementById(targetTab).classList.add('active');
+  });
+});
+
+
+function initCustomTooltips() {
+  tooltipEl = document.createElement('div');
+  tooltipEl.className = 'custom-tooltip';
+  document.body.appendChild(tooltipEl);
+
+  // Selecciona los botones que deben mostrar tooltip
+  const btns = document.querySelectorAll('.full-btn, .select-btn, .remove-btn');
+
+  btns.forEach(btn => {
+    const titleText = btn.getAttribute('title');
+    if (!titleText) return;
+
+    // Evita el tooltip nativo
+    btn.setAttribute('data-title', titleText);
+    btn.removeAttribute('title');
+
+    btn.addEventListener('mouseenter', e => {
+      tooltipEl.textContent = btn.getAttribute('data-title');
+      tooltipEl.classList.add('show');
+      positionTooltip(e);
+    });
+
+    btn.addEventListener('mousemove', positionTooltip);
+
+    btn.addEventListener('mouseleave', () => {
+      tooltipEl.classList.remove('show');
+    });
+  });
+}
+
+// 🔹 Actualiza posición del tooltip según el cursor
+function positionTooltip(e) {
+  const offset = 12;
+  tooltipEl.style.left = `${e.clientX}px`;
+  tooltipEl.style.top = `${e.clientY - offset}px`;
+}
+
+// Inicia el sistema cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', initCustomTooltips);
+
+function startFrameRefresh() {
+  // Limpiar intervalo anterior si existe
+  if (renderstop==1) {renderstop=0; return;}
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+  }
+
+  // Obtener cámaras del localStorage
+  const savedState = localStorage.getItem("videowallState");
+  if (!savedState) {
+    console.log("No hay estado guardado en localStorage");
+    return;
+  }
+
+  const state = JSON.parse(savedState);
+  // Filtrar solo slots que tienen contenido y no son el texto por defecto
+  const cameraIds = state.filter(slot => 
+    slot.content && 
+    slot.content !== "Selecciona cámara" && 
+    slot.content.trim() !== ""
+  ).map(slot => slot.content);
+
+  //console.log("Cámaras activas para refresh:", cameraIds);
+
+  if (cameraIds.length === 0) {
+    //console.log("No hay cámaras asignadas para refrescar");
+    return;
+  }
+
+  // Llamar inmediatamente para obtener frames actuales
+  refreshCameraFrames(cameraIds);
+
+  // Configurar intervalo cada 30 segundos (30000 ms)
+  refreshInterval = setInterval(() => {
+    //console.log("Refrescando frames automáticamente...");
+    refreshCameraFrames(cameraIds);
+  }, 1000);
+}
+
+// Función para refrescar frames de cámaras
+function refreshCameraFrames(cameraIds) {
+  // Filtrar cámaras duplicadas
+  const uniqueCameraIds = [...new Set(cameraIds)];
+  
+  uniqueCameraIds.forEach(cameraId => {
+    if (!cameraId || cameraId === "Selecciona cámara") return;
+
+    callAPI({
+      //method: 'gestion/getframeslast',
+      //params: { cameraid: cameraId },
+      method: 'dashboards/lastframe',
+      params: { camera_id: cameraId },
+      ok: function(data) {
+         
+         //log("data: ",data) 
+         //log("person_info: ",data.persons_info)
+        if (data && data.foto) {
+          if (renderstop==1) {renderstop=0; return;} 
+          currentCameraFrames[cameraId] = data.foto;
+          //updateSlotWithFramev1(cameraId, data.foto);
+          updateSlotWithFrame(cameraId, data.foto,data.persons_info, data.vehicles_info);
+           const slots = document.querySelectorAll('.slot');
+            slots.forEach(slot => {
+              const placeholder = slot.querySelector('.placeholder .name');
+              if (placeholder && placeholder.textContent === cameraId) {
+                const timeEl = slot.querySelector('.slot-time');
+                if (timeEl && data.epoch_frame) {
+                  const frameDate = new Date(data.epoch_frame);
+                  timeEl.textContent = frameDate.toLocaleString('es-PE', {
+                    hour12: false,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                    ,second: '2-digit'
+                  });
+                }
+              }
+            });
+        } else {
+          console.warn(`No se encontró foto para cámara ${cameraId}:`, data);
+        }
+      },
+      error: function(error) {
+        console.error(`Error al obtener frame para cámara ${cameraId}:`, error);
+        // Si hay error, intentar usar el demo como fallback
+        //const camera = allCameras.find(cam => cam.id === cameraId);
+       // if (camera && camera.demo) {
+      
+        //}
+      }
+    });
+  });
+}
+
+// Función para actualizar sl con nuevo frame
+function updateSlotWithFramev1(cameraId, frameUrl) {
+  //log("renderstop: "+ renderstop)
+if (renderstop==1) {renderstop=0; return;}
+  //console.log(`Actualizando frame para cámara ${cameraId}: ${frameUrl}`);
+  const slots = document.querySelectorAll('.slot');
+  
+  slots.forEach(slot => {
+  
+    const placeholder = slot.querySelector('.placeholder .name');
+    if (placeholder && placeholder.textContent === cameraId) {
+      const container = slot.querySelector('.video');
+      
+      if (container) {
+        // Crear una nueva imagen
+        const newImg = new Image();
+        
+        // Cuando la nueva imagen se cargue, reemplazar la existente
+        newImg.onload = function() {
+          //console.log(`Nueva imagen cargada para ${cameraId}`);
+          
+          // Reemplazar completamente el elemento img
+          container.parentNode.replaceChild(newImg, container);
+          
+          // Configurar las clases y estilos
+          newImg.className = 'video';
+          newImg.style.display = 'block';
+          slot.classList.add('filled');
+          
+         // console.log(`Frame actualizado para slot ${slot.dataset.slot}`);
+        };
+        
+        newImg.onerror = function() {
+          console.error(`Error al cargar imagen para cámara ${cameraId}`);
+        };
+        
+        // Forzar recarga añadiendo timestamp
+        const timestamp = new Date().getTime();
+        const cacheBusterUrl = frameUrl + (frameUrl.includes('?') ? '&' : '?') + '_=' + timestamp;
+        newImg.src = cacheBusterUrl;
+      }
+    }
+  });
+}
+
+// Función para actualizar slot con nuevo frame y dibujar bounding boxes
+function updateSlotWithFrameold(cameraId, frameUrl, personsInfo = [], vehiclesInfo =[]) {
+  if (renderstop == 1) { renderstop = 0; return; }
+   //log("personsInfo",personsInfo);
+  const slots = document.querySelectorAll('.slot');
+  
+  slots.forEach(slot => {
+    
+    const placeholder = slot.querySelector('.placeholder .name');
+    if (placeholder && placeholder.textContent === cameraId) {
+      const container = slot.querySelector('.video');
+
+      if (container) {
+        const newImg = new Image();
+
+        newImg.onload = function() {
+          // Reemplazar el <img> anterior
+          container.parentNode.replaceChild(newImg, container);
+
+          newImg.className = 'video';
+          newImg.style.display = 'block';
+          slot.classList.add('filled');
+
+          // ✅ Dibujar los bounding boxes si existen detecciones
+          
+         /* if (personsInfo && Array.isArray(personsInfo) && personsInfo.length > 0) {
+            drawBoundingBoxesObj(slot, personsInfo);
+          } else {
+            // Si no hay detecciones, limpiar el overlay si existe
+            const canvas = slot.querySelector('canvas.bbox-overlay');
+            if (canvas) {
+              const ctx = canvas.getContext('2d');
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+          }*/
+          drawBoundingBoxesObj(slot, personsInfo,vehiclesInfo);
+          
+         //✅ Dibujar los bounding boxes si existen detecciones
+          /*if (vehiclesInfo && Array.isArray(vehiclesInfo) && vehiclesInfo.length > 0) {
+            drawBoundingBoxesObj(slot, vehiclesInfo);
+          } else {
+            // Si no hay detecciones, limpiar el overlay si existe
+            const canvas = slot.querySelector('canvas.bbox-overlay');
+            if (canvas) {
+              const ctx = canvas.getContext('2d');
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+          }*/
+          
+          
+        };
+
+        newImg.onerror = function() {
+          console.error(`Error al cargar imagen para cámara ${cameraId}`);
+        };
+
+        // Forzar recarga añadiendo timestamp
+        const timestamp = new Date().getTime();
+        const cacheBusterUrl = frameUrl + (frameUrl.includes('?') ? '&' : '?') + '_=' + timestamp;
+        newImg.src = cacheBusterUrl;
+      }
+    }
+  });
+}
+
+function updateSlotWithFrame(cameraId, frameUrl, personsInfo = [], vehiclesInfo = []) {
+  if (renderstop == 1) { renderstop = 0; return; }
+
+  const slots = document.querySelectorAll('.slot');
+  slots.forEach(slot => {
+    const placeholder = slot.querySelector('.placeholder .name');
+    if (!placeholder || placeholder.textContent.trim() !== cameraId) return;
+
+    const oldImg = slot.querySelector('.video');
+    if (!oldImg) return;
+
+    const newImg = new Image();
+    newImg.className = 'video';
+    newImg.style.display = 'block';
+
+    newImg.onload = () => {
+      // Reemplazar frame
+      oldImg.parentNode.replaceChild(newImg, oldImg);
+      slot.classList.add('filled');
+
+      // 🔄 Redibujar bounding boxes (si hay info)
+      drawBoundingBoxesObj(slot, personsInfo, vehiclesInfo);
+    };
+
+    newImg.onerror = () => {
+      console.warn(`⚠️ Error al cargar frame de cámara ${cameraId}`);
+    };
+
+    // Forzar recarga
+    const ts = Date.now();
+    newImg.src = `${frameUrl}${frameUrl.includes('?') ? '&' : '?'}_=${ts}`;
+  });
+}
+
+
+/*
+// Funciones de utilidad
+function backdropClick(ev){
+  if(ev.target.id === "camModal"){
+      
+      ev.stopPropagation();
+    return;
+    //closeCameraModal();
+  }
+}
+
+function backdropClickAlert(ev){
+  if (ev.target.id === "alertModal") {
+    console.log("Clic en fondo del modal de alerta bloqueado");
+    ev.stopPropagation();
+    return;
+  }
+}*/
+/*
+document.getElementById('videoOvl').addEventListener('click', (ev) => {
+  if (ev.target.id === 'videoOvl') {
+    ev.stopPropagation();
+    console.log("Clic en fondo del video bloqueado");
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  const app = document.getElementById("app");
+  const start = document.getElementById("startScreen");
+  
+  // Si el usuario intenta salir de fullscreen, volvemos a entrar
+  if (!document.fullscreenElement && app.style.display === "flex") {
+    console.warn("Intento de salir de fullscreen detectado. Reentrando...");
+    app.requestFullscreen().catch(() => {});
+  }
+});
+
+// === BLOQUEAR tecla ESCAPE (no cerrar fullscreen ni modales) ===
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Escape bloqueado — no se cerrará fullscreen ni modales.");
+    return false;
+  }
+});
+*/
+
+
+// Construir grid
+function buildGrid(){
+  const grid = document.getElementById('gridWall');
+  grid.innerHTML = "";
+  const saved = localStorage.getItem("videowallState");
+  let state = saved ? JSON.parse(saved) : [];
+  if(state.length > 0){
+    restoreState(state);
+    return;
+  }
+  for(let r = 1; r <= 16; r++){
+    createSlot("S" + r, grid);
+  }
+}
+
+
+function createSlotold(label, container, content = "", imageUrl = ""){
+  const slot = document.createElement('div');
+  slot.className = 'slot';
+  slot.dataset.slot = label;
+  slot.draggable = true;
+
+  slot.innerHTML = `
+    <div class="overlay-top">
+      <span class="cam-name" id="camName-${label}">Cámara sin asignar</span>
+      <span class="cam-location" id="camLoc-${label}"></span>
+    </div>
+    <span class="label">${label}</span>
+    <button class="full-btn" title="Pantalla completa" onclick="slotFullscreen(event,this)">⛶</button>
+    <button class="assign-btn select-btn" title="Asignar cámara" onclick="openCameraModal(this.closest('.slot'))">🎥</button>
+    <button class="remove-btn" title="Quitar cámara" onclick="removeCamera(event,this)">🗑<svg class="icon-trash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">️
+            <path fill="#e63946" d="M3 6h18v2H3zm2 2v12c0 1.1.9 2 2 2h10a2 2 0 0 0 2-2V8H5zm5 2h2v8h-2zm4 0h2v8h-2zM9 4V3h6v1h5v2H4V4h5z"/>
+        </svg></button>
+    <div class="slot-time" id="time-${label}"></div>
+    <div class="placeholder"><div class="name">${content || "Selecciona cámara"}</div></div>
+    <img class="video" style="display:none;" />
+  `;
+
+  // Si hay imagen restaurada
+  if (imageUrl) {
+    const img = slot.querySelector('.video');
+    const newImg = new Image();
+    newImg.className = 'video';
+    newImg.style.display = 'block';
+    newImg.onload = () => {
+      img.parentNode.replaceChild(newImg, img);
+      slot.classList.add('filled');
+    };
+    newImg.src = imageUrl;
+  }
+
+  slot.addEventListener('dragstart', dragStart);
+  slot.addEventListener('dragover', dragOver);
+  slot.addEventListener('drop', dropSlot);
+  
+    // 🎯 Doble clic en el slot = filtrar alertas por cámara
+    slot.addEventListener('dblclick', () => {
+      const placeholder = slot.querySelector('.placeholder .name');
+      const cameraId = placeholder ? placeholder.textContent.trim() : null;
+    
+      if (cameraId && cameraId !== "Selecciona cámara") {
+        // 🔹 Quitar resaltado anterior
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('active-filter'));
+    
+        // 🔹 Marcar este slot como activo
+        slot.classList.add('active-filter');
+    
+        // 🔹 Mostrar mensaje y filtrar
+        showToast(`📡 Filtrando alertas de cámara ${cameraId}`, 'success');
+        getAlertas(cameraId);
+      } else {
+        showToast('⚠️ No hay cámara asignada en este slot.', 'error');
+      }
+    });
+
+
+  container.appendChild(slot);
+}
+
+function createSlotold2(label, container, content = "", imageUrl = "") {
+  const slot = document.createElement('div');
+  slot.className = 'slot';
+  slot.dataset.slot = label;
+  slot.draggable = true;
+
+  slot.innerHTML = `
+    <div class="overlay-top">
+      <span class="cam-name" id="camName-${label}">Cámara sin asignar</span>
+      <span class="cam-location" id="camLoc-${label}"></span>
+    </div>
+    <span class="label">${label}</span>
+    <button class="full-btn" title="Pantalla completa" onclick="slotFullscreen(event,this)" placeholder="Pantalla completa" >⤢</button>
+    <button class="assign-btn select-btn" title="asignar cámara" onclick="openCameraModal(this.closest('.slot'))"  placeholder="Asignar cámara" >🎥</button>
+    <button class="remove-btn" title="Quitar cámara" onclick="removeCamera(event,this)">🗑️</button>
+    <div class="slot-time" id="time-${label}"></div>
+    <div class="placeholder"><div class="name">${content || "Selecciona cámara"}</div></div>
+    <img class="video" style="display:none;" />
+  `;
+
+  // ✅ Imagen restaurada
+  if (imageUrl) {
+    const img = slot.querySelector('.video');
+    const newImg = new Image();
+    newImg.className = 'video';
+    newImg.style.display = 'block';
+    newImg.onload = () => {
+      img.parentNode.replaceChild(newImg, img);
+      slot.classList.add('filled');
+    };
+    newImg.src = imageUrl;
+  }
+
+  // 🎯 Drag & Drop
+  slot.addEventListener('dragstart', dragStart);
+  slot.addEventListener('dragover', dragOver);
+  slot.addEventListener('drop', dropSlot);
+
+  // ============================================================
+  // 🔹 CLICK para filtrar (convive con DRAG)
+  // ============================================================
+
+  let dragThreshold = 5; // px de movimiento antes de considerarlo drag
+  let startX = 0, startY = 0, moved = false;
+
+  slot.addEventListener('mousedown', e => {
+    startX = e.clientX;
+    startY = e.clientY;
+    moved = false;
+  });
+
+  slot.addEventListener('mousemove', e => {
+    if (Math.abs(e.clientX - startX) > dragThreshold || Math.abs(e.clientY - startY) > dragThreshold) {
+      moved = true; // fue arrastre
+    }
+  });
+
+  slot.addEventListener('mouseup', e => {
+    if (!moved) {
+      // 👉 Solo se ejecuta si fue un clic y no un arrastre
+      const placeholder = slot.querySelector('.placeholder .name');
+      const cameraId = placeholder ? placeholder.textContent.trim() : null;
+
+
+    const camNameSpan = slot.querySelector('.cam-name');
+     const cameraName = camNameSpan ? camNameSpan.textContent.trim() : null;
+     //log("cameraName",cameraName)
+      if (cameraId && cameraId !== "Selecciona cámara") {
+        // Quitar resaltado anterior
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('active-filter'));
+
+        // Marcar este slot
+        slot.classList.add('active-filter');
+
+        // Mostrar mensaje y filtrar
+        showToast(`📡 Filtrando alertas de cámara ${cameraId}`, 'success');
+        getAlertas(cameraId,cameraName);
+      } else {
+        showToast('⚠️ No hay cámara asignada en este slot.', 'error');
+      }
+    }
+  });
+
+  container.appendChild(slot);
+}
+
+function createSlot(label, container, content = "", imageUrl = "") {
+  const slot = document.createElement('div');
+  slot.className = 'slot';
+  slot.dataset.slot = label;
+  slot.draggable = true;
+
+  slot.innerHTML = `
+    <div class="overlay-top">
+      <span class="cam-name" id="camName-${label}">Cámara sin asignar</span>
+      <span class="cam-location" id="camLoc-${label}"></span>
+    </div>
+    <span class="label">${label}</span>
+    <button class="full-btn" title="Pantalla completa" onclick="slotFullscreen(event,this)">⤢</button>
+    <button class="assign-btn select-btn" title="Asignar cámara" onclick="openCameraModal(this.closest('.slot'))">🎥</button>
+    <button class="remove-btn" title="Quitar cámara" onclick="removeCamera(event,this)">🗑️</button>
+    <div class="slot-time" id="time-${label}"></div>
+    <div class="placeholder"><div class="name">${content || "Selecciona cámara"}</div></div>
+    <img class="video" style="display:none;" />
+  `;
+
+  // ✅ Imagen restaurada
+  if (imageUrl) {
+    const img = slot.querySelector('.video');
+    const newImg = new Image();
+    newImg.className = 'video';
+    newImg.style.display = 'block';
+    newImg.onload = () => {
+      img.parentNode.replaceChild(newImg, img);
+      slot.classList.add('filled');
+    };
+    newImg.src = imageUrl;
+  }
+
+  // 🎯 Drag & Drop
+  slot.addEventListener('dragstart', dragStart);
+  slot.addEventListener('dragover', dragOver);
+  slot.addEventListener('drop', dropSlot);
+
+  // ============================================================
+  // 🔹 CLICK para filtrar (sin interferir con drag ni botones)
+  // ============================================================
+
+  let dragThreshold = 5; // px de movimiento antes de considerar drag
+  let startX = 0, startY = 0, moved = false;
+
+  slot.addEventListener('mousedown', e => {
+    startX = e.clientX;
+    startY = e.clientY;
+    moved = false;
+  });
+
+  slot.addEventListener('mousemove', e => {
+    if (Math.abs(e.clientX - startX) > dragThreshold || Math.abs(e.clientY - startY) > dragThreshold) {
+      moved = true;
+    }
+  });
+
+  slot.addEventListener('mouseup', e => {
+    // 🚫 Ignorar clics en botones internos
+    if (e.target.closest('.full-btn, .assign-btn, .remove-btn')) return;
+
+    // 🚫 Ignorar si fue arrastre
+    if (moved) return;
+
+    // 👉 Ejecutar filtrado solo si fue clic válido sobre el slot
+    const placeholder = slot.querySelector('.placeholder .name');
+    const cameraId = placeholder ? placeholder.textContent.trim() : null;
+
+    const camNameSpan = slot.querySelector('.cam-name');
+     const cameraName = camNameSpan ? camNameSpan.textContent.trim() : null;
+     //log("cameraName",cameraName)
+    if (cameraId && cameraId !== "Selecciona cámara") {
+      // Quitar resaltado anterior
+      document.querySelectorAll('.slot').forEach(s => s.classList.remove('active-filter'));
+
+      // Marcar este slot
+      slot.classList.add('active-filter');
+
+      // Mostrar mensaje y filtrar
+      showToast(`📡 Filtrando alertas de cámara ${cameraId}`, 'success');
+      getAlertas(cameraId,cameraName);
+    } else {
+      showToast('⚠️ No hay cámara asignada en este slot.', 'error');
+    }
+  });
+
+  container.appendChild(slot);
+}
+
+/*
+  const slot = btn.closest(".slot");
+  if (!slot) return;
+
+  // Limpiar contenido visual
+  const placeholder = slot.querySelector('.placeholder .name');
+  const label = slot.querySelector('.label');
+  const video = slot.querySelector('.video');
+
+  if (placeholder) placeholder.textContent = "Selecciona cámara";
+  if (label) label.textContent = slot.dataset.slot;
+  if (video) {
+    video.src = "";
+    video.style.display = "none";
+  }
+
+  // Quitar la clase "filled" (esto oculta el botón 🗑️)
+  slot.classList.remove("filled");
+
+  saveState();
+}
+*/
+
+
+function removeCameraold(ev, btn) {
+  ev.stopPropagation();
+  const slot = btn.closest(".slot");
+  if (!slot) return;
+
+  const placeholder = slot.querySelector('.placeholder .name');
+  const label = slot.querySelector('.label');
+  const video = slot.querySelector('.video');
+  const removeBtn = slot.querySelector('.remove-btn');
+  const overlayName = slot.querySelector('.cam-name');
+  const overlayLoc = slot.querySelector('.cam-location');
+
+  if (placeholder) placeholder.textContent = "Selecciona cámara";
+  if (label) label.textContent = slot.dataset.slot;
+  if (overlayName) overlayName.textContent = "Cámara sin asignar";
+  if (overlayLoc) overlayLoc.textContent = "";
+  if (video) {
+    video.src = "";
+    video.style.display = "none";
+  }
+
+  if (removeBtn) removeBtn.style.opacity = "0";
+  slot.classList.remove("filled");
+  saveState();
+}
+
+function removeCamera(ev, btn) {
+  ev.stopPropagation();
+  const slot = btn.closest(".slot");
+  if (!slot) return;
+
+  const placeholder = slot.querySelector('.placeholder .name');
+  const label = slot.querySelector('.label');
+  const video = slot.querySelector('.video');
+  const removeBtn = slot.querySelector('.remove-btn');
+  const overlayName = slot.querySelector('.cam-name');
+  const overlayLoc = slot.querySelector('.cam-location');
+  const selectBtn = slot.querySelector('.assign-btn'); // 🎥 botón de asignar
+  const timeLabel = slot.querySelector(".slot-time"); // 🕒 hora
+
+  if (placeholder) placeholder.textContent = "Selecciona cámara";
+  if (label) label.textContent = slot.dataset.slot;
+  if (overlayName) overlayName.textContent = "Cámara sin asignar";
+  if (overlayLoc) overlayLoc.textContent = "";
+  if (video) {
+    video.src = "";
+    video.style.display = "none";
+  }
+
+  // 🔹 Ocultar el botón de eliminar
+  if (removeBtn) {
+    removeBtn.style.opacity = "0";
+    removeBtn.style.pointerEvents = "none";
+    removeBtn.style.display = "none"; // 👈 asegura que desaparezca
+  }
+
+  // 🔹 Ocultar la hora/fecha
+  if (timeLabel) {
+    timeLabel.style.display = "none";
+  }
+  
+  
+
+  // ✅ Mostrar nuevamente el botón de asignar
+  if (selectBtn) selectBtn.style.display = "block";
+
+  slot.classList.remove("filled");
+  saveState();
+}
+
+
+// ==================== FUNCIONES MEJORADAS DEL MODAL DE CÁMARAS ====================
+
+// Función para abrir el modal de cámaras
+function openCameraModal(slotEl){
+  currentSlotEl = slotEl;
+  selectedCamera = null;
+  document.getElementById('btnAssign').disabled = true;
+
+  // Limpiar el filtro y mostrar loading
+  document.getElementById('camFilter').value = '';
+  document.getElementById('camList').innerHTML = '<div class="loading">Cargando cámaras...</div>';
+
+  // Obtener las cámaras de la API
+  callAPI({
+    method: "gestion/getcamaras",
+    ok: function(data) {
+      // Procesar los datos de la API - las cámaras están en data.data
+      
+      allCameras = processCameraData(data);
+      allCamerastemp = allCameras;
+      renderCameraList(allCameras);
+    },
+    error: function(error) {
+      console.error("Error al obtener cámaras:", error);
+      // En caso de error, usar las cámaras de ejemplo
+      allCameras = cameras;
+      renderCameraList(allCameras);
+    }
+  });
+
+  // Mostrar el modal
+  document.getElementById('camModal').style.display = 'flex';
+}
+
+// Función para procesar los datos de la API de cámaras
+function processCameraData(data) {
+  // Las cámaras están en data según la estructura de la API
+  if (data && Array.isArray(data)) {
+    return data.map(cam => ({
+      id: cam.id.toString(),
+      name: cam.camera_id || cam.nombre || 'Cámara sin nombre',
+      address: cam.location || cam.address || cam.ubicacion || 'Ubicación no especificada',
+      demo: cam.video_url || cam.demo || 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
+    }));
+  }
+  return cameras.map(cam => ({...cam, id: cam.id.toString()})); // Fallback convertido a string
+}
+
+// Función para renderizar la lista de cámaras
+function renderCameraList(camerasToRender) {
+  const ul = document.getElementById('camList');
+  ul.innerHTML = '';
+
+  if (!camerasToRender || camerasToRender.length === 0) {
+    ul.innerHTML = '<div class="no-results">No se encontraron cámaras disponibles</div>';
+    return;
+  }
+
+  camerasToRender.forEach(c => {
+    const li = document.createElement('li');
+    li.className = 'cam-item';
+    li.innerHTML = `
+      <span class="cam-name">${c.name}</span>
+      <span class="cam-id">ID: ${c.id.toString()}</span> <!-- Convertir a string aquí también -->
+      <span class="cam-address">${c.address}</span>
+    `;
+    li.onclick = () => {
+      // Remover selección previa
+      document.querySelectorAll('.cam-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Seleccionar esta cámara
+      li.classList.add('selected');
+      selectedCamera = c;
+      document.getElementById('btnAssign').disabled = false;
+    };
+    ul.appendChild(li);
+  });
+}
+
+// Función para filtrar cámaras
+function filterCameras() {
+  const filterText = document.getElementById('camFilter').value.toLowerCase();
+
+  if (!filterText) {
+    renderCameraList(allCameras);
+    return;
+  }
+
+  const filteredCameras = allCameras.filter(cam =>
+    cam.name.toLowerCase().includes(filterText) ||
+    cam.address.toLowerCase().includes(filterText) ||
+    cam.id.toString().toLowerCase().includes(filterText) // Convertir id a string
+  );
+
+  renderCameraList(filteredCameras);
+}
+
+// Función para cerrar el modal de cámaras
+function closeCameraModal(){
+  document.getElementById('camModal').style.display = 'none';
+}
+
+// Función para asignar la cámara seleccionada
+
+
+
+
+function assignSelectedold() {
+  if (!currentSlotEl || !selectedCamera) return;
+
+  // 🌀 Mostrar overlay de carga
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.className = 'loading-overlay';
+  loadingOverlay.innerHTML = `
+    <div class="spinner"></div>
+    <div>Cargando cámara...</div>
+  `;
+  //currentSlotEl.appendChild(loadingOverlay);
+
+  const currentImg = currentSlotEl.querySelector('.video');
+  const placeholder = currentSlotEl.querySelector('.placeholder .name');
+  const removeBtn = currentSlotEl.querySelector('.remove-btn');
+  const overlayName = currentSlotEl.querySelector('.cam-name');
+  const overlayLoc = currentSlotEl.querySelector('.cam-location');
+
+  // Previsualizar temporalmente el nombre
+  if (overlayName) overlayName.textContent = selectedCamera.name + " (cargando...)";
+  if (overlayLoc) overlayLoc.textContent = selectedCamera.address || "Ubicación no especificada";
+
+  // === Llamar al API para obtener el frame actual ===
+  callAPI({
+    //method: 'gestion/getframeslast',
+    //params: { cameraid: selectedCamera.id },
+    method: 'dashboards/lastframe',
+    params: { camera_id: selectedCamera.id  },
+    ok: function (data) {
+        
+
+        
+        
+      const frame = Array.isArray(data) ? data : data;
+      const fotoUrl = frame?.foto || null;
+
+      if (!fotoUrl) {
+        loadingOverlay.remove();
+        showToast("❌ Error de conexión con el servidor. No se guardará la cámara.");
+
+
+        if (overlayName) overlayName.textContent = "Cámara sin asignar";
+        if (overlayLoc) overlayLoc.textContent = "";
+        return;
+      }
+
+      // Cargar imagen
+      const newImg = new Image();
+      newImg.className = 'video';
+      newImg.style.display = 'block';
+      newImg.onload = function () {
+        // Limpiar celdas previas
+        const existingCanvas = currentSlotEl.querySelector('canvas');
+        if (existingCanvas) existingCanvas.remove();
+
+        // Reemplazar imagen
+        if (currentImg) currentImg.parentNode.replaceChild(newImg, currentImg);
+        else currentSlotEl.appendChild(newImg);
+
+        // Dibujar bounding boxes si existen
+        if (frame.coords_obj || frame.coords_plate) {
+          drawBoundingBoxes(currentSlotEl, newImg, frame);
+        }
+
+        // Actualizar UI
+        if (placeholder) placeholder.textContent = selectedCamera.id;
+        if (overlayName) overlayName.textContent = selectedCamera.name;
+        if (overlayLoc) overlayLoc.textContent = selectedCamera.address;
+        if (removeBtn) removeBtn.style.opacity = "1";
+
+        currentSlotEl.classList.add('filled');
+        loadingOverlay.remove();
+        closeCameraModal();
+        saveState();
+        startFrameRefresh();
+      };
+
+      newImg.onerror = function () {
+        loadingOverlay.remove();
+        showToast("❌ Error al cargar imagen de la cámara.");
+        if (overlayName) overlayName.textContent = "Cámara sin asignar";
+        if (overlayLoc) overlayLoc.textContent = "";
+      };
+
+      newImg.src = fotoUrl + (fotoUrl.includes('?') ? '&' : '?') + '_=' + Date.now();
+    },
+    error: function (error) {
+      log('Error al obtener frame inicial:', error);
+      loadingOverlay.remove();
+      //showToast("❌ Error de conexión con el servidor. No se guardará la cámara.");
+      if (overlayName) overlayName.textContent = "Cámara sin asignar";
+      if (overlayLoc) overlayLoc.textContent = "";
+    }
+  });
+}
+
+function assignSelected() {
+  if (!currentSlotEl || !selectedCamera) return;
+
+  // 🌀 Overlay de carga
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.className = 'loading-overlay';
+  loadingOverlay.innerHTML = `
+    <div class="spinner"></div>
+    <div>Cargando cámara...</div>
+  `;
+  currentSlotEl.appendChild(loadingOverlay);
+
+  const currentImg = currentSlotEl.querySelector('.video');
+  const placeholder = currentSlotEl.querySelector('.placeholder .name');
+  const removeBtn = currentSlotEl.querySelector('.remove-btn');
+  const overlayName = currentSlotEl.querySelector('.cam-name');
+  const overlayLoc = currentSlotEl.querySelector('.cam-location');
+  const selectBtn = currentSlotEl.querySelector('.assign-btn'); // 🎥 botón de asignar
+  const timeLabel = currentSlotEl.querySelector('.slot-time');
+  
+  if (overlayName) overlayName.textContent = selectedCamera.name + " (cargando...)";
+  if (overlayLoc) overlayLoc.textContent = selectedCamera.address || "Ubicación no especificada";
+
+  // === Llamada API ===
+  callAPI({
+    method: 'dashboards/lastframe',
+    params: { camera_id: selectedCamera.id },
+    ok: function (data) {
+      const frame = Array.isArray(data) ? data[0] : data;
+      const fotoUrl = frame?.foto || null;
+       //log("frame",frame)
+      if (!fotoUrl) {
+        loadingOverlay.remove();
+        //showToast("❌ Error: no se pudo obtener imagen de la cámara.", "error");
+        if (overlayName) overlayName.textContent = "Cámara sin asignar";
+        if (overlayLoc) overlayLoc.textContent = "";
+        return;
+      }
+
+      const newImg = new Image();
+      newImg.className = 'video';
+      newImg.style.display = 'block';
+
+      newImg.onload = function () {
+        const existingCanvas = currentSlotEl.querySelector('canvas');
+        if (existingCanvas) existingCanvas.remove();
+        //log(frame.persons_info );
+        // Reemplazar imagen existente
+        if (currentImg) currentImg.parentNode.replaceChild(newImg, currentImg);
+        else currentSlotEl.appendChild(newImg);
+
+
+        // Actualizar información visual
+        if (placeholder) placeholder.textContent = selectedCamera.id;
+        if (overlayName) overlayName.textContent = selectedCamera.name;
+        if (overlayLoc) overlayLoc.textContent = selectedCamera.address;
+        //if (removeBtn) removeBtn.style.opacity = "1";
+
+        // ✅ Ocultar botón de asignar
+        if (selectBtn) {
+            selectBtn.style.display = "none";
+            removeBtn.style.display = "block";
+            timeLabel.style.display = "block";
+        }
+
+        currentSlotEl.classList.add('filled');
+        loadingOverlay.remove();
+        closeCameraModal();
+        saveState();
+        startFrameRefresh();
+      };
+
+      newImg.onerror = function () {
+        loadingOverlay.remove();
+        showToast("⚠️ Error al cargar imagen de cámara.", "error");
+        if (overlayName) overlayName.textContent = "Cámara sin asignar";
+        if (overlayLoc) overlayLoc.textContent = "";
+      };
+
+      newImg.src = fotoUrl + (fotoUrl.includes('?') ? '&' : '?') + '_=' + Date.now();
+    },
+    error: function (error) {
+      console.error('Error al obtener frame inicial:', error);
+      loadingOverlay.remove();
+      showToast("❌ Error de conexión con el servidor.", "error");
+      if (overlayName) overlayName.textContent = "Cámara sin asignar";
+      if (overlayLoc) overlayLoc.textContent = "";
+    }
+  });
+}
+
+function drawBoundingBoxesObjv1(slotElement, personsInfo) {
+  const img = slotElement.querySelector('.video');
+  if (!img || personsInfo.length === 0) return;
+
+  // Crear o reutilizar el canvas overlay
+  let canvas = slotElement.querySelector('canvas.bbox-overlay');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'bbox-overlay';
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      zIndex: 15
+    });
+    slotElement.style.position = 'relative';
+    slotElement.appendChild(canvas);
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // 🔹 Usar dimensiones reales del canvas (coinciden con el slot)
+  const rect = img.getBoundingClientRect();
+  const displayWidth = rect.width;
+  const displayHeight = rect.height;
+  canvas.width = displayWidth;
+  canvas.height = displayHeight;
+
+  // 🔹 Calcular escalas reales en base a la imagen original
+  const imgWidth = img.naturalWidth || img.width;
+  const imgHeight = img.naturalHeight || img.height;
+  const scaleX = displayWidth / imgWidth;
+  const scaleY = displayHeight / imgHeight;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 2;
+  ctx.font = '12px monospace';
+  ctx.textBaseline = 'top';
+
+  personsInfo.forEach(p => {
+    const { x1, y1, x2, y2 } = p.bbox;
+    //const color = colorFromId(p.tracking_id);
+    const color = "#007bff"; // azul sólido
+
+    const label = `${p.category_name || 'obj'} ${Math.round(p.accuracy || 0)}%`;
+
+    const x = x1 * scaleX;
+    const y = y1 * scaleY;
+    const w = (x2 - x1) * scaleX;
+    const h = (y2 - y1) * scaleY;
+
+    // Caja
+    ctx.strokeStyle = color;
+    ctx.strokeRect(x, y, w, h);
+
+    // Fondo del texto
+    const textWidth = ctx.measureText(label).width + 6;
+    ctx.fillStyle = color + 'aa';
+    ctx.fillRect(x, Math.max(0, y - 14), textWidth, 14);
+
+    // Texto
+    ctx.fillStyle = '#fff';
+    ctx.fillText(label, x + 3, Math.max(0, y - 13));
+  });
+}
+
+function drawBoundingBoxesObj3(slotElement, personsInfo,vehiclesInfo) {
+    
+  
+    if (!showBoundingBoxes) {
+    const existingCanvas = slotElement.querySelector("canvas.bbox-overlay");
+    if (existingCanvas) {
+      const ctx = existingCanvas.getContext("2d");
+      ctx.clearRect(0, 0, existingCanvas.width, existingCanvas.height);
+    }
+    return;
+  }
+  
+  const img = slotElement.querySelector('.video');
+  if (!img || personsInfo.length === 0) return;
+
+  // Crear o reutilizar el canvas overlay
+  let canvas = slotElement.querySelector('canvas.bbox-overlay');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'bbox-overlay';
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      zIndex: 15
+    });
+    slotElement.style.position = 'relative';
+    slotElement.appendChild(canvas);
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // 🔹 Ajustar dimensiones
+  const rect = img.getBoundingClientRect();
+  const displayWidth = rect.width;
+  const displayHeight = rect.height;
+  canvas.width = displayWidth;
+  canvas.height = displayHeight;
+
+  // 🔹 Escala real
+  const imgWidth = img.naturalWidth || img.width;
+  const imgHeight = img.naturalHeight || img.height;
+  const scaleX = displayWidth / imgWidth;
+  const scaleY = displayHeight / imgHeight;
+  
+
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 2;
+  ctx.font = '12px monospace';
+  ctx.textBaseline = 'top';
+
+ if (!img || personsInfo.length !== 0) 
+ {
+      personsInfo.forEach(p => {
+        const { x1, y1, x2, y2 } = p.bbox;
+        const color = "#007bff"; // azul sólido
+    
+        // Texto principal (ej: "person 95%")
+        let label = `${p.category_name || 'obj'} ${Math.round(p.accuracy || 0)}%`;
+    
+        // Si es persona, añadir emoción a la derecha
+        if (p.category_name === "person" && p.emotion_id !== undefined && p.emotion_id !== null) {
+          label += ` ${p.emotion_id}`;
+        }
+    
+        const x = x1 * scaleX;
+        const y = y1 * scaleY;
+        const w = (x2 - x1) * scaleX;
+        const h = (y2 - y1) * scaleY;
+    
+        // Caja principal
+        ctx.strokeStyle = color;
+        ctx.strokeRect(x, y, w, h);
+    
+        // === Dibujar etiquetas de texto ===
+        ctx.fillStyle = color + 'aa';
+    
+        // Calcular alturas de líneas (para varias líneas si es "person")
+        let lineHeight = 14;
+        let lines = [label];
+    
+        if (p.category_name === "person") {
+          const upper = p.upper_color_name ? `Uc: ${p.upper_color_name}` : null;
+          const lower = p.lower_color_name ? `Lc: ${p.lower_color_name}` : null;
+          if (upper) lines.push(upper);
+          if (lower) lines.push(lower);
+        }
+        
+            if (p.category_name !== "person") {
+          const upper = p.plate ? `Placa: ${p.plate}` : null;
+          const lower = p.vehicle_color_name ? `Color: ${p.vehicle_color_name}` : null;
+          if (upper) lines.push(upper);
+          if (lower) lines.push(lower);
+        }
+    
+        // Fondo del texto (ajustado a número de líneas)
+        const maxTextWidth = Math.max(...lines.map(t => ctx.measureText(t).width)) + 6;
+        const totalHeight = lines.length * lineHeight;
+    
+        ctx.fillRect(x, Math.max(0, y - totalHeight), maxTextWidth, totalHeight);
+    
+        // Texto en blanco
+        ctx.fillStyle = '#fff';
+        lines.forEach((txt, i) => {
+          ctx.fillText(txt, x + 3, Math.max(0, y - totalHeight + (i * lineHeight) + 1));
+        });
+      });
+    }
+     if (!img || vehiclesInfo.length !== 0) 
+     {
+      vehiclesInfo.forEach(p => {
+        const { x1, y1, x2, y2 } = p.bbox;
+        const color = "#007bff"; // azul sólido
+    
+        // Texto principal (ej: "person 95%")
+        let label = `${p.category_name || 'obj'} ${Math.round(p.accuracy || 0)}%`;
+    
+        // Si es persona, añadir emoción a la derecha
+        if (p.category_name === "person" && p.emotion_id !== undefined && p.emotion_id !== null) {
+          label += ` ${p.emotion_id}`;
+        }
+    
+        const x = x1 * scaleX;
+        const y = y1 * scaleY;
+        const w = (x2 - x1) * scaleX;
+        const h = (y2 - y1) * scaleY;
+    
+        // Caja principal
+        ctx.strokeStyle = color;
+        ctx.strokeRect(x, y, w, h);
+    
+        // === Dibujar etiquetas de texto ===
+        ctx.fillStyle = color + 'aa';
+    
+        // Calcular alturas de líneas (para varias líneas si es "person")
+        let lineHeight = 14;
+        let lines = [label];
+    
+        if (p.category_name === "person") {
+          const upper = p.upper_color_name ? `Uc: ${p.upper_color_name}` : null;
+          const lower = p.lower_color_name ? `Lc: ${p.lower_color_name}` : null;
+          if (upper) lines.push(upper);
+          if (lower) lines.push(lower);
+        }
+        
+            if (p.category_name !== "person") {
+          const upper = p.plate ? `Placa: ${p.plate}` : null;
+          const lower = p.vehicle_color_name ? `Color: ${p.vehicle_color_name}` : null;
+          if (upper) lines.push(upper);
+          if (lower) lines.push(lower);
+        }
+    
+        // Fondo del texto (ajustado a número de líneas)
+        const maxTextWidth = Math.max(...lines.map(t => ctx.measureText(t).width)) + 6;
+        const totalHeight = lines.length * lineHeight;
+    
+        ctx.fillRect(x, Math.max(0, y - totalHeight), maxTextWidth, totalHeight);
+    
+        // Texto en blanco
+        ctx.fillStyle = '#fff';
+        lines.forEach((txt, i) => {
+          ctx.fillText(txt, x + 3, Math.max(0, y - totalHeight + (i * lineHeight) + 1));
+        });
+      });
+    }
+}
+
+function drawBoundingBoxesObj(slotElement, personsInfo = [], vehiclesInfo = []) {
+  const img = slotElement.querySelector('.video');
+  if (!img) return;
+
+  // Si está desactivado el modo boxes → limpiar y salir
+  if (!showBoundingBoxes) {
+    const existingCanvas = slotElement.querySelector('canvas.bbox-overlay');
+    if (existingCanvas) {
+      const ctx = existingCanvas.getContext('2d');
+      ctx.clearRect(0, 0, existingCanvas.width, existingCanvas.height);
+    }
+    return;
+  }
+
+  // 🔹 Crear o reutilizar el canvas overlay
+  let canvas = slotElement.querySelector('canvas.bbox-overlay');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'bbox-overlay';
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      zIndex: 15
+    });
+    slotElement.style.position = 'relative';
+    slotElement.appendChild(canvas);
+  }
+
+  // 🔹 Ajustar tamaño real del canvas al del slot visible
+  const slotRect = slotElement.getBoundingClientRect();
+  canvas.width = slotRect.width;
+  canvas.height = slotRect.height;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 🔹 Calcular escalas de la imagen dentro del slot
+  const imgRect = img.getBoundingClientRect();
+  const scaleX = slotRect.width / (img.naturalWidth || imgRect.width);
+  const scaleY = slotRect.height / (img.naturalHeight || imgRect.height);
+
+  ctx.lineWidth = 2;
+  ctx.font = '12px monospace';
+  ctx.textBaseline = 'top';
+
+  // 🔹 Función auxiliar para dibujar cualquier objeto
+  function drawObj(p) {
+    if (!p.bbox) return;
+
+    const { x1, y1, x2, y2 } = p.bbox;
+    const color = "#007bff"; // azul civix
+
+    // Texto principal
+    let label = `${p.category_name || 'obj'} ${Math.round(p.accuracy || 0)}%`;
+
+    // Si es persona, añade emoción
+    if (p.category_name === "person" && p.emotion_id)
+      label += ` ${p.emotion_id}`;
+
+    const x = x1 * scaleX;
+    const y = y1 * scaleY;
+    const w = (x2 - x1) * scaleX;
+    const h = (y2 - y1) * scaleY;
+
+    // Dibujar rectángulo
+    ctx.strokeStyle = color;
+    ctx.strokeRect(x, y, w, h);
+
+    // Construir líneas de texto
+    let lines = [label];
+    if (p.category_name === "person") {
+      if (p.upper_color_name) lines.push(`Uc: ${p.upper_color_name}`);
+      if (p.lower_color_name) lines.push(`Lc: ${p.lower_color_name}`);
+    } else {
+      if (p.plate) lines.push(`Placa: ${p.plate}`);
+      if (p.vehicle_color_name) lines.push(`Color: ${p.vehicle_color_name}`);
+    }
+
+    // Fondo del texto
+    const lineHeight = 14;
+    const textWidth = Math.max(...lines.map(t => ctx.measureText(t).width)) + 6;
+    const totalHeight = lines.length * lineHeight;
+    ctx.fillStyle = color + '88';
+    ctx.fillRect(x, Math.max(0, y - totalHeight), textWidth, totalHeight);
+
+    // Texto en blanco
+    ctx.fillStyle = '#fff';
+    lines.forEach((txt, i) => {
+      ctx.fillText(txt, x + 3, y - totalHeight + (i * lineHeight) + 1);
+    });
+  }
+
+  // 🔹 Dibujar personas y vehículos
+  personsInfo.forEach(drawObj);
+  vehiclesInfo.forEach(drawObj);
+}
+
+// 🔹 Estado global del modo bounding box
+
+let showBoundingBoxes = false;
+
+function toggleBoundingBoxes() {
+  showBoundingBoxes = !showBoundingBoxes;
+  const btn = document.getElementById("toggleBboxBtn");
+
+  if (showBoundingBoxes) {
+    btn.textContent = "🧩 Desactivar Boxes";
+    btn.classList.remove("active");
+    console.log("✅ Detección de boxes activada");
+  } else {
+    btn.textContent = "🧩 Activar Boxes";
+    btn.classList.add("active");
+    console.log("🚫 Detección de boxes desactivada — limpiando overlays...");
+    clearAllBoundingBoxes(); // 🔥 limpiar todos los canvas
+  }
+}
+
+// 🔹 Elimina todos los bounding boxes visibles
+function clearAllBoundingBoxes() {
+  document.querySelectorAll("canvas.bbox-overlay").forEach(canvas => {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+}
+
+
+
+function drawBoundingBoxes(slotEl, imgEl, frameData) {
+  // Crear un canvas del mismo tamaño del slot
+  const canvas = document.createElement('canvas');
+  canvas.style.position = 'absolute';
+  canvas.style.top = 0;
+  canvas.style.left = 0;
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.zIndex = 15;
+  canvas.width = imgEl.naturalWidth;
+  canvas.height = imgEl.naturalHeight;
+  slotEl.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+  const scaleX = canvas.width / imgEl.naturalWidth;
+  const scaleY = canvas.height / imgEl.naturalHeight;
+
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#22e6d9';
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.textBaseline = 'top';
+
+  const drawBox = (coords, color, label) => {
+    try {
+      const [x1, y1, x2, y2] = coords.split(',').map(Number);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      ctx.fillStyle = color;
+      ctx.fillRect(x1, y1 - 20, ctx.measureText(label).width + 10, 20);
+      ctx.fillStyle = '#000';
+      ctx.fillText(label, x1 + 5, y1 - 18);
+    } catch (e) {
+      console.warn("Error al dibujar bounding box:", e);
+    }
+  };
+
+  // Dibujar objeto principal (azul)
+  if (frameData.coords_obj) {
+    drawBox(frameData.coords_obj, '#22e6d9', 'OBJ');
+  }
+
+  // Dibujar placa (naranja)
+  if (frameData.coords_plate) {
+    drawBox(frameData.coords_plate, '#ff7a2f', 'PLATE');
+  }
+}
+
+
+// ==================== FUNCIONES EXISTENTES ====================
+
+
+
+let alertRefreshInterval = null; // nuevo timer solo para alertas
+
+function startWall() {
+  const app = document.getElementById("app");
+  const start = document.getElementById("startScreen");
+
+  app.style.display = "flex";
+  start.style.display = "none";
+  buildGrid();
+
+  // Cargar alertas al iniciar
+  getAlertas();
+ 
+  // Iniciar refresco de frames y alertas
+  startFrameRefresh();
+  startAlertRefresh();  // 🔁 ahora inicia también el refresco de alertas
+
+  // Solicitar fullscreen
+ if (!document.fullscreenElement) {
+    app.requestFullscreen().catch(err => {
+      console.log(`Error en fullscreen: ${err.message}`);
+    });
+  }
+}
+
+// 🔁 Refresco automático de alertas cada 30s
+
+function startAlertRefresh() {
+  // Evitar múltiples intervalos
+  stopAlertRefresh();
+
+  alertRefreshInterval = setInterval(() => {
+    // Solo refrescar si no hay filtro activo
+   // if (!activeCameraFilter) {
+      console.log("🔁 Refrescando alertas globales...");
+      getAlertas();
+   // } else {
+    //  console.log("⏸️ Refresco pausado (filtro activo)");
+    //}
+  }, 30000); // cada 30 segundos
+  console.log("🕒 Refresco automático de alertas iniciado.");
+}
+
+function stopAlertRefresh() {
+  if (alertRefreshInterval) {
+    clearInterval(alertRefreshInterval);
+    alertRefreshInterval = null;
+    console.log("🛑 Refresco automático de alertas detenido.");
+  }
+}
+
+
+// 🧹 Detiene también el refresco de alertas
+function stopFrameRefresh() {
+  if (refreshInterval) clearInterval(refreshInterval);
+  if (alertRefreshInterval) clearInterval(alertRefreshInterval);
+  refreshInterval = null;
+  alertRefreshInterval = null;
+    console.log("🛑 Refresco automático de frames detenido.");
+}
+
+
+
+function exitWall() {
+  // Detener refresco de frames
+  stopFrameRefresh();
+  stopAlertRefresh();
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  }
+}
+
+// Detect exit fullscreen
+document.addEventListener("fullscreenchange", () => {
+  const app = document.getElementById("app");
+  const start = document.getElementById("startScreen");
+
+  if(!document.fullscreenElement){
+    app.style.display = "none";
+    start.style.display = "flex";
+  }
+});
+
+// Drag & Drop functions
+function dragStart(e){
+  dragged = this;
+}
+
+function dragOver(e){
+  e.preventDefault();
+}
+
+function dropSlot(e){
+  e.preventDefault();
+  if(dragged && dragged !== this){
+    this.parentNode.insertBefore(dragged, this);
+    saveState();
+  }
+}
+
+// Guardar y restaurar estado
+function saveStateold(){
+  const slots = [...document.querySelectorAll('#gridWall .slot')].map(slot => {
+    const img = slot.querySelector('.video');
+    return {
+      label: slot.querySelector('.label')?.textContent || "",
+      content: slot.querySelector('.placeholder .name')?.textContent || "",
+      video: img ? img.src : "" // Guardar el src de la imagen
+    };
+  });
+  localStorage.setItem("videowallState", JSON.stringify(slots));
+  console.log("Estado guardado:", slots);
+}
+
+function saveState() {
+  const slots = [...document.querySelectorAll('#gridWall .slot')].map(slot => {
+    const img = slot.querySelector('.video');
+    const camName = slot.querySelector('.cam-name')?.textContent || "";
+    const camLoc = slot.querySelector('.cam-location')?.textContent || "";
+
+    return {
+      label: slot.querySelector('.label')?.textContent || "",
+      content: slot.querySelector('.placeholder .name')?.textContent || "",
+      video: img ? img.src : "",
+      name: camName,
+      address: camLoc
+    };
+  });
+  localStorage.setItem("videowallState", JSON.stringify(slots));
+  console.log("Estado guardado:", slots);
+}
+
+
+
+
+
+function restoreStateold(state) {
+  const grid = document.getElementById('gridWall');
+  grid.innerHTML = "";
+
+  state.forEach((s, i) => {
+    // Crear el slot
+    createSlot("S" + (i + 1), grid, s.content, s.video);
+    const slot = grid.lastChild;
+
+    // Referencias internas
+    const lbl = slot.querySelector('.label');
+    const placeholder = slot.querySelector('.placeholder .name');
+    const overlayName = slot.querySelector('.cam-name');
+    const overlayLoc = slot.querySelector('.cam-location');
+    const removeBtn = slot.querySelector('.remove-btn');
+
+    // Restaurar label (texto inferior del slot)
+    if (s.label) lbl.textContent = s.label;
+
+    // Restaurar placeholder (ID de cámara)
+    if (placeholder) placeholder.textContent = s.content || "Selecciona cámara";
+
+    // Buscar datos de la cámara por ID en allCameras (si ya fueron cargadas)
+    const camData = allCameras.find(c => c.id.toString() === (s.content || "").toString());
+
+    // === Determinar nombre y ubicación ===
+    if (camData) {
+      overlayName.textContent = camData.name || "Cámara sin nombre";
+      overlayLoc.textContent = camData.address && camData.address.trim() !== ""
+        ? camData.address
+        : ""; //"Sin dirección registrada";
+    } 
+    else if (s.name || s.address) {
+      // Si existen datos almacenados en localStorage
+      overlayName.textContent = s.name || "Cámara sin nombre";
+      overlayLoc.textContent = s.address && s.address.trim() !== ""
+        ? s.address
+        : ""; //"Sin dirección registrada";
+    } 
+    else if (s.label && s.label.includes(" - ")) {
+      // Si el label contenía nombre y dirección juntos
+      const [name, ...rest] = s.label.split(" - ");
+      overlayName.textContent = name.trim() || "Cámara sin nombre";
+      overlayLoc.textContent = rest.join(" - ").trim() || "";// "Sin dirección registrada";
+    } 
+    else if (s.content && s.content !== "Selecciona cámara") {
+      overlayName.textContent = s.content;
+      overlayLoc.textContent = ""; //"Sin dirección registrada";
+    } 
+    else {
+      // Si no hay datos de cámara asignados
+      overlayName.textContent = "Cámara sin asignar";
+      overlayLoc.textContent = "";
+    }
+
+    // Mostrar el botón eliminar
+    if (removeBtn) removeBtn.style.opacity = "1";
+
+    // Restaurar imagen si estaba guardada
+    if (s.video) {
+      const img = slot.querySelector('.video');
+      const newImg = new Image();
+      newImg.className = 'video';
+      newImg.style.display = 'block';
+      newImg.onload = () => {
+        img.parentNode.replaceChild(newImg, img);
+        slot.classList.add('filled');
+      };
+      newImg.onerror = () => {
+        console.warn(`⚠️ Error al cargar imagen restaurada para cámara ${s.content}`);
+      };
+      newImg.src = s.video;
+    }
+  });
+
+  console.log("✅ Estado restaurado correctamente:", state);
+}
+function restoreState(state) {
+  const grid = document.getElementById('gridWall');
+  grid.innerHTML = "";
+
+  state.forEach((s, i) => {
+    // Crear el slot
+    createSlot("S" + (i + 1), grid, s.content, s.video);
+    const slot = grid.lastChild;
+
+    // Referencias internas
+    const lbl = slot.querySelector('.label');
+    const placeholder = slot.querySelector('.placeholder .name');
+    const overlayName = slot.querySelector('.cam-name');
+    const overlayLoc = slot.querySelector('.cam-location');
+    const removeBtn = slot.querySelector('.remove-btn');
+    const assignBtn = slot.querySelector('.assign-btn'); // ✅ botón de asignar cámara
+    const timeLabel = slot.querySelector('.slot-time');
+
+    // Restaurar label (texto inferior del slot)
+    if (s.label) lbl.textContent = s.label;
+
+    // Restaurar placeholder (ID de cámara)
+    if (placeholder) placeholder.textContent = s.content || "Selecciona cámara";
+
+    // Buscar datos de la cámara por ID en allCameras (si ya fueron cargadas)
+    const camData = allCameras.find(c => c.id.toString() === (s.content || "").toString());
+
+    // === Determinar nombre y ubicación ===
+    if (camData) {
+      overlayName.textContent = camData.name || "Cámara sin nombre";
+      overlayLoc.textContent = camData.address && camData.address.trim() !== ""
+        ? camData.address
+        : "";
+    } 
+    else if (s.name || s.address) {
+      overlayName.textContent = s.name || "Cámara sin nombre";
+      overlayLoc.textContent = s.address && s.address.trim() !== ""
+        ? s.address
+        : "";
+    } 
+    else if (s.label && s.label.includes(" - ")) {
+      const [name, ...rest] = s.label.split(" - ");
+      overlayName.textContent = name.trim() || "Cámara sin nombre";
+      overlayLoc.textContent = rest.join(" - ").trim() || "";
+    } 
+    else if (s.content && s.content !== "Selecciona cámara") {
+      overlayName.textContent = s.content;
+      overlayLoc.textContent = "";
+    } 
+    else {
+      overlayName.textContent = "Cámara sin asignar";
+      overlayLoc.textContent = "";
+    }
+
+    // Mostrar el botón eliminar
+    if (removeBtn) removeBtn.style.opacity = "1";
+
+    // ✅ Mostrar u ocultar el botón Asignar según haya cámara asignada
+    if (assignBtn) {
+      if (s.content && s.content !== "Selecciona cámara" && s.content !== "") {
+        assignBtn.style.display = "none"; // Ocultar si ya hay cámara
+      } else {
+        assignBtn.style.display = "inline-block"; // Mostrar si está libre
+      }
+    }
+
+    // Restaurar imagen si estaba guardada
+    if (s.video) {
+      const img = slot.querySelector('.video');
+      const newImg = new Image();
+      newImg.className = 'video';
+      newImg.style.display = 'block';
+      newImg.onload = () => {
+        img.parentNode.replaceChild(newImg, img);
+        slot.classList.add('filled');
+      };
+      newImg.onerror = () => {
+        console.warn(`⚠️ Error al cargar imagen restaurada para cámara ${s.content}`);
+      };
+      newImg.src = s.video;
+    }
+    
+    const cameraId = s.content || "";
+    if (cameraId === "" || cameraId === "Selecciona cámara") {
+      // No hay cámara asignada → ocultar remove y hora
+      if (removeBtn) removeBtn.style.display = "none";
+      //if (timeLabel) timeLabel.style.display = "none";
+      if (assignBtn) assignBtn.style.display = "block";
+    } else {
+      // Hay cámara asignada → mostrar remove, ocultar assign
+      if (removeBtn) removeBtn.style.display = "block";
+      //if (timeLabel) timeLabel.style.display = "block";
+      if (assignBtn) assignBtn.style.display = "none";
+    }
+    
+  });
+
+  console.log("✅ Estado restaurado correctamente:", state);
+}
+
+
+
+// Fullscreen individual por cámara
+function slotFullscreen(ev, btn){
+  ev.stopPropagation();
+  const slot = btn.closest(".slot");
+  if(document.fullscreenElement === slot){
+    document.exitFullscreen();
+  } else {
+    slot.requestFullscreen();
+  }
+}
+
+// TIMELINE LOGIC
+
+//let alertRefreshInterval = null;
+let activeCameraFilter = null; // 📌 almacena la cámara filtrada
+
+
+
+function getAlertas(cameraFilter = null, camName = null) {
+    
+
+  const timelineList = document.getElementById('timelineList');
+  const titleEl = document.getElementById('alertTitle');
+  const clearBtn = document.getElementById('btnFilterClear');
+  const clearBtnALert = document.getElementById('btnFilterClearAlert');
+  
+  // Si ya hay filtro activo y no se está llamando manualmente, no refrescar
+ /* if (activeCameraFilter && !cameraFilter) {
+    console.log("🔕 Refresco automático de alertas pausado por filtro activo.");
+    return;
+  }
+  ]*/
+
+  // Mostrar loader
+  if (timelineList) {
+   // timelineList.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando alertas...</div>';
+  }
+
+  // Obtener cámaras activas del localStorage
+  const savedState = localStorage.getItem("videowallState");
+  let cameraIdsParam = '';
+
+  if (savedState) {
+    const state = JSON.parse(savedState);
+    const cameraIds = state
+      .filter(slot => slot.content && slot.content !== "Selecciona cámara" && slot.content.trim() !== "")
+      .map(slot => slot.content);
+
+    cameraIdsParam = cameraIds.join(',');
+  }
+
+  // Si hay filtro manual (doble clic)
+  if (cameraFilter) {
+    cameraIdsParam = cameraFilter;
+    activeCameraFilter = cameraFilter;
+    
+
+
+    titleEl.textContent = `Alertas – Cámara ${camName}`;
+    //titleEl.textContent = `Alertas – Cámara ${cameraFilter}`;
+    //clearBtnALert.style.display = 'inline-block';
+    clearBtn.style.display = 'inline-block';
+    //stopAlertRefresh(); // ⛔ Detiene el refresco global",
+  }
+
+  console.log("🔍 Solicitando alertas para:", cameraIdsParam);
+
+  callAPI({
+    method: 'gestion/getalerts',
+    params: { camera_ids: cameraIdsParam || "" },
+    ok: function (vals) {
+            log("getAlertas",vals.data)
+      alertas = vals.data || [];
+      renderTimelineList(alertas);
+      initialAlerts = alertas;
+                 // Actualizar la leyenda y KPIs (siempre con datos iniciales)
+                const uniqueAlertTypes = [...new Set(initialAlerts.map(alert => alert.type_event_name))];
+                 //log("uniqueAlertTypes",uniqueAlertTypes)
+                ;
+                lastKPUpdate = new Date();
+                calculateTrendData();
+                updateAllMetrics();
+    },
+    error: function (error) {
+      console.error("Error al obtener alertas:", error);
+      //showToast("❌ Error al obtener alertas del servidor.", "error");
+    }
+  });
+}
+
+function buildLegend(alertTypes) {
+  const legendContainer = document.querySelector('.map-legend');
+  if (!legendContainer) return;
+  log("alertTypes",alertTypes)
+  legendContainer.innerHTML = '';
+  
+  const alertCounts = {};
+  alertas.forEach(alert => {
+    const type = alert.type_event_name;
+    alertCounts[type] = (alertCounts[type] || 0) + 1;
+  });
+  
+  const totalAlerts = alertas.length;
+  
+  const legendHeader = document.createElement('div');
+  legendHeader.className = 'legend-header';
+  legendHeader.innerHTML = `
+    <div class="legend-title" style="margin-right:3em">Filtrar alertas</div>
+    <button class="legend-toggle">−</button>
+  `;
+  legendContainer.appendChild(legendHeader);
+  
+  const legendBody = document.createElement('div');
+  legendBody.className = 'legend-body';
+  legendBody.style.maxHeight= '280px';
+  legendBody.style.overflow= 'auto';
+  
+  const allButton = document.createElement('div');
+  allButton.className = 'legend-item active';
+  allButton.setAttribute('data-filter', 'all');
+  allButton.innerHTML = `
+    <div class="legend-item-content">
+      <span class="legend-dot all-dot"></span>
+      <span class="legend-label">Todas</span>
+    </div>
+    <span class="legend-count">${totalAlerts}</span>
+  `;
+  legendBody.appendChild(allButton);
+  
+  alertTypes.forEach(type => {
+    const button = document.createElement('div');
+    button.className = 'legend-item';
+    button.setAttribute('data-filter', type);
+    
+    let colorClass = 'teal-dot';
+    const lowerType = type.toLowerCase();
+    
+    if (lowerType.includes('accidente')) {
+      colorClass = 'red-dot';
+    } else if (lowerType.includes('aglomeracion') || lowerType.includes('restringida') || lowerType.includes('zona')) {
+      colorClass = 'orange-dot';
+    }
+    
+    button.innerHTML = `
+      <div class="legend-item-content">
+        <span class="legend-dot ${colorClass}"></span>
+        <span class="legend-label">${type}</span>
+      </div>
+      <span class="legend-count">${alertCounts[type] || 0}</span>
+    `;
+    legendBody.appendChild(button);
+  });
+  
+  legendContainer.appendChild(legendBody);
+  
+  // Event listeners para la leyenda
+  const toggleBtn = legendHeader.querySelector('.legend-toggle');
+  toggleBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    legendContainer.classList.toggle('minimized');
+    toggleBtn.textContent = legendContainer.classList.contains('minimized') ? '+' : '−';
+  });
+  
+  legendHeader.addEventListener('click', function(e) {
+    if (e.target === toggleBtn) return;
+    if (legendContainer.classList.contains('minimized')) {
+      legendContainer.classList.remove('minimized');
+      toggleBtn.textContent = '−';
+    }
+  });
+  
+  initLegendEvents();
+}
+
+function initLegendEvents() {
+  const legendItems = document.querySelectorAll('.map-legend .legend-item');
+  legendItems.forEach(item => {
+    item.addEventListener('click', () => {
+      legendItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      currentFilter = item.getAttribute('data-filter');
+      applyFilter();
+    });
+  });
+}
+
+function applyFilter() {
+    // **CORRECCIÓN: Usar filteredAlerts si existe (para interés seleccionado), sino usar alertas**
+    const baseAlerts = filteredAlerts !== null && filteredAlerts.length >= 0 ? filteredAlerts : alertas;
+    
+    if (currentFilter === 'all') {
+        // Si hay filteredAlerts, mantenerlas, sino usar todas las alertas
+        const alertsToShow = filteredAlerts !== null && filteredAlerts.length >= 0 ? [...filteredAlerts] : [...alertas];
+        renderTimelineList(alertsToShow);
+        hideClearFiltersButton();
+        
+        // RESTAURAR RESALTADO según el contexto
+        alertHighlightedCameras = {};
+        if (selectedInteresItem !== null && filteredAlerts !== null && filteredAlerts.length > 0) {
+            // **CORRECCIÓN: Solo calcular ruta si hay un interés seleccionado y filteredAlerts**
+            if (filteredAlerts.length >= 2) {
+                calculateAndDrawRoute();
+            }
+        } else {
+            // Resaltar todas las alertas
+            
+            // **CORRECCIÓN: Limpiar ruta cuando no hay interés seleccionado**
+            currentRoute = null;
+            routeAnimationProgress = 0;
+            if (routeAnimation) {
+                cancelAnimationFrame(routeAnimation);
+                routeAnimation = null;
+            }
+        }
+    } else {
+        // Verificar si currentFilter es un tipo de alerta o una cámara
+        const isAlertType = baseAlerts.some(alert => alert.type_event_name === currentFilter);
+        
+        let filteredResult;
+        if (isAlertType) {
+            // Filtro por tipo de alerta
+            filteredResult = baseAlerts.filter(alert => alert.type_event_name === currentFilter);
+        } else {
+            // Filtro por cámara
+            filteredResult = baseAlerts.filter(alert => alert.camera_name === currentFilter);
+        }
+        
+        renderTimelineList(filteredResult);
+        showClearFiltersButton();
+        
+        // Limpiar resaltado permanente cuando se aplica un filtro
+        clearAlertHighlights();
+        
+        // **CORRECCIÓN: Limpiar ruta cuando se aplica un filtro específico**
+        currentRoute = null;
+        routeAnimationProgress = 0;
+        if (routeAnimation) {
+            cancelAnimationFrame(routeAnimation);
+            routeAnimation = null;
+        }
+    }
+    
+    render();
+}
+/*
+document.getElementById('clear-filters-btn').addEventListener('click', function() {
+  currentFilter = 'all';
+  applyFilter();
+  updateLegendSelection('all');
+  hideClearFiltersButton();
+});
+*/
+
+function showClearFiltersButton() {
+  const clearFiltersBtn = document.getElementById('clear-filters-btn');
+  if (clearFiltersBtn) {
+    clearFiltersBtn.disabled = false;
+    clearFiltersBtn.classList.add('visible');
+  }
+}
+
+function hideClearFiltersButton() {
+  const clearFiltersBtn = document.getElementById('clear-filters-btn');
+  if (clearFiltersBtn) {
+    clearFiltersBtn.disabled = true;
+    clearFiltersBtn.classList.remove('visible');
+  }
+}
+
+function updateLegendSelection(filterValue) {
+  const legendItems = document.querySelectorAll('.map-legend .legend-item');
+  legendItems.forEach(item => {
+    const itemFilter = item.getAttribute('data-filter');
+    if (itemFilter === filterValue) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+
+// ==========================
+// Función para calcular datos de tendencia
+// ==========================
+function calculateTrendData() {
+    if (initialAlerts.length === 0) return;
+    
+    const now = new Date();
+    kpiTrendData = [];
+    
+    // Crear intervalos de 1 hora para las últimas 4 horas, incluyendo la hora actual parcial
+    for (let i = 4; i >= 1; i--) {
+        const hourStart = new Date(now.getTime() - i * 60 * 60 * 1000);
+        const hourEnd = i === 1 ? now : new Date(now.getTime() - (i - 1) * 60 * 60 * 1000);
+        
+        const alertsInHour = initialAlerts.filter(alert => {
+            const alertTime = new Date(alert.init_time_frame);
+            return alertTime >= hourStart && alertTime < hourEnd;
+        });
+        
+        // Formatear la etiqueta del intervalo
+        let hourLabel;
+        if (i === 1) {
+            // Para el último intervalo (hora actual), mostrar hora inicio - hora actual
+            const startHour = hourStart.getHours().toString().padStart(2, '0');
+            const endHour = hourEnd.getHours().toString().padStart(2, '0');
+            const endMinutes = hourEnd.getMinutes().toString().padStart(2, '0');
+            hourLabel = `${startHour}:00-${endHour}:${endMinutes}`;
+        } else {
+            const startHour = hourStart.getHours().toString().padStart(2, '0');
+            const endHour = hourEnd.getHours().toString().padStart(2, '0');
+            hourLabel = `${startHour}:00-${endHour}:00`;
+        }
+        
+        kpiTrendData.push({
+            hour: hourLabel,
+            count: alertsInHour.length,
+            timestamp: hourStart
+        });
+    }
+}
+
+function calculateExtendedMetrics() {
+  // Usar initialAlerts en lugar de alertas para KPIs estáticos
+  //log("initialAlerts",initialAlerts)
+  if (initialAlerts.length === 0) return null;
+  
+  const totalAlerts = initialAlerts.length;
+  
+  // Distribución por tipos principales (usando initialAlerts)
+  const typeCounts = {};
+  initialAlerts.forEach(alert => {
+    const type = alert.type_event_name;
+    typeCounts[type] = (typeCounts[type] || 0) + 1;
+  });
+  
+  const topTypes = Object.entries(typeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+  
+  // Alertas por cámara (Top 5) - usando initialAlerts
+  const alertsByCamera = {};
+  initialAlerts.forEach(alert => {
+    const camera = alert.camera_name || 'Desconocida';
+    alertsByCamera[camera] = (alertsByCamera[camera] || 0) + 1;
+  });
+  
+  const topCameras = Object.entries(alertsByCamera)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  
+  return {
+    totalAlerts,
+    topTypes,
+    topCameras,
+    trendData: kpiTrendData, // Incluir datos de tendencia
+    timestamp: lastKPUpdate ? lastKPUpdate.toLocaleTimeString('es-PE') : 'N/A' // Timestamp
+  };
+}
+
+function updateAllMetrics() {
+  const metrics = calculateExtendedMetrics();
+  if (!metrics) return;
+  log("metrics",metrics)
+  // Actualizar el timestamp en el encabezado
+  const timestampElement = document.getElementById('kpi-timestamp');
+  if (timestampElement) {
+    timestampElement.textContent = `Actualizado: ${metrics.timestamp}`;
+  }
+  
+  // El resto del código permanece igual...
+  document.getElementById('total-alerts').textContent = metrics.totalAlerts;
+  updateAlertTypeMetrics(metrics.topTypes);
+  updateCameraMetrics(metrics.topCameras);
+  updateTrendChart(metrics.trendData);
+}
+
+// ==========================
+// Función para actualizar el gráfico de tendencia
+// ==========================
+function updateTrendChart(trendData) {
+    const container = document.getElementById('trend-chart-container');
+    if (!container) return;
+    
+    if (!trendData || trendData.length === 0) {
+        container.innerHTML = '<div class="no-data">No hay datos de tendencia</div>';
+        return;
+    }
+    
+    // Calcular valores mínimos y máximos para una mejor escala
+    const values = trendData.map(item => item.count);
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values);
+    const valueRange = maxValue - minValue;
+    
+    // Usar una escala más inteligente que considere el rango de valores
+    const scaleFactor = valueRange > 0 ? 70 / valueRange : 1;
+    const baseHeight = 15; // Altura base mínima
+    
+    let html = `
+        <div style="font-size: 12px; color: var(--teal); margin-bottom: 8px; text-align: center;">
+            Tendencia últimas 4 horas
+        </div>
+        <div class="trend-chart" style="height: 80px; display: flex; align-items: end; justify-content: space-around; gap: 8px;">
+    `;
+    
+    trendData.forEach((item, index) => {
+        // Calcular altura proporcional al valor dentro del rango
+        let barHeight = baseHeight;
+        if (valueRange > 0) {
+            barHeight = baseHeight + ((item.count - minValue) * scaleFactor);
+        }
+        
+        // Limitar la altura máxima
+        barHeight = Math.min(barHeight, 70);
+        
+        const isIncreasing = index > 0 && item.count > trendData[index - 1].count;
+        const isDecreasing = index > 0 && item.count < trendData[index - 1].count;
+        
+        let trendIcon = '→';
+        let trendColor = '#FFC107'; // Amarillo/neutral
+        if (isIncreasing) {
+            trendIcon = '↑';
+            trendColor = '#4CAF50'; // Verde
+        }
+        if (isDecreasing) {
+            trendIcon = '↓';
+            trendColor = '#F44336'; // Rojo
+        }
+        
+        html += `
+            <div style="display: flex; flex-direction: column; align-items: center; height: 100%;">
+            ${index === trendData.length - 1 ? 
+                    `<div class="trend-icon" style="font-size: 14px; font-weight: bold; color: ${trendColor}; margin-top: 3px;">${trendIcon}</div>` : 
+                    '<div style="height: 14px;"></div>'}
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: end; height: 100%;">
+                    <div class="trend-value" style="font-size: 11px; color: var(--teal); margin-bottom: 5px; font-weight: bold;">${item.count}</div>
+                    <div class="trend-bar" style="width: 20px; background: linear-gradient(to top, var(--teal), #1cb5a9); border-radius: 3px 3px 0 0; height: ${barHeight}px; transition: height 0.3s ease;"></div>
+                </div>
+                <div class="trend-label" style="font-size: 10px; color: var(--ink); margin-top: 5px; text-align: center; max-width: 60px; word-wrap: break-word;">${item.hour}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function updateAlertTypeMetrics(topTypes) {
+  const container = document.getElementById('alert-type-metrics');
+  if (!container) return;
+  
+  if (!topTypes || topTypes.length === 0) {
+    container.innerHTML = '<div class="no-data">No hay tipos de alerta</div>';
+    return;
+  }
+  
+  // Encontrar el valor máximo para escalar las barras
+  const maxValue = Math.max(...topTypes.map(([_, count]) => count));
+  
+  let html = '';
+  topTypes.forEach(([type, count]) => {
+    const widthPercentage = (count / maxValue) * 100;
+    
+    // Determinar el color según el tipo de alerta
+    let colorClass = 'teal';
+    const lowerType = type.toLowerCase();
+    
+    if (lowerType.includes('accidente')) {
+      colorClass = 'red';
+    } else if (lowerType.includes('aglomeracion') || 
+               lowerType.includes('restringida') || 
+               lowerType.includes('zona')) {
+      colorClass = 'teal';
+    }
+    
+    html += `
+      <div class="alert-type-item" data-type="${type}">
+        <div class="alert-type-label" title="${type}">${type}</div>
+        <div class="alert-type-chart">
+          <div class="alert-type-fill ${colorClass}" style="width: ${widthPercentage}%"></div>
+        </div>
+        <div class="alert-type-value ${colorClass}">${count}</div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  
+  // Añadir event listeners para filtrar por tipo de alerta
+  container.querySelectorAll('.alert-type-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const alertType = item.getAttribute('data-type');
+      currentFilter = alertType;
+      applyFilter();
+      updateLegendSelection(alertType); // Actualizar la selección en la leyenda
+    });
+  });
+}
+
+function updateCameraMetrics(topCameras) {
+  const container = document.getElementById('camera-metrics');
+  if (!container) return;
+  
+  if (topCameras.length === 0) {
+    container.innerHTML = '<div class="no-data">No hay datos de cámaras</div>';
+    return;
+  }
+  
+  // Encontrar el valor máximo para escalar las barras
+  const maxValue = Math.max(...topCameras.map(([_, count]) => count));
+  
+  let html = '';
+  topCameras.forEach(([camera, count]) => {
+    const widthPercentage = (count / maxValue) * 100;
+    html += `
+      <div class="bar-item" data-camera="${camera}">
+        <div class="bar-label" title="${camera}">${camera}</div>
+        <div class="bar-chart">
+          <div class="bar-fill" style="width: ${widthPercentage}%"></div>
+        </div>
+        <div class="bar-value">${count}</div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  
+  container.querySelectorAll('.bar-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const cameraName = item.getAttribute('data-camera');
+        currentFilter = cameraName;
+        applyFilter();
+        // No actualizamos la leyenda porque es un filtro por cámara
+        // Pero sí actualizamos la selección en la leyenda a "all" para evitar conflictos
+        updateLegendSelection('all');
+      });
+    });
+}
+
+
+
+function clearAlertFilter() {
+  activeCameraFilter = null;
+  document.getElementById('alertTitle').textContent = "Alertas en tiempo real";
+  document.getElementById('btnFilterClear').style.display = 'none';
+    document.getElementById('btnFilterClearAlert').style.display = 'none';
+
+  
+  // 🔹 Quitar iluminación del slot filtrado
+  document.querySelectorAll('.slot').forEach(s => s.classList.remove('active-filter'));
+
+  showToast("🔄 Mostrando todas las alertas nuevamente", "success");
+  
+  // 🔄 Reiniciar refresco global de alertas
+  startAlertRefresh();
+  
+  // Obtener alertas completas
+  getAlertas();
+}
+
+
+let lastAlertIds = new Set();
+
+
+
+
+
+function renderTimelineListold3(data) {
+  const timelineList = document.getElementById('timelineList');
+  if (!data || data.length === 0) {
+    timelineList.innerHTML = '<div class="loading">No hay alertas disponibles</div>';
+    return;
+  }
+
+  // Ordenar las alertas por fecha
+  const sortedData = [...data].sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame));
+  timelineList.innerHTML = '';
+ const now = new Date();
+  sortedData.forEach(item => {
+    const li = document.createElement('li');
+    li.setAttribute('data-id', item.id);
+    li.setAttribute('data-type', (item.type_event_name || '').toLowerCase());
+
+    const time = new Date(item.init_time_frame);
+    const formattedTime = time.toLocaleString('es-PE', {
+      hour12: false, year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    
+            // CALCULAR OPACIDAD BASADA EN EL TIEMPO TRANSCURRIDO
+        const timeDiff = now - time; // Diferencia en milisegundos
+        const minutesDiff = timeDiff / (1000 * 60); // Convertir a minutos
+        
+        // Reducir opacidad 0.1 cada 10 minutos, mínimo 0.5
+        const opacity = Math.max(0.3, 1 - (Math.floor(minutesDiff / 10) * 0.15));
+        
+        // APLICAR OPACIDAD AL ELEMENTO
+        li.style.opacity = opacity;
+        li.style.transition = 'opacity 0.3s ease'; // Transición suave
+
+
+           // <strong>${item.id + " - " +item.type_event_name || 'Alerta'}</strong>
+           // <strong>${formattedTime}</strong>
+           // ${item.camera_name} · ${item.location || 'Ubicación no especificada'}
+
+    li.innerHTML = `
+      <strong>${item.id + " - " +item.type_event_name || 'Alerta'}</strong>
+      <strong>${formattedTime}</strong>
+      ${item.camera_name || item.camera_id} · ${item.location}
+      
+    `;
+
+    timelineList.appendChild(li);
+
+    // Si la alerta es nueva, iluminar el slot
+    if (!lastAlertIds.has(item.id)) {
+      highlightCameraSlot(item.camera_name || item.camera_id);
+      lastAlertIds.add(item.id);
+    }
+
+    li.addEventListener('click', () => showAlertDetails(item));
+  });
+
+  // Mantener buffer pequeño de alertas para evitar acumulación
+  if (lastAlertIds.size > 200) {
+    lastAlertIds = new Set(Array.from(lastAlertIds).slice(-200));
+  }
+}
+
+
+ var listalertas = null;
+function renderTimelineList(data) {
+  const timelineList = document.getElementById('timelineList');
+  if (!data || data.length === 0) {
+    timelineList.innerHTML = '<div class="loading">No hay alertas disponibles</div>';
+    return;
+  }
+
+listaalertas=data;
+  const now = new Date();
+  const sortedData = [...data].sort((a, b) => new Date(b.init_time_frame) - new Date(a.init_time_frame));
+  timelineList.innerHTML = '';
+
+  sortedData.forEach(item => {
+    const li = document.createElement('li');
+    li.setAttribute('data-id', item.id);
+    li.setAttribute('data-type', (item.type_event_name || '').toLowerCase());
+
+    const time = new Date(item.init_time_frame);
+    const formattedTime = time.toLocaleString('es-PE', {
+      hour12: false, year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    // 🔹 Opacidad según antigüedad
+    const diffMins = (now - time) / (1000 * 60);
+    const opacity = Math.max(0.3, 1 - Math.floor(diffMins / 10) * 0.15);
+    li.style.opacity = opacity;
+    li.style.transition = 'opacity 0.3s ease';
+    li.dataset.originalOpacity = opacity;
+    li.innerHTML = `
+      <strong>${item.id + " - " + item.type_event_name || 'Alerta'}</strong>
+      <strong>${formattedTime}</strong>
+      ${item.camera_name || item.camera_id} · ${item.location || 'Ubicación no especificada'}
+       <div id='data-frame-${item.id}'></div>
+    `;
+     
+        // 🔹 Expandir/cerrar al hacer clic
+  /*  
+      li.innerHTML = `
+      <strong>${alerta.type_event_name || 'Alerta'}</strong>
+      <time>${formattedTime}</time>
+      <div class="alert-details-inline">
+        <img class="alert-frame-preview" src="${alerta.foto || alerta.frame_url || '/img/noimage.jpg'}" alt="Frame de alerta">
+        <button class="btn-success" onclick="verVideoAlerta('${alerta.camera_id}','${alerta.epoch_frame}')">▶ Ver Video</button>
+      </div>
+    `;
+  
+        li.addEventListener('click', (e) => {
+      // Evitar que el clic en el botón “Ver video” cierre la alerta
+      if (e.target.classList.contains('btn-video')) return;
+
+      const details = li.querySelector('.alert-details-inline');
+      const expanded = details.classList.contains('expanded');
+
+      // Cerrar todas las demás
+      document.querySelectorAll('.alert-details-inline.expanded')
+        .forEach(el => el.classList.remove('expanded'));
+
+      // Si estaba cerrada, expandirla
+      if (!expanded) details.classList.add('expanded');
+    });
+*/
+    // Agregar alerta al listado
+    timelineList.appendChild(li);
+
+    // ⚡ Solo iluminar slots si es NUEVA (no estaba antes)
+    const cameraKey = item.camera_id || item.camera_name;
+    const uniqueKey = `${cameraKey}_${item.id}`;
+
+    if (!lastAlertIds.has(uniqueKey)) {
+      highlightCameraSlot(cameraKey);  // 💡 ilumina solo esa cámara
+      lastAlertIds.add(uniqueKey);
+    }
+
+            // Agregar evento click para mostrar detalles
+        li.addEventListener('click', () => {
+            showExpandedData(item);
+            //showAlertDetails(item);
+        });
+        
+  });
+
+  // Mantener historial razonable
+  if (lastAlertIds.size > 300) {
+    lastAlertIds = new Set(Array.from(lastAlertIds).slice(-300));
+  }
+  if (expandedAlertId) {
+      const expandedAlert = data.find(a => a.id == expandedAlertId);
+      if (expandedAlert) {
+        // ✅ Reexpandir la alerta que estaba abierta
+        setTimeout(() => {
+          showExpandedData(expandedAlert);
+        }, 200);
+      }
+}
+}
+
+
+
+
+function showExpandedDataold2(alert) {
+  const frameContainer = document.getElementById('data-frame-' + alert.id);
+  const li = document.querySelector(`#timelineList li[data-id="${alert.id}"]`);
+  if (!frameContainer || !li) return;
+
+  // ✅ Si ya está abierto, cerrarlo y quitar iluminación
+  /*if (frameContainer.classList.contains('expanded')) {
+    frameContainer.innerHTML = '';
+    frameContainer.classList.remove('expanded');
+    li.classList.remove('highlighted'); // 🔹 quitar iluminación al colapsar
+    return;
+  }*/
+  
+    // ✅ Buscar el slot correspondiente a la cámara
+  const slot = Array.from(document.querySelectorAll('.slot')).find(s => {
+    const placeholder = s.querySelector('.placeholder .name');
+    return placeholder && placeholder.textContent.trim() === alert.camera_id;
+  });
+  const overlayTop = slot ? slot.querySelector('.overlay-top') : null;
+
+    // ✅ Si ya está abierto → cerrarlo, quitar iluminación y restaurar degradado
+  if (frameContainer.classList.contains('expanded')) {
+    frameContainer.innerHTML = '';
+    frameContainer.classList.remove('expanded');
+    li.classList.remove('highlighted');
+    if (overlayTop) overlayTop.style.background = 'rgba(0, 0, 0, 0.45)'; // 🔹 restaurar degradado
+    return;
+  }
+  
+  
+
+  // 🔹 Cerrar cualquier otro abierto y quitar su iluminación
+  document.querySelectorAll('.data-frame.expanded').forEach(el => {
+    el.innerHTML = '';
+    el.classList.remove('expanded');
+  });
+  document.querySelectorAll('#timelineList li.highlighted').forEach(el => {
+    el.classList.remove('highlighted');
+  });
+  
+  if (overlayTop) overlayTop.style.background = 'transparent';
+
+
+  // 🔹 Marcar este como expandido y resaltarlo
+  frameContainer.classList.add('expanded');
+  li.classList.add('highlighted'); // 🔹 iluminar el <li> activo
+
+  // 🔹 Render dinámico según tipo de alerta
+  if (alert.person_coords_face || alert.vehicle_coords_plate) {
+    const personName = alert.nombre ? `${alert.nombre} ${alert.apellido}` : alert.vehicle_plate;
+    const personTitle = alert.nombre ? "Persona Detectada" : "Vehículo Detectado";
+    const subTitle = alert.nombre ? "Nombre:" : "Placa:";
+    const regTime = new Date(alert.fecha_registro || alert.fecha_robo);
+    const formattedRegTime = regTime.toLocaleString('es-PE');
+
+    frameContainer.innerHTML = `
+      <div class="person-details-section">
+        <h4 class="person-details-title">${personTitle}</h4>
+        <div class="detail-item">${subTitle} ${personName}</div>
+        ${alert.documento_contacto || alert.num_documento ? 
+          `<div class="detail-item">${alert.tipo_documento || alert.vtipo_documento}: ${alert.documento_contacto || alert.num_documento}</div>` : ''}
+        <div class="detail-item">Reportado: ${formattedRegTime}</div>
+        <div class="detail-item">Precisión: ${alert.person_accuracy || alert.vehicle_accuracy}%</div>
+        ${alert.persona_contacto || alert.nombre_propietario ? 
+          `<div class="detail-item">Contacto: ${alert.parentesco || 'Propietario'} - ${alert.persona_contacto || alert.nombre_propietario}</div>` : ''}
+        ${alert.numero_contacto || alert.contacto_propietario ? 
+          `<div class="detail-item">Teléfono: ${alert.numero_contacto || alert.contacto_propietario}</div>` : ''}
+        <div class="person-details-images">
+          <div class="person-image-container">
+            <div class="person-image-label">Detección Recortada</div>
+            <div id="cropped-detection-detail" class="person-image"></div>
+          </div>
+          <div class="person-image-container">
+            <div class="person-image-label">Foto de Referencia</div>
+            <div id="person-detection-detail" class="person-image" 
+              style="background-image: url(${alert.person_coords_face ? 
+                `/personimages/inputs/${alert.matched_ident}.jpg` : 
+                alert.foto})">
+            </div>
+          </div>
+        </div>
+      </div>
+      <button 
+        style="width:100%" 
+        class="btn btn-success"
+        onclick="event.stopPropagation(); verVideo('${alert.id}')">
+        ▶ Ver video
+      </button>
+    `;
+  } else {
+    frameContainer.innerHTML = `
+      <div class="person-details-section">
+        <img src="${alert.foto_frame || alert.foto}" style="width:100%; border-radius:8px; margin-bottom:8px;">
+        <button 
+          style="width:100%" 
+          class="btn btn-success"
+          onclick="event.stopPropagation(); verVideo('${alert.id}')">
+          ▶ Ver video
+        </button>
+      </div>
+    `;
+  }
+  
+      // Si hay una detección recortada, aplicar el recorte
+  if (alert.tracking_id !== null && alert.foto) {
+    setTimeout(() => {
+      applyImageCropping(alert);
+    }, 100);
+  }
+}
+
+
+function findSlotForAlert(alert) {
+  const camId = (alert.camera_id || '').toString().trim().toLowerCase();
+  const camName = (alert.camera_name || alert.camera || '').toString().trim().toLowerCase();
+
+  const slots = Array.from(document.querySelectorAll('.slot'));
+  return slots.find(slot => {
+    const ph = slot.querySelector('.placeholder .name');
+    const phText = ph ? ph.textContent.trim().toLowerCase() : '';
+    const cn = slot.querySelector('.cam-name');
+    const cnText = cn ? cn.textContent.trim().toLowerCase() : '';
+    // Coincide por id o por nombre (case-insensitive)
+    return (camId && (phText === camId || cnText === camId)) ||
+           (camName && (phText === camName || cnText === camName));
+  }) || null;
+}
+
+function showExpandedData(alert) {
+  const frameContainer = document.getElementById('data-frame-' + alert.id);
+  const li = document.querySelector(`#timelineList li[data-id="${alert.id}"]`);
+  if (!frameContainer || !li) return;
+
+  // 🔹 Buscar el slot correspondiente a la cámara
+  const slot = Array.from(document.querySelectorAll('.slot')).find(s => {
+    const ph = s.querySelector('.placeholder .name');
+    const cn = s.querySelector('.cam-name');
+    const camId = (alert.camera_id || '').toString().trim().toLowerCase();
+    const camName = (alert.camera_name || '').toString().trim().toLowerCase();
+    return (
+      (ph && ph.textContent.trim().toLowerCase() === camId) ||
+      (ph && ph.textContent.trim().toLowerCase() === camName) ||
+      (cn && cn.textContent.trim().toLowerCase() === camId) ||
+      (cn && cn.textContent.trim().toLowerCase() === camName)
+    );
+  });
+
+  const overlayTop = slot ? slot.querySelector('.overlay-top') : null;
+
+  // ✅ Si ya está expandida → colapsar
+  if (frameContainer.classList.contains('expanded')) {
+    frameContainer.innerHTML = '';
+    frameContainer.classList.remove('expanded');
+    li.classList.remove('highlighted');
+
+    // 🔹 Restaurar degradado original si existía
+    if (overlayTop && slot && slot.dataset.overlayOriginal) {
+      overlayTop.style.background = slot.dataset.overlayOriginal;
+      delete slot.dataset.overlayOriginal;
+    }
+
+    // 🔹 Restaurar opacidad original
+    if (li.dataset.originalOpacity) {
+      li.style.opacity = li.dataset.originalOpacity;
+    }
+
+    // 🔹 Control de filtros y refresco
+    const clearBtn = document.getElementById('btnFilterClear');
+    if (clearBtn && clearBtn.style.display !== 'none') {
+      getAlertas(alert.camera_id, alert.camera_name);
+    } else {
+      getAlertas();
+    }
+
+    expandedAlertId = null;
+    return;
+  }
+
+  /*Cerrar otros expandidos y restaurar degradados / opacidades previos
+  document.querySelectorAll('.data-frame.expanded').forEach(el => {
+    el.innerHTML = '';
+    el.classList.remove('expanded');
+  });
+
+  document.querySelectorAll('#timelineList li.highlighted').forEach(el => {
+    el.classList.remove('highlighted');
+    if (el.dataset.originalOpacity) {
+      el.style.opacity = el.dataset.originalOpacity;
+    }
+  });*/
+  
+    // 🔹 Cerrar cualquier otra alerta expandida abierta
+  document.querySelectorAll('#timelineList li').forEach(otherLi => {
+    if (otherLi.dataset.id !== alert.id.toString()) {
+      const otherFrame = otherLi.querySelector('[id^="data-frame-"]');
+      if (otherFrame && otherFrame.classList.contains('expanded')) {
+        otherFrame.classList.remove('expanded');
+        otherFrame.innerHTML = '';
+      }
+      otherLi.classList.remove('highlighted');
+      // Restaurar opacidad
+      if (otherLi.dataset.originalOpacity) {
+        otherLi.style.opacity = otherLi.dataset.originalOpacity;
+      }
+    }
+  });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const ov = s.querySelector('.overlay-top');
+    if (ov && s.dataset.overlayOriginal) {
+      ov.style.background = s.dataset.overlayOriginal;
+      delete s.dataset.overlayOriginal;
+    }
+  });
+
+  // 🔹 Expandir alerta actual e iluminarla
+  frameContainer.classList.add('expanded');
+  li.classList.add('highlighted');
+  expandedAlertId = alert.id;
+
+  // 🔹 Guardar degradado actual y quitarlo visualmente
+  if (overlayTop && slot) {
+    const currentBg = getComputedStyle(overlayTop).background;
+    slot.dataset.overlayOriginal = currentBg;
+    overlayTop.style.background = 'transparent';
+  }
+
+  // 🔹 Guardar opacidad original y dejar opacidad completa al expandir
+  if (!li.dataset.originalOpacity) {
+    li.dataset.originalOpacity = li.style.opacity || 1;
+  }
+  li.style.opacity = 1;
+
+  // 🔹 Render dinámico del contenido
+  if (alert.person_coords_face || alert.vehicle_coords_plate) {
+    const personName = alert.nombre ? `${alert.nombre} ${alert.apellido}` : alert.vehicle_plate;
+    const personTitle = alert.nombre ? "Persona Detectada" : "Vehículo Detectado";
+    const subTitle = alert.nombre ? "Nombre:" : "Placa:";
+    const regTime = new Date(alert.fecha_registro || alert.fecha_robo);
+    const formattedRegTime = regTime.toLocaleString('es-PE');
+
+    frameContainer.innerHTML = `
+      <div class="person-details-section">
+        <h4 class="person-details-title">${personTitle}</h4>
+        <div class="detail-item">${subTitle} ${personName}</div>
+        ${alert.documento_contacto || alert.num_documento ? 
+          `<div class="detail-item">${alert.tipo_documento || alert.vtipo_documento}: ${alert.documento_contacto || alert.num_documento}</div>` : ''}
+        <div class="detail-item">Reportado: ${formattedRegTime}</div>
+        <div class="detail-item">Precisión: ${alert.person_accuracy || alert.vehicle_accuracy}%</div>
+        ${alert.persona_contacto || alert.nombre_propietario ? 
+          `<div class="detail-item">Contacto: ${alert.parentesco || 'Propietario'} - ${alert.persona_contacto || alert.nombre_propietario}</div>` : ''}
+        ${alert.numero_contacto || alert.contacto_propietario ? 
+          `<div class="detail-item">Teléfono: ${alert.numero_contacto || alert.contacto_propietario}</div>` : ''}
+        <div class="person-details-images">
+          <div class="person-image-container">
+            <div class="person-image-label">Detección</div>
+            <div id="cropped-detection-detail" class="person-image"></div>
+          </div>
+          <div class="person-image-container">
+            <div class="person-image-label">Referencia</div>
+            <div id="person-detection-detail" class="person-image" 
+              style="background-image: url(${alert.person_coords_face ? 
+                `/personimages/inputs/${alert.matched_ident}.jpg` : 
+                alert.foto})">
+            </div>
+          </div>
+        </div>
+      </div>
+      <button 
+        style="width:100%" 
+        class="btn btn-success"
+        onclick="event.stopPropagation(); verVideo('${alert.id}')">
+        ▶ Ver video
+      </button>
+    `;
+  } else {
+    frameContainer.innerHTML = `
+      <div class="person-details-section">
+        <img src="${alert.foto_frame || alert.foto}" style="width:100%; border-radius:8px; margin-bottom:8px;">
+        <button 
+          style="width:100%" 
+          class="btn btn-success"
+          onclick="event.stopPropagation(); verVideo('${alert.id}')">
+          ▶ Ver video
+        </button>
+      </div>
+    `;
+  }
+
+  // 🔹 Si hay detección recortada, aplicar recorte luego
+  if (alert.tracking_id !== null && alert.foto) {
+    setTimeout(() => applyImageCropping(alert), 100);
+  }
+}
+
+
+
+
+function highlightAlertById(alertId) {
+  // 🔹 Quitar iluminado anterior
+  document.querySelectorAll('#timelineList li.highlighted').forEach(li => {
+    li.classList.remove('highlighted');
+  });
+
+  // 🔹 Buscar la alerta por ID
+  const targetLi = document.querySelector(`#timelineList li[data-id="${alertId}"]`);
+
+  if (!targetLi) {
+    console.warn(`⚠️ No se encontró la alerta con id ${alertId}`);
+    return;
+  }
+
+  // 🔹 Iluminar
+  targetLi.classList.add('highlighted');
+
+  // 🔹 Desplazarla suavemente al centro del panel
+  targetLi.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+
+  // 🔹 Efecto visual temporal (opcional)
+  targetLi.animate(
+    [
+      { boxShadow: '0 0 0px rgba(34,230,217,0)' },
+      { boxShadow: '0 0 20px 6px rgba(34,230,217,0.8)' },
+      { boxShadow: '0 0 0px rgba(34,230,217,0)' }
+    ],
+    { duration: 1200, iterations: 1 }
+  );
+}
+
+
+// Función para mostrar detalles de alerta en PANEL (NO modal)
+function showAlertDetails(alert) {
+    
+
+  selectedAlert = alert;
+  const panel = document.getElementById('alertDetailsPanel');
+  const content = document.getElementById('alert-details-content');
+  const title = document.getElementById('alert-details-title');
+
+  if (!panel || !content || !title) {
+    console.log("Elementos del panel de detalles no encontrados");
+    return;
+  }
+
+  // Formatear la fecha
+  const time = new Date(alert.init_time_frame);
+  const formattedTime = time.toLocaleString('es-PE');
+
+  title.textContent = `Detalle de Alerta: ${alert.id} - ${alert.type_event_name}`;
+
+  // Construir el contenido básico
+  let html = `
+    <div style="max-width:320px">
+        <h4 class="person-details-title">Cámara: ${alert.camera_name}</h4>
+      <div class="detail-item">
+        <span class="detail-label">Ubicación:</span> ${alert.location}
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Fecha y Hora:</span> ${formattedTime}
+      </div>
+  `;
+
+  // Añadir información adicional si está disponible
+  if (alert.nombre_objetivo) {
+    html += `
+      <div class="detail-item">
+        <span class="detail-label">Objetivo:</span> ${alert.nombre_objetivo}
+      </div>
+    `;
+  }
+
+  if (alert.nombre_cuadrante) {
+    html += `
+      <div class="detail-item">
+        <span class="detail-label">Cuadrante:</span> ${alert.nombre_cuadrante}
+      </div>
+    `;
+  }
+
+  // Añadir frame si está disponible
+  if (alert.foto) {
+    html += `
+      <div class="detail-item">
+        <span class="detail-label">Frame:</span><br>
+        <img src="${alert.foto}" style="max-width:100%; margin-top:5px; border-radius:4px;">
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+
+  // Añadir información de persona/vehículo si está disponible
+  if (alert.person_coords_face !== null || alert.vehicle_coords_plate !== null) {
+    const personName = alert.nombre ? `${alert.nombre} ${alert.apellido}` : alert.vehicle_plate;
+    const personTitle = alert.nombre ? "Persona Detectada" : "Vehículo Detectado";
+    const subTitle = alert.nombre ? "Nombre:" : "Placa:";
+    const regTime = new Date(alert.fecha_registro || alert.fecha_robo);
+    const formattedRegTime = regTime.toLocaleString('es-PE');
+
+    if (personName && personName.trim() !== "") {
+        html += `
+          <div class="person-details-section">
+            <h4 class="person-details-title">${personTitle}</h4>
+              <div class="detail-item">${subTitle} ${personName}</div>
+              ${alert.documento_contacto || alert.num_documento ? 
+                `<div class="detail-item">${alert.tipo_documento || alert.vtipo_documento}: ${alert.documento_contacto || alert.num_documento}</div>` : ''}
+              <div class="detail-item">Reportado: ${formattedRegTime}</div>
+              <div class="detail-item">Precisión: ${alert.person_accuracy || alert.vehicle_accuracy}%</div>
+              ${alert.persona_contacto || alert.nombre_propietario ? 
+                `<div class="detail-item">Persona de Contacto: ${alert.parentesco || 'Propietario'} - ${alert.persona_contacto || alert.nombre_propietario}</div>` : ''}
+              ${alert.numero_contacto || alert.contacto_propietario ? 
+                `<div class="detail-item">Teléfono de contacto: ${alert.numero_contacto || alert.contacto_propietario}</div>` : ''}
+            <div class="person-details-images">
+              <div class="person-image-container">
+                <div class="person-image-label">Detección</div>
+                <div id="cropped-detection-detail" class="person-image"></div>
+              </div>
+              <div class="person-image-container">
+                <div class="person-image-label">Foto</div>
+                <div id="person-detection-detail" class="person-image" 
+                     style="background-image: url(${alert.person_coords_face ? 
+                       `/personimages/inputs/${alert.matched_ident}.jpg` : 
+                       alert.foto})">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+    } else {
+              // 🔹 Caso: no hay datos de persona
+              html += `
+                <div class="no-data-container">
+                  <img src="/icons/alerta.png" alt="Alerta" class="no-data-icon" />
+                  <div class="no-data-text">No se encontraron datos</div>
+                </div>
+              `;
+            }
+        
+  }
+
+  content.innerHTML = html;
+
+  // Mostrar el panel
+  panel.style.display = 'block';
+
+  // Asignar evento al botón "Ver Video" del panel
+  document.getElementById('btnViewVideoDetails').onclick = function() {
+    verVideo(alert);
+  };
+
+  // Si hay una detección recortada, aplicar el recorte
+  if (alert.tracking_id !== null && alert.foto) {
+    setTimeout(() => {
+      applyImageCropping(alert);
+    }, 100);
+  }
+}
+
+function closeAlertDetails() {
+  document.getElementById('alertDetailsPanel').style.display = 'none';
+  selectedAlert = null;
+}
+
+// Función para aplicar recorte de imagen
+function applyImageCropping(alert) {
+  const croppedDetection = document.getElementById('cropped-detection-detail');
+  if (!croppedDetection) return;
+
+  croppedDetection.innerHTML = '';
+
+  createCroppedImage(croppedDetection, alert.foto,
+                    (alert.person_coords_face || alert.vehicle_coords_plate),
+                    'Detección',
+                    (alert.person_coords_obj || alert.vehicle_coords_obj),
+                    90, 100);
+}
+
+// Función auxiliar para crear imagen recortada
+function createCroppedImageold(container, imageUrl, coords, label, objCoords, width, height) {
+  const img = document.createElement('img');
+  img.src = imageUrl;
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  container.appendChild(img);
+}
+
+
+// Función para crear imagen recortada
+function createCroppedImage(parentElement, imageUrl, coordsString, label, coordsObj, width, height) {
+  if (!coordsString) return;
+  
+  const coords = coordsString.split(",").map(Number);
+  const coords1 = coordsObj.split(",").map(Number);
+  const [xf1, yf1, xf2, yf2] = coords;
+  const [xb1, yb1] = coords1;
+  
+  const containerW = width;
+  const containerH = height;
+  
+  const x1 = xf1 + xb1;
+  const y1 = yf1 + yb1;
+  const w = xf2 - xf1;
+  const h = yf2 - yf1;
+
+  const [xo1, yo1, xo2, yo2] = coordsObj.split(",").map(Number);
+  const w_obj = xo2 - xo1;
+  const h_obj = yo2 - yo1;
+
+  const container = document.createElement('div');
+  container.className = 'image-section';
+
+  const img = new Image();
+  img.src = imageUrl;
+  img.onload = () => {
+    const imgW = img.naturalWidth;
+    const imgH = img.naturalHeight;
+    const scale = Math.min(containerW / w, containerH / h);
+    const bgW = imgW * scale;
+    const bgH = imgH * scale;
+
+    const bgX = (containerW - w * scale) / 2 - x1 * scale;
+    const bgY = (containerH - h * scale) / 2 - y1 * scale;
+
+    container.style.backgroundImage = `url(${imageUrl})`;
+    container.style.backgroundSize = `${bgW}px ${bgH}px`;
+    container.style.backgroundPosition = `${bgX}px ${bgY}px`;
+    container.style.backgroundRepeat = "no-repeat";
+    container.style.width = `${containerW}px`;
+    container.style.height = `${containerH}px`;
+  };
+  parentElement.appendChild(container);
+}
+
+// ==================== FUNCIONES DE VIDEO ====================
+
+// Función para ver video (MEJORADA)
+function verVideo(alertId) {
+  alertItem = listaalertas.find(a => a.id == alertId);
+ log("alertItem",alertItem)
+  // Determinar si es una alerta normal o de persona/vehículo
+  if (alertItem.person_coords_face !== null || alertItem.vehicle_coords_plate !== null) {
+      log("persona")
+    verVideoPersona(alertItem);
+  } else {
+      log("vehiculo")
+    verVideoNormal(alertItem);
+  }
+}
+
+// Función para ver video de alerta normal
+function verVideoNormal(item) {
+  resetVideoModal('regular');
+  
+  // Actualizar información en el modal
+  document.getElementById("showcamera").textContent = item.camera_name;
+  document.getElementById("showUbication").textContent = item.location;
+  document.getElementById("showAlert").textContent = item.type_event_name;
+  document.getElementById("showId").textContent = item.id;
+    const fechaFormateada = item.created_at.substring(0, item.created_at.indexOf('.')).replace('T', ' ');
+
+  document.getElementById("fechahoravideo").textContent = fechaFormateada;//+" (-30 seg. / +30 seg.)";
+  
+
+  let coords_data = null;
+  if(item.coords_zone){
+    try {
+      let poligono = JSON.parse(item.coords_zone);
+      coords_data = [{
+        points: poligono,
+        lineColor: "blue",
+        fillColor: "rgba(0,0,255,0.3)",
+        lineWidth: 3
+      }];
+    } catch (e) {
+      log("Error parsing coords_zone:", e);
+    }
+  }
+  
+  // Mostrar el modal primero
+  showVideoModal();
+  
+  // Luego cargar el video
+  callAPI({
+    method: 'gestion/dolistimgevents',
+    params: {
+      camid: item.camera_id,
+      date_start: item.init_time_frame,
+      tracking_id: item.tracking_id
+    },
+    ok: function (data) {
+      const videoContainer = document.querySelector(".video-player-wrapper");
+      if (!videoContainer) return;
+      
+      videoContainer.innerHTML = '';
+      try {
+        videoPlayer = new videoplay(videoContainer);
+      } catch (e) {
+        log("Error al crear video player:", e);
+        return;
+      }
+      
+      const grouped = Object.values(
+        data[1].reduce((acc, item) => {
+          if (!acc[item.foto]) {
+            acc[item.foto] = {
+              foto: item.foto,
+              coords_obj: []
+            };
+          }
+          acc[item.foto].coords_obj.push({
+            categoria: item.category,
+            accuracy_obj: item.accuracy_obj,
+            colorupper: item.color_name_upper,
+            colorlower: item.color_name_lower,
+            plate: item.plate,
+            coords: item.coords_obj.split(","),
+            coordsplate: (item.coords_plate || '').split(",")
+          });
+          return acc;
+        }, {})
+      );
+      
+      try {
+        videoPlayer.update(grouped, "foto", "coords_obj", coords_data);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 500);
+      } catch (e) {
+        log("Error al actualizar video player:", e);
+      }
+    },
+    error: function(error) {
+      log("Error al cargar el video:", error);
+    }
+  });
+}
+function highlightCameraSlotold(cameraNameOrId) {
+  if (!cameraNameOrId) return;
+  const slots = document.querySelectorAll('.slot');
+
+  slots.forEach(slot => {
+    const placeholder = slot.querySelector('.placeholder .name');
+    if (placeholder && (
+        placeholder.textContent === cameraNameOrId ||
+        slot.querySelector('.label')?.textContent.includes(cameraNameOrId)
+    )) {
+        log("Highlight: "+cameraNameOrId);
+      slot.classList.add('alert-highlight');
+   
+      // Eliminar la clase después de unos segundos
+      setTimeout(() => {
+        slot.classList.remove('alert-highlight');
+      }, 60000); // 5 segundos
+    }
+  });
+}
+
+function highlightCameraSlot(cameraNameOrId) {
+  if (!cameraNameOrId) return;
+
+  const slots = document.querySelectorAll('.slot');
+  slots.forEach(slot => {
+    const placeholder = slot.querySelector('.placeholder .name');
+    if (placeholder && (
+      placeholder.textContent === cameraNameOrId ||
+      slot.querySelector('.cam-name')?.textContent === cameraNameOrId
+    )) {
+      // Efecto visual
+      slot.classList.add('alert-highlight');
+
+      // Auto quitar después de 6 s
+      setTimeout(() => slot.classList.remove('alert-highlight'), 120000);
+    }
+  });
+}
+
+
+// Función para ver video de persona
+function verVideoPersona(item) {
+  resetVideoModal('person');
+  
+  // Actualizar información en el modal
+  document.getElementById("showcamera").textContent = item.camera_name;
+  document.getElementById("showUbication").textContent = item.location;
+  document.getElementById("showAlert").textContent = item.type_event_name;
+  document.getElementById("showId").textContent = item.id;
+  const fechaFormateada = item.created_at.substring(0, item.created_at.indexOf('.')).replace('T', ' ');
+
+  document.getElementById("fechahoravideo").textContent = fechaFormateada;//+" (-30 seg. / +30 seg.)";
+  
+
+  const personInfoPanel = document.getElementById('person-info-panel');
+  const photoShort = document.getElementById('photo-short');
+  photoShort.style.display = 'none';
+  if (personInfoPanel) {
+    personInfoPanel.style.display = 'block';
+    photoShort.style.display = 'flex';
+    
+    //log("item",item);
+    
+    dataPerson =  document.getElementById('person-data');
+    const personName = item.nombre ? `${item.nombre} ${item.apellido}` : item.vehicle_plate;
+    const personTitle = item.nombre ? "Persona Detectada" : "Vehículo Detectado";
+    const subTitle = item.nombre ? "Nombre:" : "Placa:";
+    const regTime = new Date(item.fecha_registro || item.fecha_robo);
+    const formattedRegTime = regTime.toLocaleString('es-PE');
+    
+    dataPerson.innerHTML = `
+        <div class="detail-item">${subTitle} ${personName}</div>
+          ${item.documento_contacto || item.num_documento ? 
+            `<div class="detail-item">${item.tipo_documento || item.vtipo_documento}: ${item.documento_contacto || item.num_documento}</div>` : ''}
+          <div class="detail-item">Reportado: ${formattedRegTime}</div>
+          <div class="detail-item">Precisión: ${item.person_accuracy || item.vehicle_accuracy}%</div>
+          ${item.persona_contacto || item.nombre_propietario ? 
+            `<div class="detail-item">Persona de Contacto: ${item.parentesco || 'Propietario'} - ${item.persona_contacto || item.nombre_propietario}</div>` : ''}
+          ${item.numero_contacto || item.contacto_propietario ? 
+            `<div class="detail-item">Teléfono de contacto: ${item.numero_contacto || item.contacto_propietario}</div>` : ''}
+        `;
+    
+    const personPhoto = document.getElementById('person-photo');
+    if(item.person_coords_face != null){
+      personPhoto.style.backgroundImage = `url(/personimages/inputs/${item.matched_ident}.jpg)`;
+    } else {
+      // Lógica para vehicle photo
+      const containerW = 90;
+      const containerH = 100;
+      const [xf1, yf1, xf2, yf2] = (item.vehicle_coords_plate || "0,0,1,1").split(",").map(Number);
+      const [xb1, yb1] = (item.vehicle_coords_obj || "0,0").split(",").map(Number);
+      
+      const x1 = xf1 + xb1;
+      const y1 = yf1 + yb1;
+      const w = xf2 - xf1;
+      const h = yf2 - yf1;
+
+      const [xo1, yo1, xo2, yo2] = (item.vehicle_coords_obj || "0,0,1,1").split(",").map(Number);
+      const w_obj = xo2 - xo1;
+      const h_obj = yo2 - yo1;
+      
+      const img = new Image();
+      img.src = item.foto;
+      img.onload = () => {
+        const imgW = img.naturalWidth;
+        const imgH = img.naturalHeight;
+        const scale_ = Math.min(containerW / w_obj, containerH / h_obj);
+        const bgW_ = imgW * scale_;
+        const bgH_ = imgH * scale_;
+        const bgX_ = (containerW - w_obj * scale_) / 2 - xo1 * scale_;
+        const bgY_ = (containerH - h_obj * scale_) / 2 - yo1 * scale_;
+    
+        personPhoto.style.backgroundImage = `url(${item.foto})`;
+        personPhoto.style.backgroundSize = `${bgW_}px ${bgH_}px`;
+        personPhoto.style.backgroundPosition = `${bgX_}px ${bgY_}px`;
+      };
+    }   
+    
+    const croppedDetection = document.getElementById('cropped-detection');
+    croppedDetection.innerHTML = '';
+    
+    createCroppedImage(croppedDetection, item.foto, 
+                      (item.person_coords_face||item.vehicle_coords_plate), 
+                      'Detección', 
+                      (item.person_coords_obj||item.vehicle_coords_obj),
+                      90, 100);
+  } else {
+    if (personInfoPanel) personInfoPanel.style.display = 'none';
+  }
+
+  // Mostrar el modal primero
+  showVideoModal();
+  
+  // Luego cargar el video según el tipo
+  if(item.person_coords_face != null){
+    callAPI({
+      method: 'gestion/getframesperson',
+      params: {
+        camara: item.camera_id,
+        tracking_id: item.tracking_id,
+        documento: item.matched_ident,
+      },
+      ok: function (data) {
+        const videoContainer = document.querySelector(".video-player-wrapper");
+        if (!videoContainer) return;
+        
+        videoContainer.innerHTML = '';
+        videoPlayer = new videoplay(videoContainer);
+        
+        const frames = data;
+        const grouped = Object.values(
+          frames.reduce((acc, frame) => {
+            if (!acc[frame.foto]) {
+              acc[frame.foto] = { foto: frame.foto, coords_obj: [] };
+            }
+            acc[frame.foto].coords_obj.push({
+              categoria: frame.category,
+              accuracy_obj: frame.acc_parecido,
+              colorupper: frame.color_name_upper,
+              colorlower: frame.color_name_lower,
+              coords: (frame.coords_obj || '').split(","),
+              coordsplate: (frame.coords_face || '').split(","),
+              plate: item.nombre + " " + item.apellido
+            });
+            return acc;
+          }, {})
+        ).sort((a, b) => a.foto.localeCompare(b.foto));
+        
+        videoPlayer.update(grouped, "foto", "coords_obj", null);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 100);
+      },
+      error: function(error) {
+        log("Error al cargar video de persona:", error);
+      }
+    });
+  } else {
+    callAPI({
+      method: 'gestion/dolistimgbytrackid',
+      params: { 
+        cameraid: item.camera_id,
+        tracking_id: item.tracking_id
+      },
+      ok: function(data) {
+        const videoContainer = document.querySelector(".video-player-wrapper");
+        if (!videoContainer) return;
+        
+        videoContainer.innerHTML = '';
+        videoPlayer = new videoplay(videoContainer);
+        
+        const frames = data[2];
+        const grouped = Object.values(
+          frames.reduce((acc, frame) => {
+            if (!acc[frame.foto]) {
+              acc[frame.foto] = { foto: frame.foto, coords_obj: [] };
+            }
+            acc[frame.foto].coords_obj.push({
+              categoria: frame.category,
+              accuracy_obj: frame.accuracy_obj,
+              colorupper: frame.color_name_upper,
+              colorlower: frame.color_name_lower,
+              coords: (frame.coords_obj || '').split(","),
+              coordsplate: (frame.coords_plate || '').split(","),
+              plate: frame.plate
+            });
+            return acc;
+          }, {})
+        ).sort((a, b) => a.foto.localeCompare(b.foto));
+        
+        videoPlayer.update(grouped, "foto", "coords_obj", null);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 100);
+      },
+      error: function(error) {
+        log("Error al cargar video por trackid:", error);
+      }
+    });
+  }
+}
+
+function resetVideoModal(type) {
+  const personInfoPanel = document.getElementById('person-info-panel');
+  const photoShort = document.getElementById('photo-short');
+  
+  if (type === 'person') {
+    personInfoPanel.style.display = 'block';
+    photoShort.style.display = 'flex';
+  } else {
+    personInfoPanel.style.display = 'none';
+    photoShort.style.display = 'none';
+  }
+}
+
+function showVideoModal() {
+  document.getElementById('videoOvl').style.display = 'flex';
+}
+
+function closeVideoModal() {
+  document.getElementById('videoOvl').style.display = 'none';
+  
+  if (videoPlayer) {
+    try {
+      videoPlayer.stop();
+    } catch (e) {
+      log("Error al detener video player:", e);
+    }
+    videoPlayer = null;
+  }
+}
+
+
+
+
+
+
+// Inicialización
+// Inicialización
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("camModal").style.display = "none";
+  document.getElementById("alertDetailsPanel").style.display = "none";
+  document.getElementById("videoOvl").style.display = "none";
+  
+  // Asignar evento al botón de cerrar video
+  document.getElementById('closeVideoModal').addEventListener('click', closeVideoModal);
+ 
+  document.getElementById('camFilter').addEventListener('input', filterCameras);
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.querySelector(".sidebar");
+  if (sidebar) {
+    sidebar.addEventListener("wheel", (e) => {
+      sidebar.scrollTop += e.deltaY; // fuerza el scroll manualmente
+    });
+  }
+});
+
+function showToast(msg, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast-msg ${type}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+</script>

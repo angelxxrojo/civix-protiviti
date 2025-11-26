@@ -1,0 +1,2900 @@
+<style>
+    .clickable-counter {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .clickable-counter.active-filter p,
+    .clickable-counter.active-filter h4 {
+        color: #f67200;
+        text-shadow: 0 0 10px rgba(246, 114, 0, 0.7); /* Sombra para el texto */
+    }
+</style>
+<div class="row main-list" id="list">
+    <div class="col-lg-12 col-md-12  col-sm-12">
+        <div class="col-lg-6 col-md-6  col-sm-6">
+            <div class="panel panel-filled panel-c-accent">
+                <div class="panel-heading ">
+                    Filtros
+                </div>
+                <div class="panel-body">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class=form-group>
+                                <input id="txtsearch" type="text" class="form-control" placeholder="Cámara">
+                            </div>
+                        </div>
+                                       
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class=form-group>
+                                <button id="btnnewcamera" type="button" href="#" class="btn btn-w-md btn-success btn-rounded">Nueva Cámara</button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6  col-md-6  col-sm-6">
+            <div class="panel panel-filled  panel-c-accent">
+                <div class="panel-heading">
+                    Cámaras
+                </div>
+                <div class="panel-body text-center">
+                    <div class="row">
+                        <div class="col-md-3 clickable-counter" id="totalCamerasFilter" onclick="filterCameras('all')">
+                            <span class="counter-text-wrapper"> <p>Total de Cámaras</p>
+                                <h4 id="totalCamerasCount" class="m-b-none">0</h4>
+                            </span>
+                        </div>
+                        <div class="col-md-3 clickable-counter" id="activeCamerasFilter" onclick="filterCameras('1')">
+                            <span class="counter-text-wrapper"> <p>Cámaras Activas</p>
+                                <h4 id="activeCamerasCount" class="m-b-none">0</h4>
+                            </span>
+                        </div>
+                        <div class="col-md-3 clickable-counter" id="inactiveCamerasFilter" onclick="filterCameras('0')">
+                            <span class="counter-text-wrapper"> <p>Cámaras Inactivas</p>
+                                <h4 id="inactiveCamerasCount" class="m-b-none">0</h4>
+                            </span>
+                        </div>
+                        <div class="col-md-3 clickable-counter" id="inProcessCamerasFilter" onclick="filterCameras('2')">
+                            <span class="counter-text-wrapper"> <p>Cámaras en Proceso</p>
+                                <h4 id="inProcessCamerasCount" class="m-b-none">0</h4>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+    
+    <div class="col-md-12">
+        
+        
+        <div class="table-responsive">
+            <table class="table table-hover-1">
+                <thead style="border-radius:20px; overflow:hidden;">
+                    <tr>
+                        <th>ID</th>
+                        <th>Cámara</th>
+                        <th>Ubicación</th>
+                        <th>Tipo</th>
+                        <th>Zona Objetivo</th>
+                        <th>Fecha Alta</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cameraListBody">
+                    </tbody>
+            </table>
+        </div>
+        
+        
+    </div>
+    
+</div>
+
+
+
+<div class="modal fade" id="modal_new" tabindex="-1" role="dialog" >
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            
+            <div class="modal-header text-left">
+                <h4 class="modal-title">Nueva Cámara</h4>
+                <small>Esta pantalla permite registrar nuevas cámaras</small>
+
+            </div>
+            
+            <div class="modal-body" >    
+            
+                <form  class="row">
+                    <!-- Nombre y Ubicación -->
+
+                    <div class="form-group col-sm-4">
+                        <label for="camera_id">Nombre de la Cámara</label>
+                        <input type="text" class="form-control" id="camera_id" placeholder="Ej: P1WFJ3A1-DP">
+                    </div>
+                    <div class="form-group col-sm-8">
+                        <label for="location">Ubicación</label>
+                        <input type="text" class="form-control" id="location" placeholder="Ej: Calle Schell 291">
+                    </div>
+                    <!-- RTSP -->
+                    <div class="form-group col-sm-12">
+                        <label for="url">RTSP</label>
+                        <input type="text" class="form-control" id="url" placeholder="rtsp://192.168.1.100:554/stream">
+                    </div>
+                                 <!-- Tipo, Zona, Cuadrante -->
+                  <div class="form-group col-sm-6">
+                    <label for="tipo">Tipo de cámara</label>
+                    <select class="form-control" id="tipo">
+                      <option value="Fija">Fija</option>
+                      <option value="PTZ">PTZ</option>
+                    </select>
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="id_objetivo">Zona Objetivo</label>
+                    <select class="form-control" id="id_objetivo">
+                      <option value="-">Cargando...</option>
+                    </select>
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="id_cuadrante">Cuadrante</label>
+                    <select class="form-control" id="id_cuadrante">
+                      <option value="-">Cargando...</option>
+                    </select>
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="node">Nodo</label>
+                    <input type="text" class="form-control" id="node" readonly>
+                  </div>
+            
+                  <!-- Coordenadas -->
+                  <div class="form-group col-sm-6">
+                    <label for="latitud">Latitud</label>
+                    <input type="text" class="form-control" id="latitud">
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="longitud">Longitud</label>
+                    <input type="text" class="form-control" id="longitud">
+                  </div>
+
+                  <!-- Confidencialidad y Estado -->
+                  <div class="form-group col-sm-6">
+                    <label for="confidence">Confidencialidad</label>
+                    <select class="form-control" id="confidence">
+                      <option value="0">Público</option>
+                      <option value="1">Privado</option>
+                    </select>
+                  </div>
+                <!--
+                  <div class="form-group col-sm-6">
+                    <label for="estado_general">Estado</label>
+                    <select class="form-control" id="estado_general">
+                      <option value="1">Activo</option>
+                      <option value="0">Inactivo</option>
+                    </select>
+                  </div>
+                </form>
+                -->
+                <!--
+                <div class="panel panel-c-accent">
+                    <div class="panel-heading">
+                        Análiticas Iniciales
+                        <div class="panel-tools">
+                            <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <p style="margin:0;">ACCIDENTE DE TRANSITO</p>
+                                //<input type="checkbox" style="transform: scale(1.5); accent-color: #007bff; cursor: pointer;" id="roadaccident">
+                                
+                                <div class="switch-wrapper">
+                                    <label class="mac-slider" style="float:right">
+                                        <input type="checkbox" id="roadaccident" value="1">
+                                        <span></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <small style="color: #666;">Esta analítica captura toda colisión de vehiculos</small>
+                        </div>
+                
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <p style="margin:0;">DETECCIÓN DE PLACA Y COLOR</p>
+                                //<input type="checkbox" style="transform: scale(1.5); accent-color: #007bff; cursor: pointer;" id="vehiculos">
+                                <div class="switch-wrapper">
+                                    <label class="mac-slider" style="float:right">
+                                        <input type="checkbox" id="vehiculos" value="1">
+                                        <span></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <small style="color: #666;">Identifica placas vehiculares y su color</small>
+                        </div>
+                
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <p style="margin:0;">DETECCIÓN DE CARACTERÍSTICAS FÍSICAS</p>
+                                <div class="switch-wrapper">
+                                    <label class="mac-slider" style="float:right">
+                                        <input type="checkbox" id="personas" value="1">
+                                        <span></span>
+                                    </label>
+                                </div>
+                                //<input type="checkbox" style="transform: scale(1.5); accent-color: #007bff; cursor: pointer;" id="personas">
+                            </div>
+                            <small style="color: #666;">Esta analítica permite la detección de características físicas de las personas identificadas.</small>
+                        </div>
+                
+                    </div>
+                </div>
+                -->
+            </div>
+            <div id="contenedor"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-accent btn-rounded" id="btnenviarnew">Registrar</button>
+                <!--
+                <button type="button" class="btn btn-success btn-rounded" id="btnenviarnewandconfig">Registrar y configurar</button>
+                -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row"  id="form_edit_row" >
+    <div class="col-md-12" id="camera_banner">
+        <div class="panel panel-filled panel-c-danger">
+            <div class="panel-body" style="padding-top:15px">
+                Esta cámara se encuentra en proceso de <span id="activation">activación</span> <span id="deactivation">desactivación</span>. Espere unos minutos y pruebe nuevamente.
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <h3 class="">
+            <strong>Datos de la cámara:</strong>
+        </h3>
+        <div class="panel panel-filled">
+        
+          <div class="panel-body">
+            <form id="cameraForm" class="row">
+              <!-- Nombre y Ubicación -->
+
+              <div class="form-group col-sm-6">
+                <label for="camera_id">Nombre de la Cámara</label>
+                <input type="text" class="form-control" id="camera_id" placeholder="Ej: P1WFJ3A1-DP">
+              </div>
+        
+              <div class="form-group col-sm-6">
+                <label for="location">Ubicación</label>
+                <input type="text" class="form-control" id="location" placeholder="Ej: Calle Schell 291">
+              </div>
+        
+              <!-- RTSP -->
+              <div class="form-group col-sm-12">
+                <label for="url">RTSP</label>
+                <input type="text" class="form-control" id="url" placeholder="rtsp://192.168.1.100:554/stream">
+              </div>
+        
+              <!-- Tipo, Zona, Cuadrante -->
+              <div class="form-group col-sm-6">
+                <label for="tipo">Tipo de cámara</label>
+                <select class="form-control" id="tipo">
+                  <option value="Fija">Fija</option>
+                  <option value="PTZ">PTZ</option>
+                </select>
+              </div>
+        
+              <div class="form-group col-sm-6">
+                <label for="id_objetivo">Zona Objetivo</label>
+                <select class="form-control" id="id_objetivo">
+                  <option value="-">Cargando...</option>
+                </select>
+              </div>
+        
+              <div class="form-group col-sm-6">
+                <label for="id_cuadrante">Cuadrante</label>
+                <select class="form-control" id="id_cuadrante">
+                  <option value="-">Cargando...</option>
+                </select>
+              </div>
+        
+              <div class="form-group col-sm-6">
+                <label for="node">Nodo</label>
+                <input type="text" class="form-control" id="node" readonly>
+              </div>
+        
+              <!-- Coordenadas -->
+              <div class="form-group col-sm-6">
+                <label for="latitud">Latitud</label>
+                <input type="text" class="form-control" id="latitud">
+              </div>
+        
+              <div class="form-group col-sm-6">
+                <label for="longitud">Longitud</label>
+                <input type="text" class="form-control" id="longitud">
+              </div>
+
+              <!-- Confidencialidad y Estado -->
+              <div class="form-group col-sm-6">
+                <label for="confidence">Confidencialidad</label>
+                <select class="form-control" id="confidence">
+                  <option value="0">Público</option>
+                  <option value="1">Privado</option>
+                </select>
+              </div>
+        
+              <div class="form-group col-sm-6">
+                <label for="estado_general">Estado</label>
+                <select class="form-control" id="estado_general">
+                  <option value="1">Activo</option>
+                  <option value="0">Inactivo</option>
+                </select>
+              </div>
+              <!--
+              <div class="panel panel-c-accent" id="analiticsrenew">
+                    <div class="panel-heading">
+                        Análiticas Iniciales
+                        <div class="panel-tools">
+                            <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <p style="margin:0;">ACCIDENTE DE TRANSITO</p>
+                                <div class="switch-wrapper">
+                                    <label class="mac-slider" style="float:right">
+                                        <input type="checkbox" id="roadaccident" value="1">
+                                        <span></span>
+                                    </label>
+                                </div>
+                                <!--
+                                <input type="checkbox" style="transform: scale(1.5); accent-color: #007bff; cursor: pointer;" id="roadaccident">
+                                
+                            </div>
+                            <small style="color: #666;">Esta analítica captura toda colisión de vehiculos</small>
+                        </div>
+                
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <p style="margin:0;">DETECCIÓN DE PLACA Y COLOR</p>
+                                <!--
+                                <input type="checkbox" style="transform: scale(1.5); accent-color: #007bff; cursor: pointer;" id="vehiculos">
+                                
+                                <div class="switch-wrapper">
+                                    <label class="mac-slider" style="float:right">
+                                        <input type="checkbox" id="vehiculos" value="1">
+                                        <span></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <small style="color: #666;">Identifica placas vehiculares y su color</small>
+                        </div>
+                
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <p style="margin:0;">DETECCIÓN DE CARACTERÍSTICAS FÍSICAS</p>
+                                <div class="switch-wrapper">
+                                    <label class="mac-slider" style="float:right">
+                                        <input type="checkbox" id="personas" value="1">
+                                        <span></span>
+                                    </label>
+                                </div>
+                                <!--
+                                <input type="checkbox" style="transform: scale(1.5); accent-color: #007bff; cursor: pointer;" id="personas">
+                                
+                            </div>
+                            <small style="color: #666;">Esta analítica permite la detección de características físicas de las personas identificadas.</small>
+                        </div>
+                
+                    </div>
+                </div>
+                -->
+               <div class="form-group col-sm-6">
+                <label for="id">ID</label>
+                <input type="text" class="form-control" id="id" placeholder="Ej: 1">
+              </div>
+              <!-- Botones -->
+              <div class="form-group col-sm-12 text-right">
+                 <button type="button" class="btn btn-default btn-rounded" id="btncerrar">Cerrar</button>
+                <button type="button" class="btn btn-accent btn-rounded" id="btngrabar">Enviar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+    </div>
+  
+
+    
+        <div class="col-md-5">
+            <h3 class="">
+                <strong>Configuraciones de la cámara:</strong>
+            </h3>
+            <!--
+            <div>
+                <div class="panel panel-filled">
+                    <div class="panel-heading">
+                    <div class="panel-tools"></div>
+                  <strong>ACTIVAR ANALÍTICAS DE LA CÁMARA:</strong>
+                </div>
+            </div>
+            -->
+            <div id="analiticas-dinamicas"></div>
+    </div>
+
+<div class="modal fade" id="modalcamerapoly" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!--<i id="btnCancel" class="icon-close pe-7s-close"></i>-->
+            <div class="modal-header text-left">
+                <h2>Registro de <span id="zone_detail"></span></h2>
+                <h5 id="camera_name"></h5>
+                <h5 id="camera_location"></h5>
+                <small id="zona-text">Esta pantalla permite registrar zonas</small>
+
+            </div>
+            
+            <div class="modal-body">   
+                <input type="hidden" id="poly_id_analitics">
+                <input type="hidden" id="poly_id_analitic_det">
+                <input type="hidden" id="poly_id_camera">
+                <div id="zona-container">
+                    <div class="same-flex" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <h3>
+                            Zona
+                        </h3>
+                        <div class="canvas-tools" style="display:flex; justify-content: right;">
+                            <button id="btnStart" class="btn btn-accent btn-rounded" >Iniciar Dibujo</button>
+                            <button id="btnClean" class="btn btn-default btn-rounded">Limpiar</button>
+                            <button id="btnToggleFS" class="btn btn-success btn-rounded" >Pantalla Completa</button>
+                        </div>
+                    </div>
+                    <div id="canvas-container"></div>
+                    <!-- Barra de herramientas -->
+                   <div id="floatingPolygonList" class="list-group"></div>
+                    <div id="nofloatingPolygonList" class="p-0"><ul id="polygonList" style="position:absolute;width:100%" class="list-group "></ul></div>
+                    <div class="divider"></div>
+                </div>
+                <h3 class="mt-2">
+                    Métricas de la cámara
+                </h3>
+                <p>
+                    Son las configuraciónes de métricas de la cámara para la generación de notificaciones y alertas.
+                </p>
+                <div>
+                    <div id="metricsContainer">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="right-elements">
+                    <button id="btnCancel" class="btn btn-default btn-rounded" >Cerrar</button>
+                    <button id="btnDelete" class="btn btn-danger btn-rounded" >Eliminar métrica</button>
+                    <button id="btnFinish" class="btn btn-accent btn-rounded">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+$("#btnToggleFS").hide();
+    
+/********** VARIABLES PARA DIBUJO Y PERSISTENCIA **********/
+let drawingMode = false;
+let currentPolygon = { points: [] }; // Almacena puntos normalizados
+let polygons = [];  // Cada polígono: { points: [ {x,y} (normalizado) ], name:"", color:"" }
+let selectedPolygon = null; // Índice del polígono seleccionado
+let polygonBeingEdited = null; // Objeto que se editará mediante el modal
+const CLOSE_THRESHOLD = 10; // Píxeles (en coordenadas reales) para cerrar el polígonos
+const btnStart = document.getElementById("btnStart");
+const btnFinish = document.getElementById("btnFinish");
+const btnCancel = document.getElementById("btnCancel");
+const btnClean = document.getElementById("btnClean");
+const btnDelete = document.getElementById("btnDelete");
+const btnToggleFS = document.getElementById("btnToggleFS"); 
+  /********** VARIABLES Y CONFIGURACIÓN DEL CANVAS **********/
+
+  var sideList = document.getElementById("polygonList");
+  var floatingList = document.getElementById("floatingPolygonList");
+
+    
+    $("#form_edit_row").hide();
+    
+    var rows_data=[]   
+
+    // Si hay un ID, precargar datos
+    // SEARCH EVENTS
+    function render_camaras(loc, data) {
+        let html = "";
+        let i = 0;
+        updateCameraCounters(data);
+    
+        for (const r of data) {
+            let estado;
+    
+            switch (r.estado_general) {
+                case 1:
+                    estado = 'Activa';
+                    break;
+                case 0:
+                    estado = 'Inactiva';
+                    break;
+                case 2:
+                    estado = 'Procesando';
+                    break;
+                default:
+                    estado = 'Desconocido';
+            }
+            const row = `<tr class="camera-row" data-status="${r.estado_general}" onclick="onClickListRow('${r.id}')">
+                <th>${r.id}</th>
+                <th>${r.camera_id}</th>
+                <td>${r.location}</td>
+                <td>${r.tipo}</td>
+                <td>${r.nombre_objetivo}</td>
+                <td>${r.fecha_registro.toString()}</td>
+                <td><span class="${r.estado_general === 1 ? 'btn-success' : (r.estado_general === 0 ? 'btn-danger' : 'btn-warning')} btn-xs">${estado}</span></td>
+            </tr>`;
+    
+            html += row;
+            i++;
+        }
+    
+        // Esta línea es la que falta o está mal ubicada.
+        loc.html(html);
+        rows_data = data;
+    }
+    
+    // La función load_camaras ahora inicia el proceso de filtrado.
+    function load_camaras(){
+        callAPI({
+            method:"gestion/getcamarasall",            
+            params:{},
+            ok:(data)=>{
+                render_camaras(
+                    $("#cameraListBody"),
+                    data
+                );
+                // Esto asegura que la tabla se muestre completa al cargar la página.
+                filterCameras('all');
+            }
+        });
+    }
+    
+    $("#txtsearch").keyup( function (ev) {
+        //videoPlayer.stop();  
+        //log(ev)
+        var value=$("#txtsearch").val().toLowerCase();
+        var list=$(".table-responsive tbody")[0].childNodes
+        for(x of list){
+            x.style.display="";
+            var data=x.innerHTML.toLowerCase()
+            if(data.indexOf(value)==-1){
+                //log("encnotrado")
+                x.style.display="none";
+            }
+        }
+
+    }); 
+    
+    
+    function carga_combo(){
+        
+      callAPI({
+        method: 'gestion/getcuadrante',
+        ok: function (vals) {
+          const sel = $('#id_cuadrante').empty();
+          vals.forEach(obj => {
+            const p = obj.id_cuadrante;
+            sel.append(`<option value="${p}">${p}</option>`);
+          });
+        },
+        error: function () {
+          $('#id_cuadrante').html('<option value="">Error al cargar</option>');
+        }
+      });
+
+      // Cargar opciones de objetivo
+      callAPI({
+        method: 'gestion/getobjetivo',
+        ok: function (vals) {
+          const sel = $('#id_objetivo').empty();
+          vals.forEach(obj => {
+            const id_objetivo = obj.id;
+            const desc = obj.description;
+            sel.append(`<option value="${id_objetivo}">${desc}</option>`);
+          });
+        },
+        error: function () {
+          $('#id_objetivo').html('<option value="">Error al cargar</option>');
+        }
+      });
+        
+    }
+    
+    function carga_combo_edit(index){
+        
+      callAPI({
+        method: 'gestion/getcuadrante',
+        ok: function (vals) {
+          const sel = $('#form_edit_row  #id_cuadrante').empty();
+          vals.forEach(obj => {
+            const p = obj.id_cuadrante;
+            sel.append(`<option value="${p}">${p}</option>`);
+          });
+        },
+        error: function () {
+          $('#id_cuadrante').html('<option value="">Error al cargar</option>');
+        }
+      });
+
+      // Cargar opciones de objetivo
+      callAPI({
+        method: 'gestion/getobjetivo',
+        ok: function (vals) {
+          //log("valsobj: ",vals)
+          const sel = $('#form_edit_row #id_objetivo').empty();
+          vals.forEach(obj => {
+            const id_objetivo = obj.id;
+            const desc = obj.description;
+            sel.append(`<option  value="${id_objetivo}">${desc}</option>`);
+          });
+          
+          fillData(index);
+        },
+        
+        error: function () {
+          $('#id_objetivo').html('<option value="">Error al cargar</option>');
+        }
+      });
+        
+    }
+    
+    
+    //MODAL NEW EVENTS
+    $("#btnnewcamera").on("click",()=>{
+        $("#modal_new form")[0].reset();
+        $('#modal_new').modal('show');    
+        carga_combo();
+    });
+        
+    $("#btnenviarnewandconfig").on("click", () => {
+        let roadaccident = $("#modal_new #roadaccident").prop("checked");
+        let vehiculos = $("#modal_new #vehiculos").prop("checked");
+        let personas = $("#modal_new #personas").prop("checked");
+        
+        var objetivoSeleccionado = $('#id_objetivo').find(':selected').text();
+        
+        callAPI({
+            method: "gestion/camaranew",
+            post: 1,
+            params: {
+                "camera_id": $("#modal_new #camera_id").val(),
+                "url": $("#modal_new #url").val(),
+                "location": $("#modal_new #location").val(),
+                "id_cuadrante": $("#id_cuadrante").val(),
+                "id_objetivo": $("#id_objetivo").val(),
+                "nombre_objetivo": objetivoSeleccionado,
+                "confidence": $("#confidence").val(),
+                "tipo": $("#tipo").val(),
+                "estado_general": 2,
+                "status": 1,
+                "latitud": $("#latitud").val(),
+                "longitud": $("#longitud").val(),
+                "roadaccident": true,
+                "vehiculos": true,
+                "personas": true
+            },
+            ok: (data) => {
+                $('#modal_new').modal('hide');
+                
+                // This line is correct as it re-renders the entire table
+                render_camaras(
+                    $(".table-responsive tbody"),
+                    data
+                );
+    
+                // Find the newly registered camera in the returned list
+                // We assume the new camera has the highest ID
+                const newCamera = data.reduce((prev, current) => {
+                    return (prev.id > current.id) ? prev : current;
+                });
+                
+                // Now call onClickListRow with the ID of the new camera
+                if (newCamera && newCamera.id) {
+                    onClickListRow(newCamera.id);
+                }
+            }
+        });
+    });
+
+    $("#btnenviarnew").on("click",()=>{
+    
+    
+            let roadaccident = $("#modal_new #roadaccident").prop("checked");
+            let vehiculos = $("#modal_new #vehiculos").prop("checked");
+            let personas = $("#modal_new #personas").prop("checked");
+            
+
+        /* Se usarán más adelante
+        callAPI({
+            method: "gestion/getcamaranodofree",
+            ok: (nodo) => {
+                // log("nodo[0]")
+                log(nodo[0])
+    
+            //$('#modal_cameranew').modal('hide');               
+            */
+            var objetivoSeleccionado = $('#id_objetivo').find(':selected').text();
+            
+            
+            callAPI({
+                method: "gestion/camaranew",
+                post:1,
+                params: {
+                    "camera_id": $("#modal_new #camera_id").val(),
+                    "url": $("#modal_new #url").val(),
+                    "location": $("#modal_new #location").val(),
+                    "id_cuadrante": $("#id_cuadrante").val(),
+                    "id_objetivo": $("#id_objetivo").val(),
+                    "nombre_objetivo": objetivoSeleccionado,
+                    "confidence": $("#confidence").val(),
+                    "tipo": $("#tipo").val(),
+                    "estado_general": $("#estado_general").val()==1?2:0,
+                    "status":$("#estado_general").val(),
+                    "latitud": $("#latitud").val(),
+                    "longitud": $("#longitud").val(),
+                    //"node": nodo[0].idnode,
+                    //"ipnode": nodo[0].ipnode,
+                    //"portnode": nodo[0].portnode,
+                    //"core_primary": nodo[0].core_primary,
+                    //"core_secondary": nodo[0].core_secondary,
+                    //"imagedocker": nodo[0].imagedocker,
+                    //"fps":        nodo[0].fps,
+                    //"target":    nodo[0].target,
+                    //"redishost":  nodo[0].redishost,
+                    //"redisport":  nodo[0].redisport,
+                    //"amqp":       nodo[0].amqp,
+                    //"exchangename": nodo[0].exchangename,
+                    //"exchangeerror": nodo[0].exchangeerror,
+                    //"core_selected": nodo[0].core_primary+","+nodo[0].core_secondary,
+                    "roadaccident":true,
+                    "vehiculos": true,
+                    "personas": true
+                    
+                },
+                ok: (data) => {
+                    //log("data")
+                    //log(data)
+                    /*
+                     callAPI({
+                        method: "gestion/nodecoreupt",
+                       
+                        params: {
+                            core_primary: nodo[0].core_primary,
+                            core_secondary: nodo[0].core_secondary,
+                            idnode: nodo[0].idnode,
+                            cant: 1
+                        },
+                        ok: (rec) => {
+                            console.log("Se creo la camara, el contenedor y actualizo el nodocore:", rec);
+                        },
+                        error: (err) => {
+                            console.error("Error en la llamada a la API:", err);
+                        }
+                    });
+                    */
+                    $('#modal_new').modal('hide');               
+                    render_camaras(
+                        $(".table-responsive tbody"),
+                        data
+                    );
+                }
+             });
+            /*
+                },
+                error: (err) => {
+                    console.error("Error en la llamada a la API:", err);
+                }
+            });
+            */
+
+        }); 
+    
+    //RENDERROW TO EDIT
+    let id_camera=0;
+    let portnode=0;
+    let ipnode="";
+    let core_primary=0;
+    let core_secondary=0;
+    
+    function onClickListRow(index) {
+    // Check if the camera data exists for the given index
+    
+    let row = rows_data.find(item => item.id == index);
+    if (row) {
+        // Set the global variable for the current camera's ID
+        id_camera = index;
+        
+        // Hide the main list and show the form for editing
+        $("#list").hide();
+        $("#form_edit_row").show();
+        
+        
+        $("#camera_id").val(row.camera_id);
+        $("#location").val(row.location);
+        $("#url").val(row.url);
+        $("#tipo").val(row.tipo);
+        $("#node").val(row.node);
+        $("#latitud").val(row.latitud);
+        $("#longitud").val(row.longitud);
+        $("#confidence").val(row.confidence);
+        $("#estado_general").val(row.estado_general);
+        $("#id").val(row.id);
+        
+        // Disable the entire form if estado_general is 0
+        const form = document.getElementById('form_edit_row');
+        const estadoSelect = form.querySelector('#estado_general');
+        
+        if (row.status != null && row.status != row.estado_general) {
+            // Check if the option already exists to prevent duplicates
+            let pendingOption = estadoSelect.querySelector('option[value="2"]');
+
+            if (!pendingOption) {
+                // If the 'Pendiente' option doesn't exist, create and append it
+                pendingOption = document.createElement('option');
+                pendingOption.value = '2';
+                pendingOption.text = 'Procesando';
+                estadoSelect.appendChild(pendingOption);
+            }
+
+            // Set the 'Pendiente' option as selected
+            estadoSelect.value = '2';
+
+            // Disable all form elements
+            const formElements = form.querySelectorAll('input, select, button');
+            formElements.forEach(element => {
+                element.disabled = true;
+            });
+            
+            // Re-enable the 'Cerrar' button
+            document.getElementById('btncerrar').disabled = false;
+
+        } else {
+            // Re-enable the form if it was previously disabled
+            const formElements = form.querySelectorAll('input, select, button');
+            formElements.forEach(element => {
+                element.disabled = false;
+            });
+
+            // Remove any 'Pendiente' option that may exist
+            const pendingOption = estadoSelect.querySelector('option[value="2"]');
+            if (pendingOption) {
+                estadoSelect.removeChild(pendingOption);
+            }
+
+            // Re-select the correct status from the original data
+            $("#estado_general").val(row.estado_general);
+        }
+        
+        // Hide the 'analiticsrenew' section as requested
+        
+        // Load the dropdowns dynamically (this function is assumed to be defined elsewhere)
+        carga_combo_edit(index);
+        
+    } else {
+        console.error("Invalid index provided to onClickListRow.");
+    }
+}
+    
+    cameraDet = null;
+    
+    function fillData(index){
+        callAPI({
+            method: 'gestion/getcamara',
+            params: {
+              id: index
+            },
+                ok: function (vals) {
+              
+              vals.forEach(obj => {
+                
+                // log("obj");
+                cameraDet=null;
+                cameraDet=obj;
+                $('#form_edit_row #id').val(index);
+                $('#form_edit_row #camera_id').val(obj.camera_id);
+                $('#form_edit_row #location').val(obj.location);
+                $('#form_edit_row #url').val(obj.url);
+                $('#form_edit_row #latitud').val(obj.latitud);
+                $('#form_edit_row #longitud').val(obj.longitud);
+                $('#form_edit_row #node').val(obj.node);//;
+                $('#form_edit_row #confidence').val(obj.confidence);
+                $('#form_edit_row #estado_general').val(obj.estado_general);
+                $('#form_edit_row #id_objetivo').val(obj.id_objetivo);
+                $('#form_edit_row #id_cuadrante').val(obj.id_cuadrante);
+                $('#form_edit_row #tipo').val(obj.tipo);
+                if(obj.status == null || obj.status==obj.estado_general){
+                    $('#camera_banner').hide();
+                }else{
+                    if(obj.status==0){
+                        $('#activation').hide();
+                    }else{
+                        $('#deactivation').hide();
+                    }
+                }
+                portnode=obj.portnode;
+                ipnode=obj.ipnode;
+                core_primary=obj.core_primary;
+                core_secondary=obj.core_secondary;
+                
+                
+                    $('#form_edit_row #analiticsrenew').hide();
+                      callAPI({
+                        method: 'gestion/getanaliticasall',
+                        params: {
+                          id_camera: index
+                        },
+                            ok: function (vals) {
+                              
+                                //log(vals);
+                                generarAnaliticasDesdeListaPlano(vals.sort((a, b) => a.orden - b.orden),id_camera,[], cameraDet.estado_general);
+                                
+                    
+                        },
+                        error: function () {
+                          //error
+                        }
+                      });
+                
+          });
+        },
+        error: function () {
+          $('#id_cuadrante').html('<option value="">Error al cargar</option>');
+        }
+      });
+    }
+    
+    $("#cancelBtn").on("click", function () {
+      if (confirm("¿Estás seguro de que deseas cancelar el registro?")) {
+        $("#cameraForm")[0].reset();
+      }
+    });
+    
+    $("#btncerrar").on("click", function () {
+      //if (confirm("¿Estás seguro de que deseas cancelar el registro?")) {
+       // $("#cameraForm")[0].reset();
+      //  $("#list").show();
+       // $("#analiticaform").hide();
+      //  $("#form_edit_row").hide();
+        
+                          $("#list").show();
+            $("#analiticaform").hide();
+            $("#form_edit_row").hide();  
+     // }
+      /*
+       Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas cerrar el formulario?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí',
+      cancelButtonText: 'No',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    }).then((result) => {
+          if (result.isConfirmed) {
+
+                    $("#list").show();
+            $("#analiticaform").hide();
+            $("#form_edit_row").hide();
+            // Aquí puedes colocar la lógica para cancelar realmente
+            console.log('Registro cancelado');
+          } else {
+            Swal.fire(
+              'Acción detenida',
+              'No se realizó ninguna acción.',
+              'info'
+            );
+          }
+        });*/
+    });
+    
+      /********** Normalización de Coordenadas **********/
+    // Cuando se captura un punto, se almacena como coordenada normalizada (0...1)
+    function normalizePoint(point) {
+        return { x: point.x / canvas.width, y: point.y / canvas.height };
+      }
+      // Convierte una coordenada normalizada a coordenadas reales según el tamaño actual del canvas
+      function normalizedToActual(point) {
+        return { x: point.x * canvas.width, y: point.y * canvas.height };
+      }
+
+
+    // La función para filtrar y renderizar la tabla
+    function filterCameras(status) {
+        // Oculta todas las filas
+        $('.camera-row').hide();
+        
+        // Muestra las filas filtradas
+        if (status === 'all') {
+            $('.camera-row').show();
+        } else {
+            $(`.camera-row[data-status="${status}"]`).show();
+        }
+        
+        // Remueve la clase 'active-filter' de todos los contadores
+        $('.clickable-counter').removeClass('active-filter');
+        
+        // Agrega la clase 'active-filter' al contador clicado
+        const counterId = {
+            'all': 'totalCamerasFilter',
+            '1': 'activeCamerasFilter',
+            '0': 'inactiveCamerasFilter',
+            '2': 'inProcessCamerasFilter'
+        };
+        $(`#${counterId[status]}`).addClass('active-filter');
+    }
+    
+    $(document).ready(function () {
+        
+        load_camaras()
+        
+        // Al cargar la página, aplica el filtro 'all' por defecto y lo marca como activo
+
+    });
+  
+      $("#btngrabar").on("click", () => {
+          
+          
+        if($("#form_edit_row #estado_general").val()!=cameraDet.estado_general)// && ipnode!="")
+			{
+		    /*
+           callAPI({
+                method: "gestion/camaracontenedorrem",
+                post: 1,
+                params: {
+                    id_camera: id_camera,
+                    portnode: portnode,
+                    ipnode: ipnode
+                },
+                ok: (rec) => {
+                    console.log("Contenedor eliminado:", rec);
+                },
+                error: (err) => {
+                    console.error("Error en la llamada a la API remover contenedor:", err);
+                }
+            });
+			callAPI({
+                method: "gestion/nodecoreupt",
+                
+                params: {
+                    core_primary: core_primary,
+                    core_secondary: core_secondary,
+                    idnode: $('#form_edit_row #node').val(),
+					cant: -1
+                },
+                ok: (rec) => {
+                    console.log("nodecoreupt ejcutado:", rec);
+                },
+                error: (err) => {
+                    console.error("Error en la llamada a la API:", err);
+                }
+            });
+                    // 3. Limpiar campos node, core_primary, core_secondary
+            callAPI({
+                method: "gestion/camaranodeupt",
+                
+                params: {
+                    id_camera: id_camera,
+                    node: "",
+                    core_primary: "",
+                    core_secondary: ""
+                },
+                ok: (rec) => {
+                    console.log("Cámara actualizada a vacío:", rec);
+                },
+                error: (err) => {
+                    console.error("Error al limpiar datos de cámara:", err);
+                }
+            });
+            */
+            /*
+             // 4. Limpiar analiticas
+             callAPI({
+                method: "gestion/analiticadel",
+                
+                params: {
+                    id_camera: id_camera
+                },
+                ok: (rec) => {
+                    console.log("Analitica eliminada:", rec);
+                },
+                error: (err) => {
+                    console.error("Error al limpiar datos de analitica:", err);
+                }
+            });
+            */
+		}   
+		
+		
+		if($("#form_edit_row #estado_general").val()!= cameraDet.estado_general) //&& !ipnode)
+		{
+		    /*
+		    log("Asignar nuevo nodo "+id_camera)
+		    log("ipnode "+ipnode)
+		    log("portnode "+portnode)
+		    
+            callAPI({
+                method: "gestion/getcamaranodofree",
+                ok: (nodo) => {
+                    log(nodo)
+                    log("Asignar nuevo nodo "+id_camera)
+    			    log("idnode "+nodo[0].idnode)
+    			    log("core_primary "+nodo[0].core_primary)
+                    log("core_secondary "+nodo[0].core_secondary)
+
+                    /*analiticas principales a reactivas
+                    let roadaccident = $("#form_edit_row #analiticsrenew #roadaccident").prop("checked");
+                    let vehiculos = $("#form_edit_row #analiticsrenew #vehiculos").prop("checked");
+                    let personas = $("#form_edit_row #analiticsrenew #personas").prop("checked");  
+                
+                    callAPI({
+                        method: "gestion/camaracontenedoradd",
+                       post: 1,
+                        params: {
+                            "id_camera": id_camera,
+                            "url": $("#form_edit_row #url").val(),
+                           //"node": nodo[0].idnode,
+                           //"ipnode": nodo[0].ipnode,
+                           //"portnode": nodo[0].portnode,
+                           //"core_primary": nodo[0].core_primary,
+                           //"core_secondary": nodo[0].core_secondary,
+                            //"imagedocker": nodo[0].imagedocker,
+                            //"fps":        nodo[0].fps,
+                            //"target":    nodo[0].target,
+                            //"redishost":  nodo[0].redishost,
+                            //"redisport":  nodo[0].redisport,
+                            //"amqp":       nodo[0].amqp,
+                            //"exchangename": nodo[0].exchangename,
+                            //"exchangeerror": nodo[0].exchangeerror,
+                            //"core_selected": nodo[0].core_primary+","+nodo[0].core_secondary,
+                            "roadaccident":true,
+                            "vehiculos": true,
+                            "personas": true
+                        },
+                        ok: (rec) => {
+                            console.log("Respuesta camaracontenedoradd:", rec);
+                            /*
+                             callAPI({
+                                method: "gestion/nodecoreupt",
+                                params: {
+                                    core_primary: nodo[0].core_primary,
+                                    core_secondary: nodo[0].core_secondary,
+                                    idnode: nodo[0].idnode,
+                                    cant: 1
+                                },
+                                ok: (rec) => {
+                                    console.log("Respuesta nodecoreupt: ", rec);
+                                },
+                                error: (err) => {
+                                    console.error("Error en la llamada a la API:", err);
+                                }
+                            });
+
+                            callAPI({
+                                method: "gestion/camaranodeupt",
+                                params: {
+                                    "id_camera": id_camera,
+                                    "node": nodo[0].idnode,
+                                    "core_primary": nodo[0].core_primary,
+                                    "core_secondary": nodo[0].core_secondary
+                                },
+                                ok: (rec) => {
+                                    console.log("Cámara actualizada con nodo:", rec);
+                                },
+                                error: (err) => {
+                                    console.error("Error al limpiar datos de cámara:", err);
+                                }
+                            });
+                            
+                            
+                            },
+                            error: (err) => {
+                                console.error("Error al reactivar contenedor: ", err);
+                            }
+                        });
+                    }
+                    */
+                    
+                //});
+		
+    		}
+              
+            var objetivoSeleccionado = $('#form_edit_row #id_objetivo').find(':selected').text();
+            let newStatus = $("#form_edit_row #estado_general").val();
+          callAPI({
+            method: "gestion/camaraupt",
+            post:1,
+            params: {
+              id: id_camera,
+              camera_id: $("#form_edit_row #camera_id").val(),
+              url: $("#form_edit_row #url").val(),
+              location: $("#form_edit_row #location").val(),
+              confidence: $("#form_edit_row #confidence").val(),
+              id_objetivo: $("#form_edit_row #id_objetivo").val(),
+              nombre_objetivo: objetivoSeleccionado,
+              status: cameraDet.estado_general!=newStatus?newStatus:cameraDet.status,
+              estado_general: cameraDet.estado_general!=newStatus?2:cameraDet.estado_general,
+              latitud: $("#form_edit_row #latitud").val(),
+              longitud: $("#form_edit_row #longitud").val(),
+              id_cuadrante: $("#form_edit_row #id_cuadrante").val(),
+              tipo: $("#form_edit_row #tipo").val()
+            },
+            ok: (data) => {
+                    callAPI({
+                        method: 'gestion/getcamara',
+                        params: {
+                          id: id_camera
+                        },
+                        ok: function (vals) {
+                          
+                          vals.forEach(obj => {
+                            
+                           // log("obj");
+                           //log(obj);
+                            $('#form_edit_row #camera_id').val(obj.camera_id);
+                            $('#form_edit_row #location').val(obj.location);
+                            $('#form_edit_row #url').val(obj.url);
+                            $('#form_edit_row #latitud').val(obj.latitud);
+                            $('#form_edit_row #longitud').val(obj.longitud);
+                            $('#form_edit_row #node').val(obj.node);//obj.node;
+                            $('#form_edit_row #confidence').val(obj.confidence);
+                            $('#form_edit_row #estado_general').val(obj.estado_general);
+                            $('#form_edit_row #id_objetivo').val(obj.id_objetivo);
+                            $('#form_edit_row #id_cuadrante').val(obj.id_cuadrante);
+                            $('#form_edit_row #tipo').val(obj.tipo);
+                            toastr["success"]("La cámara ha sido actualizada.","Éxito");
+                            $("#list").show();
+                            $("#analiticaform").hide();
+                            $("#form_edit_row").hide();  
+                            
+                      });
+                        /*
+                        $('#form_edit_row').modal('hide');               
+                                 render_camaras(
+                            $(".table-responsive tbody"),
+                            data
+                        );
+                        */
+                    },
+                    error: function () {
+                      $('#id_cuadrante').html('<option value="">Error al cargar</option>');
+                    }
+                  });
+                    }
+                });
+            });
+
+function guardarAnaliticaCamara (id_analitics,id_analitic_det,id_camera,estado,isHeader,typeDetection,idHeader) {
+    if (estado == 0) {
+        callAPI({
+            method: 'gestion/analiticacamaranew',
+            post: 1,
+            params: {
+                camera_id: id_camera,
+                id_analitics: id_analitics,
+                id_analitic_det: id_analitic_det
+            },
+            ok: (data) => {
+                
+                // If it's not a header analytic that was just activated,
+                // try to activate its corresponding header.
+                if ((isHeader=="false"||!isHeader) && idHeader) {
+                    // Call the new function to activate the header.
+                    activateHeaderAnalytic(id_camera, idHeader);
+                }else{
+                    toastr["success"]("La analitica ha sido activada.","Éxito");
+                }
+
+                // Call the new refresh function inside the callback to ensure it runs last.
+                refreshAnaliticas(id_camera);
+            }
+        });
+    } else {
+        callAPI({
+            method: 'gestion/analiticacamaraupt',
+            post: 1,
+            params: {
+                camera_id: id_camera,
+                id_analitics: id_analitics,
+                id_analitic_det: id_analitic_det
+            },
+            ok: (data) => {
+                if (isHeader=="true") {
+                    deactivateSubgroups(id_camera, typeDetection);
+                } else {
+                    refreshAnaliticas(id_camera);
+                    if(idHeader){
+                        toastr["info"]("La analitica ha sido desactivada.","Éxito");   
+                    }
+                }
+            }
+        });
+    }
+}
+
+function activateHeaderAnalytic(id_camera, idHeader) {
+    // Si no hay un ID de cabecera, no hacemos nada.
+    if (!idHeader) {
+        return;
+    }
+
+    // Usamos obtainAllAnalitics para verificar el estado de la cabecera.
+    obtainAllAnalitics(id_camera, (allAnalytics) => {
+        const headerAnalytic = allAnalytics.find(item => String(item.id_analitics) === String(idHeader));
+        
+        // Si la analítica de la cabecera existe y no está activa (estado != 1), la activamos.
+        // This is the key change! We check the 'estado' property.
+        if (headerAnalytic && headerAnalytic.estado !== "1") {
+            callAPI({
+                method: 'gestion/analiticacamaranew',
+                post: 1,
+                params: {
+                    camera_id: id_camera,
+                    id_analitics: idHeader,
+                    id_analitic_det: headerAnalytic.id_analitic_det // Usar el id_analitic_det de la cabecera
+                },
+                ok: () => {
+                    refreshAnaliticas(id_camera);
+                    // No es necesario refrescar aquí, ya que el 'refreshAnaliticas' principal
+                    // en `guardarAnaliticaCamara` ya se encarga de eso.
+                }
+            });
+        } else {
+            // Opcional: Si el header ya está activo, puedes registrarlo en la consola para depurar.
+            log("La analítica de la cabecera ya está activa. No se requiere acción.");
+        }
+        toastr["success"]("La analítica ha sido activada.","Éxito");
+    });
+}
+
+/**
+ * Finds all subgroups of a given header (based on typeDetection),
+ * deactivates them, and triggers data deletion.
+ * @param {string} id_camera The ID of the camera.
+ * @param {string} typeDetection The shared identifier linking the header to its subgroups.
+ */
+function deactivateSubgroups(id_camera, typeDetection) {
+    // Fetch all analytics to find the related subgroups
+    callAPI({
+        method: 'gestion/getanaliticasall',
+        params: { id_camera: id_camera },
+        ok: function(allAnalytics) {
+            
+            // Find all subgroups that share the fk_type_detection with the main analytic
+            const subgroupsToDeactivate = allAnalytics.filter(item => 
+                String(item.fk_type_detection) == typeDetection && 
+                item.estado == 1 // Only deactivate active ones
+            );
+            // Deactivate each subgroup one by one
+            const deactivatePromises = subgroupsToDeactivate.map(subgroup => {
+                // Call your API to deactivate the subgroup
+                return new Promise(resolve => {
+                    callAPI({
+                        method: 'gestion/analiticacamaraupt',
+                        post: 1,
+                        params: {
+                            camera_id: id_camera,
+                            id_analitics: subgroup.id_analitics,
+                            id_analitic_det: subgroup.id_analitic_det
+                        },
+                        ok: function(){
+                            deleteSavedMetrics(subgroup.id_analitics, subgroup.id_analitic_det, id_camera);
+                            if(subgroup.has_metrics==1){
+                                deletePolyognFromStorage(subgroup.id_analitics, subgroup.id_analitic_det, id_camera);  
+                            }
+                        },
+                        error: resolve // Resolve even on error to continue the loop
+                    });
+                });
+            });
+
+            // After all deactivations and deletions are complete, refresh the UI
+            // This ensures the UI is only updated after all state changes have been processed
+            Promise.all(deactivatePromises).then(() => {
+                refreshAnaliticas(id_camera);
+            });
+        }
+    });
+}
+
+function updateCameraCounters(data) {
+    let total = data.length;
+    let active = data.filter(c => c.estado_general === 1).length;
+    let inactive = data.filter(c => c.estado_general === 0).length;
+    let inProcess = data.filter(c => c.estado_general === 2).length;
+
+    $('#totalCamerasCount').text(total);
+    $('#activeCamerasCount').text(active);
+    $('#inactiveCamerasCount').text(inactive);
+    $('#inProcessCamerasCount').text(inProcess);
+}
+  
+function obtainAllAnalitics(id_camera, callback){
+    callAPI({
+        method: 'gestion/getanaliticasall',
+        params: {
+            id_camera: id_camera
+        },
+        ok: function (vals) {
+            if (callback) {
+                callback(vals.sort((a, b) => a.orden - b.orden));
+            } else {
+                generarAnaliticasDesdeListaPlano(vals.sort((a, b) => a.orden - b.orden),id_camera,[], cameraDet.estado_general);
+            }
+        },
+        error: function () {
+            //error
+        }
+    }); 
+}
+  /*
+function generarAnaliticasDesdeListaPlano2(data, id_camera) {
+  const container = document.getElementById('analiticas-dinamicas');
+  container.innerHTML = "";
+
+  const grupos = {};
+
+  // Agrupar por id_analitics
+ const gruposArray = [];
+  data.forEach(item => {
+    let grupo = gruposArray.find(g => g.id_analitics === item.id_analitics);
+    if (!grupo) {
+      grupo = {
+        id_analitics: item.id_analitics,
+        titulo: item.analitics_name,
+        descripcion: item.analitics_desc,
+        detalles: [],
+        orden: item.orden
+      };
+      gruposArray.push(grupo);
+    }
+    grupo.detalles.push(item);
+  });
+
+  // Optionally sort gruposArray by id or name
+  gruposArray.sort((a, b) => a.orden - b.orden);
+
+  // Crear paneles por grupo
+  gruposArray.forEach(grupo => {
+    const panel = document.createElement('div');
+    panel.className = "card mb-3";
+
+    // Cabecera
+    const panelHeading = document.createElement('div');
+    panelHeading.className = "card-header";
+    panelHeading.innerHTML = `
+      <h5>${grupo.titulo.toUpperCase()}</h5>
+      <p>${grupo.descripcion}</p>
+    `;
+
+    // Cuerpo con cards internas
+    const panelBody = document.createElement('div');
+    panelBody.className = "card-body d-flex flex-wrap gap-3";
+    panelBody.style.marginBottom = "12px"
+    panelBody.style.display = "flex";
+    panelBody.style.flexWrap = "wrap";
+    grupo.detalles.forEach(detalle => {
+      const card = document.createElement('div');
+      card.className = "card text-white bg-dark shadow-sm text-center ";
+      card.style.width = "100%";
+        card.style.flex = "1 1 100%";
+        
+        /*
+      const botonAccion = detalle.tipo == 1
+        ? `<button class="btn btn-sm ${detalle.estado == 0 ? 'btn-danger' : 'btn-primary'} mt-2"
+              onclick="abrirModalZona(${detalle.id_analitics}, '${detalle.id_analitic_det}', ${id_camera}, ${detalle.estado})">
+              ${detalle.estado == 0 ? 'Agregar <span class=\'pe-7s-settings\'></span>' : 'Editar <span class=\'pe-7s-pen\'></span>'}
+          </button>`
+        : `<button class="btn btn-sm ${detalle.estado == 0 ? 'btn-danger' : 'btn-primary'} mt-2"
+              onclick="guardarAnaliticaCamara(${detalle.id_analitics}, '${detalle.id_analitic_det}', ${id_camera}, ${detalle.estado})">
+              ${detalle.estado == 0 ? 'Agregar <span class=\'pe-7s-settings\'></span>' : 'Editar <span class=\'pe-7s-pen\'></span>'}
+          </button>`;
+
+      
+      const botonAccion = detalle.has_metrics==1
+  ? `<button class="btn btn-sm btn-rounded ${detalle.estado == 0 ? 'btn-success' : 'btn-accent'} mt-2 btn-abrir-modal-zona"
+        data-id-analitics="${detalle.id_analitics}"
+        data-id-analitic-det="${detalle.id_analitic_det}"
+        data-id-camera="${id_camera}"
+        data-analitic="${detalle.analitics_name}"
+        data-analitic-detail="${detalle.analitics_detalle_name}"
+        data-type="${detalle.tipo}"
+        data-estado="${detalle.estado}" style="display: flex; font-size:20px; padding: 10px">
+        ${detalle.estado == 0 ? '<span class="pe-7s-plus"></span>' : '<span class="pe-7s-pen"></span>'}
+    </button>`
+  : /*`<button class="btn btn-sm ${detalle.estado == 0 ? 'btn-success' : 'btn-primary'} mt-2 btn-guardar-analitica"
+        data-id-analitics="${detalle.id_analitics}"
+        data-id-analitic-det="${detalle.id_analitic_det}"
+        data-analitic="${detalle.analitics_name}"
+        data-id-camera="${id_camera}"
+        data-estado="${detalle.estado}"
+        data-metrics="${detalle.has_metrics}">
+        ${detalle.estado == 0 ? 'Agregar <span class="pe-7s-plus"></span>' : 'Editar <span class="pe-7s-pen"></span>'}
+    </button>`
+    `
+    <div class="switch-wrapper">
+        <label class="mac-slider" style="float:right">
+            <input class="btn-guardar-analitica btn-rounded" type="checkbox"
+                data-id-analitics="${detalle.id_analitics}"
+                data-id-analitic-det="${detalle.id_analitic_det}"
+                data-analitic="${detalle.analitics_name}"
+                data-id-camera="${id_camera}"
+                data-estado="${detalle.estado}"
+                data-type="${detalle.tipo}"
+                data-metrics="${detalle.has_metrics}" ${detalle.estado == 0 ? '':'checked'}>
+                <span></span>
+        </label>                        
+    </div>
+    `;
+    
+    if(detalle.has_metrics==0||grupo.detalles.length==1){
+        panel.style.display="flex";
+        panel.style.justifyContent="space-between";
+        panel.style.gap="3em"
+    }
+    card.innerHTML = `
+        <div class="card-body p-2" style="display:flex; justify-content:space-between; padding:8px 0px;">
+          ${(detalle.has_metrics==1 && grupo.detalles.length>1)?`<h6 class="card-title small">${detalle.analitics_detalle_name}</h6>`:''}
+          ${botonAccion}
+        </div>
+      `;
+      panelBody.appendChild(card);
+    });
+
+    panel.appendChild(panelHeading);
+    panel.appendChild(panelBody);
+    container.appendChild(panel)
+  });
+  
+}
+*/
+
+function generarAnaliticasDesdeListaPlano(data, id_camera, collapsedState = [], estado_general) {
+  const container = document.getElementById('analiticas-dinamicas');
+  container.innerHTML = "";
+
+  // 1. Group all analytics by `id_analitics`
+  const gruposMap = new Map();
+  data.forEach(item => {
+    if (!gruposMap.has(item.id_analitics)) {
+      gruposMap.set(item.id_analitics, {
+        id_analitics: item.id_analitics,
+        titulo: item.analitics_name,
+        descripcion: item.analitics_desc,
+        fk_type_detection: item.fk_type_detection,
+        orden: item.orden,
+        detalles: []
+      });
+    }
+    gruposMap.get(item.id_analitics).detalles.push(item);
+  });
+
+  const gruposArray = Array.from(gruposMap.values());
+
+  // 2. Sort the groups by `orden` to determine the top 3.
+  gruposArray.sort((a, b) => a.orden - b.orden);
+
+  // 3. Separate the top 3 groups and the rest.
+  const top3Groups = gruposArray.slice(0, 3);
+  const remainingGroups = gruposArray.slice(3);
+
+  // 4. Create the final rendering structure with nested subgroups.
+  const panelesParaRender = top3Groups.map(group => ({
+    ...group,
+    subGrupos: []
+  }));
+
+  // 5. Place remaining groups into the correct parent panel.
+  remainingGroups.forEach(group => {
+    const parentPanel = panelesParaRender.find(p => p.fk_type_detection === group.fk_type_detection);
+    if (parentPanel) {
+      parentPanel.subGrupos.push(group);
+    }
+  });
+
+  // Conditionally collapse all panels if estado_general is not '1'
+  if (estado_general != 1) {
+    collapsedState = panelesParaRender.map((panel, index) => `panel-${index}`);
+  }
+
+  // Helper function to create an action button for a header or sub-header
+  const createActionButton = (detalle, isHeader, header_id) => {
+    const isDisabled = estado_general != 1;
+    const disabledAttribute = isDisabled ? 'disabled' : '';
+
+    return detalle.has_metrics == 1
+      ?
+      `<button class="btn btn-sm btn-rounded ${detalle.estado == 0 ? 'btn-success' : 'btn-accent'} btn-abrir-modal-zona"
+          data-id-analitics="${detalle.id_analitics}"
+          data-id-analitic-det="${detalle.id_analitic_det}"
+          data-id-camera="${id_camera}"
+          data-analitic="${detalle.analitics_name}"
+          data-analitic-detail="${detalle.analitics_detalle_name}"
+          data-type="${detalle.tipo}"
+          data-is-header="${isHeader}"
+          data-id-header="${header_id}"
+          data-type-detection="${detalle.fk_type_detection}"
+          data-estado="${detalle.estado}" style="display: flex; font-size:20px; padding: 10px" ${disabledAttribute}>
+          ${detalle.estado == 0 ?
+          '<span class="pe-7s-plus"></span>' : '<span class="pe-7s-pen"></span>'}
+        </button>`
+      : `<div class="switch-wrapper">
+        <label class="mac-slider" style="float:right">
+          <input class="btn-guardar-analitica btn-rounded" type="checkbox"
+              data-id-analitics="${detalle.id_analitics}"
+              data-id-analitic-det="${detalle.id_analitic_det}"
+              data-analitic="${detalle.analitics_name}"
+              data-id-camera="${id_camera}"
+              data-estado="${detalle.estado}"
+              data-type="${detalle.tipo}"
+              data-is-header="${isHeader}"
+              data-id-header="${header_id}"
+              data-type-detection="${detalle.fk_type_detection}"
+              data-metrics="${detalle.has_metrics}" ${detalle.estado == 0 ?
+              '' : 'checked'} ${disabledAttribute}>
+          <span></span>
+        </label>
+      </div>`;
+  };
+
+  // Helper function to create a card element for subgroups
+  const createAnalyticCard = (detalle, header_id) => {
+    const card = document.createElement('div');
+    card.className = "card text-white bg-dark shadow-sm text-center";
+    card.style.flex = "1 1 auto";
+
+    const botonAccion = createActionButton(detalle, false, header_id);
+    card.innerHTML = `
+      <div class="card-body p-2" style="display:flex; justify-content:space-between; padding:8px 0px;">
+        <h6 class="card-title small">${detalle.analitics_detalle_name}</h6>
+        ${botonAccion}
+      </div>
+    `;
+    return card;
+  };
+
+  // 6. Render the structured data
+  panelesParaRender.forEach((panelData, index) => {
+    const panel = document.createElement('div');
+    panel.className = "panel panel-filled panel-c-accent";
+    panel.dataset.panelId = `panel-${index}`;
+
+    // Panel Header
+    const panelHeading = document.createElement('div');
+    panelHeading.className = "panel-heading";
+    const headerDetails = panelData.detalles[0];
+    const headerBotonAccion = createActionButton(headerDetails, true, panelData.id_analitics);
+
+    panelHeading.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;gap: 1em">
+          <div>
+            <h4>${panelData.titulo.toUpperCase()}</h4>
+            <p>${panelData.descripcion}</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            ${panelData.subGrupos.length > 0 ? `
+              <div class="panel-tools">
+                <a class="panel-toggle">
+                  <i class="fa fa-chevron-up"></i>
+                </a>
+              </div>
+              ` : ``}
+          </div>
+      </div>
+    `;
+
+    // Panel Body
+    const panelBody = document.createElement('div');
+    panelBody.className = "panel-body";
+
+    // Render the nested subgroups
+    panelData.subGrupos.forEach(subGroup => {
+      if (subGroup.detalles.length === 1) {
+        const subGroupItem = subGroup.detalles[0];
+        const subHeader = document.createElement('h6');
+        subHeader.className = "mt-3 mb-1 text-muted";
+        subHeader.style.display = "flex";
+        subHeader.style.justifyContent = "space-between";
+        subHeader.style.alignItems = "center";
+        subHeader.style.gap = "1em";
+
+        const subHeaderBotonAccion = createActionButton(subGroupItem, false, panelData.id_analitics);
+
+        subHeader.innerHTML = `
+          <span>
+            <h5>${subGroupItem.analitics_detalle_name}</h5>
+            <p>${subGroupItem.analitics_desc}</p>
+          </span>
+          ${subHeaderBotonAccion}
+        `;
+        panelBody.appendChild(subHeader);
+
+      } else {
+        const subGroupTitle = document.createElement('h6');
+        subGroupTitle.className = "mt-3 mb-1 text-muted";
+        subGroupTitle.innerHTML = `<h5>${subGroup.titulo}</h5> <p>${subGroup.descripcion}</p>`;
+        panelBody.appendChild(subGroupTitle);
+
+        subGroup.detalles.forEach(detalle => {
+          panelBody.appendChild(createAnalyticCard(detalle, panelData.id_analitics));
+        });
+      }
+    });
+
+    panel.appendChild(panelHeading);
+    panel.appendChild(panelBody);
+
+    // After building, restore the collapsed state and icon if it was previously collapsed
+    if (collapsedState.includes(panel.dataset.panelId)) {
+      panelBody.style.display = "none";
+      const toggleIcon = panel.querySelector('.panel-toggle i');
+      if (toggleIcon) {
+        toggleIcon.classList.remove('fa-chevron-up');
+        toggleIcon.classList.add('fa-chevron-down');
+      }
+    }
+
+    // Hide panel body if it's empty
+    if (panelBody.innerHTML === '') {
+      panelBody.style.display = "none";
+    }
+
+    container.appendChild(panel);
+  });
+
+  // Attach event listeners for each panel toggle after all panels have been rendered
+  const toggles = document.querySelectorAll('.panel-toggle');
+  toggles.forEach(toggleButton => {
+    toggleButton.classList.add('panel-toggle');
+    toggleButton.addEventListener('click', function(event) {
+      event.preventDefault();
+      const panelBody = this.closest('.panel').querySelector('.panel-body');
+      const icon = this.querySelector('i');
+
+      if (panelBody) {
+        const isVisible = panelBody.style.display !== 'none';
+        panelBody.style.display = isVisible ? 'none' : '';
+
+        icon.classList.toggle('fa-chevron-up');
+        icon.classList.toggle('fa-chevron-down');
+      }
+    });
+  });
+}
+
+document.body.addEventListener('click', function(event) {
+  const btn = event.target.closest('.btn-abrir-modal-zona');
+  if (btn) {
+    abrirModalZonaHandler({ currentTarget: btn });
+  }
+
+  const guardarBtn = event.target.closest('.btn-guardar-analitica');
+  if (guardarBtn) {
+    guardarAnaliticaCamaraHandler({ currentTarget: guardarBtn });
+  }
+});
+
+function abrirModalZonaHandler(event) {
+  const btn = event.currentTarget;
+  const id_analitics = btn.dataset.idAnalitics;
+  const id_analitic_det = btn.dataset.idAnaliticDet;
+  const id_camera = btn.dataset.idCamera;
+  const estado = btn.dataset.estado;
+  const name = btn.dataset.analitic;
+  const detalle_name = btn.dataset.analiticDetail;
+  const tipo = btn.dataset.type;
+  const idHeader = btn.dataset.idHeader;
+  
+  abrirModalZona(id_analitics, id_analitic_det, id_camera, estado,name,detalle_name,tipo,idHeader);
+}
+
+function guardarAnaliticaCamaraHandler(event) {
+  const btn = event.currentTarget;
+  const id_analitics = btn.dataset.idAnalitics;
+  const id_analitic_det = btn.dataset.idAnaliticDet;
+  const id_camera = btn.dataset.idCamera;
+  const estado = btn.dataset.estado;
+  const name = btn.dataset.analitic;
+  const detalle_name = btn.dataset.analitic;
+  const has_metrics = btn.dataset.metrics;
+  const tipo = btn.dataset.type;
+  const typeDetection = btn.dataset.typeDetection;
+  const isHeader = btn.dataset.isHeader;
+  const idHeader = btn.dataset.idHeader;
+  
+  if(has_metrics==0){
+        guardarAnaliticaCamara(id_analitics,id_analitic_det,id_camera,estado,isHeader,typeDetection,idHeader);
+  }else{
+        abrirModalZona(id_analitics, id_analitic_det, id_camera, estado,name,detalle_name, tipo,idHeader);
+  }
+}
+
+/*
+function generarAnaliticasDesdeListaPlano(data,id_camera) {
+  const container = document.getElementById('analiticas-dinamicas');
+  container.innerHTML = "";
+//log("id_camera: "+id_camera);
+  const grupos = {};
+
+  // Agrupar por id_analitics
+  data.forEach(item => {
+    if (!grupos[item.id_analitics]) {
+      grupos[item.id_analitics] = {
+        titulo: item.analitics_name,
+        descripcion: item.analitics_desc,
+        detalles: []
+      };
+    }
+    grupos[item.id_analitics].detalles.push(item);
+  });
+
+  // Crear paneles por grupo
+  Object.values(grupos).forEach(grupo => {
+    const panel = document.createElement('div');
+    panel.className = "panel panel-filled mb-3";
+
+    // Cabecera
+    const panelHeading = document.createElement('div');
+    panelHeading.className = "panel-heading";
+    panelHeading.innerHTML = `
+      <strong>${grupo.titulo.toUpperCase()}</strong>
+      <p class="mb-0 text-muted small">${grupo.descripcion}</p>
+    `;
+
+    // Cuerpo con cards
+    const panelBody = document.createElement('div');
+    panelBody.className = "panel-body d-flex flex-wrap gap-3 col-sm-12";
+
+    grupo.detalles.forEach(detalle => {
+      const card = document.createElement('div');
+      card.className = "card text-white bg-dark shadow-sm text-center col-sm-2";
+      card.style.width = "80px";
+
+         if (detalle.tipo==1)
+         {
+              card.innerHTML = `
+                <div class="card-body">
+                  <h6 class="card-title">${detalle.analitics_detalle_name}</h6>
+                  <div class="my-2">
+                    <!-- class="pe-7s-look"></span-->
+                  </div>
+                  <button class="btn btn-sm ${detalle.estado == 0 ? 'btn-danger' : 'btn-primary'} mt-2"
+                    onclick="abrirModalZona(${detalle.id_analitics}, '${detalle.id_analitic_det}',${id_camera},${detalle.estado})">
+                    ${detalle.estado == 0 ? 'Agregar <span class="pe-7s-settings"></span>' : 'Editar <span class="pe-7s-pen"></span>'}
+                  </button>
+                </div>
+                
+              `;
+         }
+         else
+         {
+                   card.innerHTML = `
+                <div class="card-body">
+                  <h6 class="card-title">${detalle.analitics_detalle_name}</h6>
+                  <div class="my-2">
+                    <!--span class="pe-7s-look"></span-->
+                  </div>
+                  <button class="btn btn-sm ${detalle.estado == 0 ? 'btn-danger' : 'btn-primary'} mt-2"
+                    onclick="guardarAnaliticaCamara(${detalle.id_analitics}, '${detalle.id_analitic_det}',${id_camera},${detalle.estado})">
+                    ${detalle.estado == 0 ? 'Agregar <span class="pe-7s-settings"></span>' : 'Editar <span class="pe-7s-pen"></span>'}
+                  </button>
+                </div>
+              `;
+         }
+ 
+      panelBody.appendChild(card);
+    });
+
+    panel.appendChild(panelHeading);
+    panel.appendChild(panelBody);
+    container.appendChild(panel);
+  });
+}
+*/
+
+
+function getImageDimensions(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = function() {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = function() {
+      reject(new Error('Failed to load image at ' + url));
+    };
+    img.src = url;
+  });
+}
+
+function restartModalButtons(){
+    drawingMode=false;
+    btnStart.disabled = false;
+    //btnFinish.disabled = true;
+    btnCancel.disabled = false;
+}
+  /************** Abre el modal para marcar el piligono de  la nalitica seleccionada******************************/
+  
+  var headerId=null;
+function abrirModalZona(id_analitics, id_analitic_det, id_camera,estado,name,detalle_name,type, idHeader) {
+    headerId=null;
+    if(idHeader){
+        headerId=idHeader;
+    }
+    // Setear los inputs ocultos
+    $('#modalcamerapoly #poly_id_analitics').val(id_analitics);
+    $('#modalcamerapoly #poly_id_analitic_det').val(id_analitic_det);
+    $('#modalcamerapoly #poly_id_camera').val(id_camera);
+    $('#modalcamerapoly #zone_name').text(name);
+    var camara_name = $('#form_edit_row #camera_id').val()
+    $('#modalcamerapoly #zone_detail').text(detalle_name);
+    $('#modalcamerapoly #camera_name').text("Cámara: "+camara_name);
+    var ubication = $("#form_edit_row #location").val();
+    $('#modalcamerapoly #camera_location').text("Dirección: "+ ubication);
+    $('#btnStart').show();
+    $('#btnClean').show();
+    $('#zona-container').hide();
+    $('#zona-text').hide();
+    $('#btnCancel').addClass("btn-default");
+    $('#btnDelete').hide();
+    polygons=[];
+    currentPolygon = { points: [] };
+    
+    savedMetricsByAdmin=[];
+    //cambia1
+    //btnFinish.removeEventListener('click', );
+
+    // Ruta de la imagen
+    let rutaImagen = `http://10.23.62.102:5050/${id_camera}/2025-07-14/11/frames/1752508800814.jpeg`;
+        // Abrir el modal
+        $('#modalcamerapoly').attr('aria-hidden', 'false').modal('show');
+        restartModalButtons();
+    //$('#modalcamerapoly').modal('show');
+    if(type=="1"){
+        log("analitica",id_analitics)
+        callImageAPI();
+        if(id_analitics!=2){
+            needPolygon=true;   
+        }
+    }else{
+        $('#btnFinish').attr('class', function(i, c) {
+            return c.replace('btn-default', 'btn-accent');
+        });
+        btnFinish.disabled=false;
+        needPolygon=false;
+    }
+    btnFinish.addEventListener("click", saveDataMetricsandPolygon);
+    getMetricsByAnalitic(true);
+}
+
+var needPolygon=false;
+
+function getMetricsByAnalitic(renderMetricsBool){
+    var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+    
+    callAPI({
+            method: "gestion/getmetricsbyanalitic",
+            params: { analitic_id: analitic },
+            ok: (data) => {
+                getMetricsByDetail(data,renderMetricsBool);
+            },
+            error: (err) => {
+                log("Error al obtener las métricas:", err);
+            }
+        });
+}
+
+function renderMetricsInputs(metrics, savedMetrics) {
+    const container = document.getElementById("metricsContainer");
+    if(savedMetrics.length>0){
+        $('#btnDelete').show();
+    }
+    var checkboxInput=false;
+    container.innerHTML = "";
+    metrics.sort((a, b) => a.orden - b.orden);
+    metrics.forEach((metric, index) => {
+        const col = document.createElement("div");
+        col.style.marginBottom="2px";
+
+        // Create the label and flex container
+        let html = `
+            <h5 class="form-label d-block">${metric.name}</h5>
+            <p class="form-label d-block">${metric.description}</p>
+        `;
+        let savedMetric = savedMetrics.find(
+            sm => sm.fk_params_det_id == metric.params_det_id
+        );
+            if(metric.type=="checkbox"){
+                html += `
+                <div class="checkbox inputSelector metric-group" style="display: flex;gap: 3em; margin-bottom:2px;">
+                    <label>
+                        <input 
+                        class="metric-input" 
+                        type="${metric.type}" 
+                        id="${metric.params_det_id}" 
+                        ${(savedMetric ? (savedMetric.value_1 == "true" ? 'checked' : '') : '') || metric.value_1 == "true" ? 'checked' : ''}
+                        onchange="toggleInputField()">
+                        ${metric.name}
+                        </input>
+                    </label>
+                </div>
+            `;
+            }else{
+                html += `
+                <div class="inputSelector metric-group" style="display: flex;gap: 3em;">
+                <input 
+                    class="form-control metric-input" 
+                    type="${metric.type}" 
+                    id="${metric.params_det_id}" 
+                    name="${metric.name}"
+                    value="${(savedMetric?(savedMetric.value_1):('')) || metric.value_1}"
+                >
+                `;
+            }
+        // Add select next to input if applicable
+        if (metric.value_2 && metric.value_2.trim() !== "" && metric.list_value) {
+            callAPI({
+                method: "gestion/getparamsdet",
+                params: { params_id: metric.list_value },
+                ok: (data) => {
+                    data.sort((a, b) => {
+                        return a.orden - b.orden;
+                    });
+                    const selectedValue = savedMetrics.length > 0 ? savedMetric.value_2 : '';
+                    const options = data.map(opt => {
+                        const val = opt.value_1;
+                        const val2 = opt.name;
+                        return `<option value="${val}" ${val == selectedValue ? 'selected' : ''}>${val2}</option>`;
+                    }).join("");
+        
+                    html += `
+                        <select class="form-control metric-select" id="${metric.params_det_id}">
+                            ${options}
+                        </select>
+                    `;
+                    col.innerHTML = html;
+                    container.appendChild(col);   
+                    html += `</div>`; // Close flex container
+                },
+                error: (err) => {
+                    log("Error al obtener las métricas:", err);
+                }
+            });
+        }else{
+            col.innerHTML = html;
+            container.appendChild(col);   
+            html += `</div>`; // Close flex container
+        }
+    });
+    if(!($('#5').prop('checked'))){
+        $('#4').prop('disabled', true);
+    }
+}
+
+function toggleInputField() {
+    const inputField = document.getElementById(`4`);
+    inputField.disabled=!inputField.disabled;
+}
+
+function callImageAPI(){
+    $('#zona-container').show();
+    $('#zona-text').show();
+    callAPI({
+            method: "gestion/getcamaraframe",
+            params: { id: id_camera },
+            ok: (data) => {
+               // log(id_camera);
+                //log(data);
+        
+                //cargarImagenCanvas(data[0]['foto']);
+                
+                getImageDimensions(data[0]['foto'])
+                  .then(dimensions => {
+                    if (Array.isArray(data) && data.length > 0 && data[0]['foto']) {
+                        var frame = data[0]['foto'];
+                        var imagen = `<img src="${frame}" alt="Imagen de cámara" style="width:100%; height:auto; border-radius:10px;">`;
+    
+                        cargarImagenCanvas(data[0]['foto'],dimensions.width,dimensions.height);
+                    } else {
+                        var imagen = '<p>No se encontró la imagen.</p>';
+                    }
+                  })
+                  .catch(error => {
+                    console.error(error);
+                  });
+        
+                // Verifica que data sea un arreglo con al menos un elemento y contenga 'foto'
+                
+                //bgImage.src = imagen;
+                // Cargar la imagen dentro del contenedor
+                //$('#modalcamerapoly #canvas-container').html(imagen);
+            },
+            error: (err) => {
+                log("Error al obtener la imagen:", err);
+                $('#modalcamerapoly #canvas-container').html('<p>Error al cargar la imagen.</p>');
+            }
+        });
+}
+        
+function getCanvasCoords(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+btnClean.removeEventListener('click', limpiarPoligono);
+btnClean.addEventListener('click', limpiarPoligono);
+
+function limpiarPoligono(){
+    $('#btnStart').show();
+    $('#btnClean').hide();
+    btnStart.disabled=false;
+    $('#btnFinish').attr('class', function(i, c) {
+        return c.replace('btn-accent', 'btn-default');
+    });
+    $('#btnStart').attr('class', function(i, c) {
+        return c.replace('btn-default', 'btn-accent');
+    });
+    btnFinish.disabled=false;
+    polygons=[];
+    currentPolygon = { points: [] };
+    redrawCanvas();
+}
+
+function redrawCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Dibujar la imagen de fondo
+  ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+  // Dibujar cada polígono almacenado
+  polygons.forEach((poly, index) => {
+    drawPolygon(poly);
+    if (selectedPolygon === index) {
+      ctx.save();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      poly.points.forEach((p, i) => {
+        const pt = normalizedToActual(p);
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      needPolygon=false;
+        $('#btnFinish').attr('class', function(i, c) {
+            return c.replace('btn-default', 'btn-accent');
+        });
+        btnFinish.disabled=false;
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+  });
+  // Dibujar el polígono en construcción
+  if (drawingMode && currentPolygon.points.length > 0) {
+    ctx.save();
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    currentPolygon.points.forEach((p, i) => {
+      const pt = normalizedToActual(p);
+      if (i === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    });
+    btnFinish.disabled=false;
+    $('#btnFinish').attr('class', function(i, c) {
+        return c.replace('btn-default', 'btn-accent');
+    });
+    ctx.stroke();
+    // Dibujar los vértices
+    currentPolygon.points.forEach(p => {
+      const pt = normalizedToActual(p);
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = "blue";
+      ctx.fill();
+      needPolygon=false;
+    });
+    ctx.restore();
+  }
+}
+
+  function resizeCanvas(width, height) {
+    canvas.width = 860;
+    canvas.height = 470;
+    //canvas.width = width/2.3;
+    //canvas.height = height/2.3;
+    redrawCanvas();
+  }
+
+function cargarImagenCanvas(url, width, height) {
+    if(needPolygon){
+        btnFinish.disabled=true;
+        $('#btnFinish').attr('class', function(i, c) {
+            return c.replace('btn-accent', 'btn-default');
+        });
+    }
+    console.log("Cargando imagen:", url);
+    $('#canvas-container').html('<canvas id="myCanvas" style="width: 100%; height: 100%;"></canvas>');
+
+    // Actualizar las referencias luego de crear el canvas
+    canvasContainer = document.getElementById("canvas-container");
+    canvas = document.getElementById("myCanvas");
+    ctx = canvas.getContext("2d");
+
+    bgImage = new Image();
+    bgImage.src = url;
+    //log("url",url)
+    bgImage.onload = function() {
+        polygons = [];
+        loadPolygonsFromLocalStorage(width,height);
+        currentPolygon = { points: [] };
+    };
+
+    canvas.addEventListener("click", canvasClickEvent);
+    canvas.addEventListener("dblclick", canvasDblClickEvent);
+
+    window.addEventListener("resize", resizeCanvas);
+}
+
+function canvasClickEvent(e) {
+    //console.log("Click en canvas");
+    const pos = getCanvasCoords(e);
+//log(drawingMode);
+    if (drawingMode) {
+        if (currentPolygon.points.length > 0) {
+            const first = normalizedToActual(currentPolygon.points[0]);
+            const dx = pos.x - first.x;
+            const dy = pos.y - first.y;
+            if (Math.sqrt(dx * dx + dy * dy) < CLOSE_THRESHOLD && currentPolygon.points.length >= 3) {
+                
+                currentPolygon.points.push(currentPolygon.points[0]);
+                polygons.push({ points: currentPolygon.points, name: "", color: "#0000ff" });
+                drawingMode = false;
+                $('#btnStart').hide();
+                $('#btnClean').show();
+                actualizarBotones();
+                updatePolygonList();
+                //updateLocalStorage();
+                redrawCanvas();
+                //currentPolygon = { points: [] };
+                return;
+            }
+        }
+        let norm = normalizePoint(pos);
+        currentPolygon.points.push(norm);
+        redrawCanvas();
+    } else {
+        let found = false;
+        polygons.forEach((poly, idx) => {
+            if (isPointInPolygon(pos, poly.points)) {
+                selectedPolygon = idx;
+                found = true;
+            }
+        });
+        if (found) {
+            redrawCanvas();
+        }
+    }
+}
+
+/********** ACTUALIZAR LISTA DE POLÍGONOS **********/
+function updatePolygonList() {
+  function fillList(listEl) {
+    listEl.innerHTML = "";
+    if (!Array.isArray(polygons)) polygons = [];
+    polygons.forEach((poly, index) => {
+      if (!poly || !Array.isArray(poly.points)) return;
+      const area = computeArea(poly.points);
+      const perimeter = computePerimeter(poly.points);
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+      li.setAttribute("data-index", index);
+      li.innerHTML = `
+        <div><strong>${poly.name || "Sin nombre"}</strong></div>
+        <div>Área: ${area.toFixed(0)} px²</div>
+        <div>Perímetro: ${perimeter.toFixed(0)} px</div>
+        <div><span style="background:${poly.color || "#0000ff"}; display:inline-block; width:15px; height:15px; border-radius:3px;"></span></div>
+      `;
+      li.addEventListener("click", function() {
+        selectedPolygon = parseInt(this.getAttribute("data-index"));
+        redrawCanvas();
+      });
+      //listEl.appendChild(li);
+    });
+  }
+  //fillList(sideList);
+  //fillList(floatingList);
+}
+
+function canvasDblClickEvent(e) {
+    //console.log("Doble click en canvas");
+    const pos = getCanvasCoords(e);
+    polygons.forEach((poly) => {
+        if (isPointInPolygon(pos, poly.points)) {
+            polygonBeingEdited = poly;
+            f.value("polygonName", poly.name || "");
+            f.value("polygonColor", poly.color || "#0000ff");
+            f.show("modalcamerapoly");
+        }
+    });
+}
+
+function actualizarBotones() {
+    btnStart.disabled = !drawingMode;
+    //btnFinish.disabled = drawingMode;
+    btnCancel.disabled = drawingMode;
+}
+
+// LocalStorage corregido para usar siempre la misma clave
+function updateLocalStorage() {
+    localStorage.setItem("polygonsmodels", JSON.stringify(polygons));
+}
+
+function loadPolygonsFromLocalStorage(width, height) {
+    //
+    var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+    var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val();
+    var camara= $('#modalcamerapoly #poly_id_camera').val();
+    
+     callAPI({
+      method: 'gestion/zoneinterest',
+      params: {
+        id_analitics: analitic,
+        id_analitic_det:  analitic_det,
+        camera_id: camara
+        
+      },
+      ok: function(vals) {
+          if (Array.isArray(vals) && vals.length > 0) {
+              needPolygon=false;
+            var coordinatesArray = JSON.parse(vals[0].coords_zone).map(coord => {
+                return { x: coord[0], y: coord[1] };
+            });
+            if(coordinatesArray.length>0 && polygons.length==0){
+                polygons.push({ points: coordinatesArray, name: "", color: "#0000ff" });
+                btnStart.disabled=true;
+                $('#btnStart').hide();
+                $('#btnClean').show();
+                $('#btnClean').attr('class', function(i, c) {
+                    return c.replace('btn-danger', 'btn-default');
+                });
+                $('#btnFinish').attr('class', function(i, c) {
+                    return c.replace('btn-default', 'btn-accent');
+                });
+                btnFinish.disabled=false;
+            }
+          }else{
+              $('#btnStart').attr('class', function(i, c) {
+                    return c.replace('btn-default', 'btn-accent');
+                });
+              $('#btnClean').hide()
+          }
+          resizeCanvas(width,height)
+        
+      },
+      error: function() {
+        alert("Error al cargar datos de la cámara");
+      }
+    });
+    
+   // const data = localStorage.getItem("polygonsmodels");
+   // polygons = data ? JSON.parse(data) : [];
+   // log(data)
+}
+
+/********** FUNCIONES DE CÁLCULO (Área y Perímetro) **********/
+function computeArea(points) {
+  if (!points || points.length < 3) return 0;
+  let actualPoints = points.map(p => normalizedToActual(p));
+  let area = 0;
+  const n = actualPoints.length;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    area += actualPoints[i].x * actualPoints[j].y - actualPoints[j].x * actualPoints[i].y;
+  }
+  return Math.abs(area / 2);
+}
+function computePerimeter(points) {
+  if (!points || points.length < 2) return 0;
+  let actualPoints = points.map(p => normalizedToActual(p));
+  let per = 0;
+  for (let i = 0; i < actualPoints.length - 1; i++) {
+    const dx = actualPoints[i+1].x - actualPoints[i].x;
+    const dy = actualPoints[i+1].y - actualPoints[i].y;
+    per += Math.sqrt(dx*dx + dy*dy);
+  }
+  return per;
+}
+
+/********** DIBUJAR UN POLÍGONO **********/
+function drawPolygon(poly) {
+  if (!poly.points || !Array.isArray(poly.points) || poly.points.length < 2) return;
+  ctx.save();
+  ctx.strokeStyle = poly.color || "blue";
+  ctx.fillStyle = "transparent" //poly.color ? hexToRGBA(poly.color, 0.3) : "rgba(0,0,255,0.3)";
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  poly.points.forEach((p, i) => {
+    const pt = normalizedToActual(p);
+    if (i === 0) ctx.moveTo(pt.x, pt.y);
+    else ctx.lineTo(pt.x, pt.y);
+  });
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/********** ALGORITMO DE RAY-CASTING (PUNTO EN POLÍGONO) **********/
+function isPointInPolygon(point, vs) {
+  if (!vs || !Array.isArray(vs)) return false;
+  let x = point.x, y = point.y;
+  let inside = false;
+  // Convertir las coordenadas normalizadas a reales
+  let actualVs = vs.map(p => normalizedToActual(p));
+  for (let i = 0, j = actualVs.length - 1; i < actualVs.length; j = i++) {
+    let xi = actualVs[i].x, yi = actualVs[i].y;
+    let xj = actualVs[j].x, yj = actualVs[j].y;
+    let intersect = ((yi > y) !== (yj > y)) &&
+                    (x < (xj - xi) * (y - yi) / ((yj - yi) || 1) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+/********** BOTONES **********/
+btnStart.addEventListener("click", function() {
+    drawingMode = true;
+    currentPolygon = { points: [] };
+    btnStart.disabled = true;
+    $('#btnStart').attr('class', function(i, c) {
+        return c.replace('btn-accent', 'btn-default');
+    });
+});
+
+function saveDataMetricsandPolygon(){
+    if(!needPolygon){
+        if(savedMetricsByAdmin.length>0){
+            updateMetrics();
+        }else{
+            saveMetrics();   
+        }
+        if(currentPolygon.points.length>0){
+            addPolygonFromStorage();
+        }   
+    }else{
+        toastr["error"]("Dibuja una zona", "Error");
+    }
+}
+
+var savedMetricsByAdmin=[];
+
+function getMetricsByDetail(allMetrics,renderMetricsBool){
+    var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+    var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val();
+    callAPI({
+        method: 'gestion/getanaliticcameraparamsdet',
+        params: {
+            fk_camera_id: id_camera,
+            fk_analitic_id: analitic,
+            fk_analitics_det_id: analitic_det,    
+        },
+        ok: (data) => {
+            if(renderMetricsBool){
+                savedMetricsByAdmin=data;
+                renderMetricsInputs(allMetrics, data);   
+                
+            }else{
+                return data.length;
+            }
+        },
+        error: function() {
+            alert("Error algrabar");
+        }
+    });
+}
+
+function saveMetrics(){
+    var metrics = collectMetricsData();
+    var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+    var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val();
+    var camara= $('#modalcamerapoly #poly_id_camera').val();
+    
+    const rows = metrics.map(m => ({
+        fk_camera_id: id_camera,
+        fk_analitic_id: analitic,
+        fk_analitics_det_id: analitic_det,
+        fk_params_det_id: m.inputId||m.selectId,
+        value_1: m.inputValue,
+        value_2: m.selectValue || null
+    }));
+    log("rows",rows)
+    
+    callAPI({
+        method: 'gestion/postanaliticcameraparamsdet',
+        post: 1,
+        params: {
+            rows
+        },
+        ok: (data) => {
+            if(currentPolygon.points.length==0 && polygons.length==0){
+                log("valordeHeader",headerId)
+                guardarAnaliticaCamara(analitic,analitic_det,camara,0,false,0,headerId);
+            }
+            $('#modalcamerapoly').modal('hide');
+        },
+        error: function() {
+            alert("Error algrabar");
+        }
+    });
+}
+
+function updateMetrics(){
+    var metrics = collectMetricsData();
+    var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+    var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val();
+    var camara= $('#modalcamerapoly #poly_id_camera').val();
+    
+    const rows = metrics.map(m => ({
+        fk_camera_id: id_camera,
+        fk_analitic_id: analitic,
+        fk_analitics_det_id: analitic_det,
+        fk_params_det_id: m.inputId||m.selectId,
+        value_1: m.inputValue,
+        value_2: m.selectValue || null
+    }));
+    
+    callAPI({
+        method: 'gestion/uptanaliticcameraparamsdet',
+        post: 1,
+        params: {
+            rows
+        },
+        ok: (data) => {
+            $('#modalcamerapoly').modal('hide');
+        },
+        error: function() {
+            alert("Error algrabar");
+        }
+    });
+}
+
+function collectMetricsData() {
+    const groups = document.querySelectorAll('.metric-group');
+    log("grupos",groups);
+    const results = [];
+
+    groups.forEach((group, index) => {
+        const input = group.querySelector('.metric-input');
+        const checkbox = group.querySelector('.metric-checkbox');
+        const select = group.querySelector('.metric-select');
+        const metric = {
+            inputId: input?.id || null,
+            inputName: input?.name || null,
+            inputValue: ((input.value=="on")?input?.checked.toString():input.value ) || null,
+            selectId: select?.id || null,
+            selectValue: select?.value?(select.value):(!input.disabled && input?.id==4?'true':'') || null
+        };
+        results.push(metric);   
+    });
+
+    return results;
+}
+
+
+/*
+
+btnFinish.addEventListener("click", function() {
+  if (polygons[0].points.length >= 3) {
+    drawingMode = false;
+    currentPolygon = { points: [] };
+    btnStart.disabled = false;
+    btnFinish.disabled = true;
+    btnCancel.disabled = true;
+    updatePolygonList();
+    updateLocalStorage();
+    redrawCanvas();
+
+    var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+    var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val();
+    var camara= $('#modalcamerapoly #poly_id_camera').val();
+    
+
+    
+    callAPI({
+      method: 'gestion/typezone',
+      params: {
+        id_analitics: analitic
+      },
+      ok: function(vals) {
+          
+          //log(vals)
+         // return
+        vals.forEach(obj => {
+          var type_zone_id = obj.id;
+          var name_zone = obj.name_zone;
+          var coords_zone ="";
+        
+
+          var coords = polygons[0].points.map(p => [p.x, p.y]);
+          var coords_zone = JSON.stringify(coords);
+         
+
+          callAPI({
+            method: 'gestion/zoneinterestnew',
+            post: 1,
+            params: {
+                type_zone_id: type_zone_id,
+              camera_id: camara,
+              name_zone: name_zone,
+              coords_zone: coords_zone,
+              id_analitics: analitic,
+              id_analitic_det: analitic_det
+            },
+            ok: (data) => {
+              $('#modalcamerapoly').modal('hide');
+              
+                    callAPI({
+                        method: 'gestion/getanaliticasall',
+                        params: {
+                          id_camera: camara
+                        },
+                            ok: function (vals) {
+                                generarAnaliticasDesdeListaPlano(vals,camara);
+                                
+                    
+                        },
+                        error: function () {
+                          //error
+                        }
+                });
+            }
+          });
+        });
+      },
+      error: function() {
+        alert("Error algrabar");
+      }
+    });
+
+  } else {
+    alert("Debes dibujar al menos 3 puntos.");
+  }
+});*/
+
+function addPolygonFromStorage(){
+    log("poligono",polygons);
+    if (polygons[0].points.length >= 3) {
+        drawingMode = false;
+        currentPolygon = { points: [] };
+        btnStart.disabled = false;
+        btnFinish.removeEventListener('click', saveDataMetricsandPolygon);
+        btnCancel.disabled = true;
+        updatePolygonList();
+        updateLocalStorage();
+        redrawCanvas();
+
+        var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+        var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val();
+        var camara = $('#modalcamerapoly #poly_id_camera').val();
+        log("analitica",analitic)
+        
+        callAPI({
+            method: 'gestion/typezone',
+            params: {
+                id_analitics: analitic
+            },
+            ok: function(vals) {
+                vals.forEach(obj => {
+                    var type_zone_id = obj.id;
+                    var name_zone = obj.name_zone;
+                    
+                    var coords = polygons[0].points.map(p => [p.x, p.y]);
+                    var coords_zone = JSON.stringify(coords);
+                    
+                    callAPI({
+                        method: 'gestion/zoneinterestnew',
+                        post: 1,
+                        params: {
+                            type_zone_id: type_zone_id,
+                            camera_id: camara,
+                            name_zone: name_zone,
+                            coords_zone: coords_zone,
+                            id_analitics: analitic,
+                            id_analitic_det: analitic_det
+                        },
+                        ok: (data) => {
+                            $('#modalcamerapoly').modal('hide');
+                            /*
+                            callAPI({
+                                method: 'redis/zoneinterestredisbyid',
+                                params: {
+                                    id: data[0].id
+                                },
+                                ok: function (vals) {
+                                    log("redis")
+                                }
+                            });
+                            */
+                            // Call the new refresh function instead of doing everything here
+                            refreshAnaliticas(camara);
+                            toastr["success"]("La analitica ha sido activada.","Éxito");
+                        }
+                    });
+                });
+            },
+            error: function() {
+                alert("Error algrabar");
+            }
+        });
+    } else {
+        alert("Debes dibujar al menos 3 puntos.");
+    }
+}
+
+/**
+ * Captures the current collapsed state of panels, fetches the latest data,
+ * and re-renders the UI while maintaining the state.
+ * @param {string} id_camera The ID of the camera to fetch data for.
+ */
+function refreshAnaliticas(id_camera) {
+    const container = document.getElementById('analiticas-dinamicas');
+
+    // 1. Capture the state of all currently collapsed panels
+    const collapsedPanelIds = [];
+    container.querySelectorAll('.panel-body').forEach(panelBody => {
+        if (panelBody.style.display === 'none') {
+            const panel = panelBody.closest('.panel');
+            if (panel && panel.dataset.panelId) {
+                collapsedPanelIds.push(panel.dataset.panelId);
+            }
+        }
+    });
+
+    // 2. Fetch the latest data from the server
+    callAPI({
+        method: 'gestion/getanaliticasall',
+        params: {
+            id_camera: id_camera
+        },
+        ok: function (data) {
+            // 3. Re-render the UI, passing the saved state
+            generarAnaliticasDesdeListaPlano(data.sort((a, b) => a.orden - b.orden), id_camera, collapsedPanelIds, cameraDet.estado_general);
+        },
+        error: function() {
+            toastr["error"]("Error al obtener las analíticas.", "Error");
+        }
+    });
+}
+
+
+btnCancel.addEventListener("click", function() {
+    btnFinish.removeEventListener('click', saveDataMetricsandPolygon);
+    coordinatesArray=[];
+    $('#modalcamerapoly').attr('aria-hidden', 'false').modal('hide');
+});
+
+/*
+
+btnDelete.addEventListener("click", function() {
+   // log(selectedPolygon);
+    selectedPolygon=[];
+  if (selectedPolygon !== null) {
+    polygons.splice(selectedPolygon, 1);
+    selectedPolygon = null;
+   // btnDelete.disabled = true;
+   selectedPolygon=[];
+    polygons=[];
+    localStorage.clear();
+    //loadPolygonsFromLocalStorage();
+    //updatePolygonList();
+    //updateLocalStorage();
+    deletePolyognFromStorage();
+    redrawCanvas();
+  }
+});
+*/
+
+btnDelete.addEventListener('click', function(){
+        if(savedMetricsByAdmin.length>0){
+            deleteSavedMetrics();
+        }
+        if(polygons.length>0){
+            deletePolyognFromStorage();
+        }
+    }
+);
+if(btnDelete.hasAttribute('hidden')){
+    btnDelete.removeEventListener('click', deletePolyognFromStorage);    
+}
+
+    // Cargar la imagen dentro del div canvas-container
+   // $('#modalcamerapoly #canvas-container').html(`
+    //    <img src="${rutaImagen}" alt="Imagen de cámara" style="width:100%; height:auto; border-radius:10px;">
+   // `);
+   
+function deleteSavedMetrics(id_analitics, id_analitic_det, id_camera){
+    
+    var analitic = $('#modalcamerapoly #poly_id_analitics').val()!=''?$('#modalcamerapoly #poly_id_analitics').val():id_analitics;
+    var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val()!=''?$('#modalcamerapoly #poly_id_analitic_det').val():id_analitic_det;
+    var camara= $('#modalcamerapoly #poly_id_camera').val()!=''?$('#modalcamerapoly #poly_id_camera').val():id_camera;
+    log("entre entre")
+    callAPI({
+            method: 'gestion/delanaliticcameraparamsdet',
+            post:1,
+            params: {
+              fk_camera_id: camara,
+              fk_analitic_id: analitic,
+              fk_analitics_det_id: analitic_det
+            },
+            ok: (data) => {
+                log("data");
+                if(polygons.length==0){
+                    guardarAnaliticaCamara(analitic,analitic_det,camara,1,false,0);
+                    $('#modalcamerapoly').modal('hide');   
+                }
+            }
+          });
+}
+
+    function deletePolyognFromStorage(){
+        
+        var analitic = $('#modalcamerapoly #poly_id_analitics').val();
+        var analitic_det = $('#modalcamerapoly #poly_id_analitic_det').val();
+        var camara= $('#modalcamerapoly #poly_id_camera').val();
+             
+    
+              callAPI({
+                method: 'gestion/zoneinterestdel',
+                post: 1,
+                params: {
+                  camera_id: camara,
+                  id_analitics: analitic,
+                  id_analitic_det: analitic_det
+                },
+                ok: (data) => {
+                  btnStart.disabled=false;
+                  
+                   callAPI({
+                            method: 'gestion/getanaliticasall',
+                            params: {
+                              id_camera: camara
+                            },
+                                ok: function (vals) {
+                                  
+                                  //log(vals);
+                                  toastr["info"]("La analitica ha sido desactivada.","Éxito")
+                                    generarAnaliticasDesdeListaPlano(vals.sort((a, b) => a.orden - b.orden),id_camera, [], cameraDet.estado_general);
+                                    
+                        
+                            },
+                            error: function () {
+                              //error
+                            }
+                    });
+                    $('#modalcamerapoly').modal('hide');
+                }
+              });
+        
+    }
+</script>

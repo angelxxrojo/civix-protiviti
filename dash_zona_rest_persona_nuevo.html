@@ -1,0 +1,281 @@
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -10px;
+        }
+        .col-md-4, .col-md-6, .col-md-8 {
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .col-md-4 { flex: 0 0 33.333%; }
+        .col-md-6 { flex: 0 0 50%; }
+        .col-md-8 { flex: 0 0 66.666%; }
+        @media (max-width: 768px) {
+            .col-md-4, .col-md-6, .col-md-8 {
+                flex: 0 0 100%;
+            }
+        }
+        .panel {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .panel-heading {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .panel-body {
+            padding: 0;
+        }
+        .kpi-card {
+            text-align: center;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .kpi-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0;
+        }
+        .kpi-label {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        #chart-container, #map-container {
+            width: 100%;
+            min-height: 400px;
+        }
+        #map, #map-camaras {
+            width: 100%;
+            min-height: 400px;
+        }
+        .chart {
+            width: 100%;
+            min-height: 360px;
+        }
+    </style>
+<div class="container">
+    <header>
+        <h1>Dashboard de Zonas Restringidas</h1>
+    </header>
+    
+    <h2>Resumen Ejecutivo</h2>
+    <hr>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div class="kpi-label">Personas detectadas (Últimos 30 días)</div>
+                <div class="kpi-number">1700</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Tiempo promedio de permanencia</div>
+                <div class="kpi-number">200 min</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Cámaras activas</div>
+                <div class="kpi-number">95</div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="panel">
+                <div class="panel-heading">Detecciones de Personas por Mes</div>
+                <div class="panel-body">
+                    <div id="detecciones-mensuales" class="chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Distribución y Segmentación</h2>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel">
+                <div class="panel-heading">Detecciones por Zona Restringida</div>
+                <div class="panel-body">
+                    <div id="detecciones-por-zona" class="chart"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel">
+                <div class="panel-heading">Detecciones por Género</div>
+                <div class="panel-body">
+                    <div id="genero-distribucion" class="chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel">
+                <div class="panel-heading">Mapa de Calor de Detecciones</div>
+                <div class="panel-body">
+                    <div id="map" class="chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Tendencias y Permanencia</h2>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel">
+                <div class="panel-heading">Tiempo de Permanencia por Cámara</div>
+                <div class="panel-body">
+                    <div id="permanencia-por-camara" class="chart"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel">
+                <div class="panel-heading">Top 5 Cámaras con más Detecciones</div>
+                <div class="panel-body">
+                    <div id="top-camaras" class="chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gráfico de Detecciones de Personas por Mes
+    var chartMensual = echarts.init(document.getElementById('detecciones-mensuales'));
+    var optionMensual = {
+        tooltip: {},
+        xAxis: {
+            type: 'category',
+            data: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        },
+        yAxis: { type: 'value' },
+        series: [{
+            name: 'Detecciones',
+            type: 'bar',
+            data: [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16],
+            itemStyle: { color: '#007bff' }
+        }]
+    };
+    chartMensual.setOption(optionMensual);
+
+    // Gráfico de Detecciones por Zona Restringida
+    var chartZona = echarts.init(document.getElementById('detecciones-por-zona'));
+    var optionZona = {
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'value' },
+        yAxis: {
+            type: 'category',
+            data: ['Zona Peatonal', 'Zona Monumento', 'Zona Patrimonio', 'Zona Escolar']
+        },
+        series: [{
+            type: 'bar',
+            data: [10, 2, 15, 8],
+            itemStyle: { color: '#28a745' }
+        }]
+    };
+    chartZona.setOption(optionZona);
+
+    // Gráfico de Distribución por Género
+    var chartGenero = echarts.init(document.getElementById('genero-distribucion'));
+    var optionGenero = {
+        tooltip: { trigger: 'item' },
+        legend: { bottom: 'bottom' },
+        series: [{
+            name: 'Distribución por Género',
+            type: 'pie',
+            radius: '60%',
+            data: [
+                { value: 55, name: 'Masculino' },
+                { value: 45, name: 'Femenino' }
+            ],
+            itemStyle: {
+                color: (params) => {
+                    const colors = ['#007bff', '#dc3545'];
+                    return colors[params.dataIndex];
+                }
+            }
+        }]
+    };
+    chartGenero.setOption(optionGenero);
+
+    // Gráfico de Tiempo de Permanencia por Cámara
+    var chartPermanencia = echarts.init(document.getElementById('permanencia-por-camara'));
+    var optionPermanencia = {
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'value' },
+        yAxis: {
+            type: 'category',
+            data: ["Cámara A", "Cámara B", "Cámara C", "Cámara D", "Cámara E"]
+        },
+        series: [{
+            type: 'bar',
+            data: [15, 20, 12, 25, 18],
+            itemStyle: { color: '#ffc107' }
+        }]
+    };
+    chartPermanencia.setOption(optionPermanencia);
+
+    // Gráfico de Top Cámaras
+    var chartTopCamaras = echarts.init(document.getElementById('top-camaras'));
+    var optionTopCamaras = {
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'value' },
+        yAxis: {
+            type: 'category',
+            data: ["Cámara A", "Cámara B", "Cámara C", "Cámara D", "Cámara E"]
+        },
+        series: [{
+            type: 'bar',
+            data: [15, 20, 12, 25, 18],
+            itemStyle: { color: '#17a2b8' }
+        }]
+    };
+    chartTopCamaras.setOption(optionTopCamaras);
+
+    // Mapa de Calor
+    var map = L.map('map').setView([-12.1211, -77.0305], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    var heatPoints = [
+        [-12.1211, -77.0305, 0.9],
+        [-12.1175, -77.0283, 0.8],
+        [-12.1230, -77.0320, 0.7],
+        [-12.1200, -77.0355, 0.6],
+        [-12.1150, -77.0300, 0.5]
+    ];
+    L.heatLayer(heatPoints, { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
+
+    // Reajustar el tamaño de los gráficos al cambiar el tamaño de la ventana
+    window.addEventListener('resize', function() {
+        chartMensual.resize();
+        chartZona.resize();
+        chartGenero.resize();
+        chartPermanencia.resize();
+        chartTopCamaras.resize();
+        map.invalidateSize();
+    });
+</script>

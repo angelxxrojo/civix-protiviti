@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Aglomeraciones — Dashboard por Cámara</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <style>
+    :root{
+      --bg:#0f1116; --panel:#171a21; --panel-2:#1b1f27; --text:#eef2ff; --muted:#a6adbb;
+      --brand:#f67200; --brand-2:#ffb36a; --ok:#22c55e; --err:#ef4444; --border:#262b36;
+      --radius:14px;
+    }
+    body{ margin:0; background:var(--bg); color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    *{ box-sizing:border-box }
+
+    .topbar{
+      position:sticky; top:0; z-index:5;
+      display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+      padding:16px 16px 10px;
+      background:linear-gradient(180deg,rgba(15,17,22,.98),rgba(15,17,22,.88) 70%,rgba(15,17,22,0));
+      border-bottom:1px solid var(--border);
+    }
+    .title{ font-weight:800; letter-spacing:.2px; font-size:18px; }
+    .controls{ display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+    .seg{ display:inline-flex; background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:3px }
+    .seg button{
+      border:0; background:transparent; color:var(--muted); padding:8px 14px; border-radius:999px; cursor:pointer;
+      font-weight:700; letter-spacing:.2px;
+    }
+    .seg button[aria-pressed="true"]{
+      background:linear-gradient(180deg,var(--brand),#e06500); color:#101218;
+      box-shadow:0 1px 0 rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.12);
+    }
+    .select{
+      background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:7px 12px; color:var(--text);
+    }
+    .switch{
+      display:inline-flex; gap:8px; align-items:center; padding:6px 10px; background:var(--panel);
+      border:1px solid var(--border); border-radius:999px; color:var(--muted); cursor:pointer; user-select:none;
+    }
+    .switch input{ appearance:none; width:36px; height:22px; background:#2a3040; border-radius:999px; position:relative; outline:none; transition:.25s }
+    .switch input:checked{ background:var(--brand) }
+    .switch input::after{
+      content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%;
+      background:#fff; transition:.25s;
+    }
+    .switch input:checked::after{ left:17px }
+
+    .wrap{ padding:14px 16px 26px; }
+
+    .kpis{ display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    @media(min-width:1100px){ .kpis{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    .kpi{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px }
+    .kpi .label{ color:var(--muted); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.6px }
+    .kpi .value{ font-size:26px; font-weight:900; margin-top:6px; color:#ffd7b0 }
+    .delta{ font-weight:800 } .delta.up{ color:var(--ok) } .delta.down{ color:var(--err) }
+    .hint{ color:var(--muted); font-size:12px }
+
+    .grid2{ margin-top:14px; display:grid; gap:14px; grid-template-columns: 1fr; }
+    @media(min-width:980px){ .grid2{ grid-template-columns: 1fr 1fr; } }
+
+    .panel{
+      background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+      display:flex; flex-direction:column; min-height:340px;
+    }
+    .panel .hd{
+      padding:10px 12px; border-bottom:1px solid var(--border); background:var(--panel-2);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .panel .bd{ padding:12px; flex:1; display:flex; flex-direction:column }
+    .chart{ width:100%; height:300px }
+    #map{ width:100%; height:300px; border-radius:8px }
+    .list{ margin:0; padding:0; list-style:none; display:grid; gap:10px; }
+    .li{
+      background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .pill{ display:inline-flex; gap:6px; align-items:center; font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--border);
+      background:#121622; color:#cbd5e1; }
+    .legend-dot{ width:10px; height:10px; border-radius:50% }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">Aglomeraciones — Por Cámara</div>
+    <div class="controls">
+      <div class="seg" role="tablist" aria-label="Unidad de tiempo">
+        <button class="gran-btn" data-g="hours"  aria-pressed="false" role="tab">Horas</button>
+        <button class="gran-btn" data-g="days"   aria-pressed="true"  role="tab">Días</button>
+        <button class="gran-btn" data-g="weeks"  aria-pressed="false" role="tab">Semanas</button>
+        <button class="gran-btn" data-g="months" aria-pressed="false" role="tab">Meses</button>
+      </div>
+      <select id="cameraSel" class="select" aria-label="Seleccionar cámara"></select>
+      <label class="switch" aria-label="Comparar con periodo anterior">
+        <input id="cmpToggle" type="checkbox" role="switch" />
+        <span>Comparar</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><div class="label">Total de alertas</div><div class="value" id="kpiTotal">—</div><div class="hint"><span id="kpiTotalDelta" class="delta"> </span> vs periodo anterior</div></div>
+      <div class="kpi"><div class="label">Intervalos con alertas</div><div class="value" id="kpiSlots">—</div><div class="hint">puntos del periodo actual</div></div>
+      <div class="kpi"><div class="label">Duración promedio (min)</div><div class="value" id="kpiDur">—</div><div class="hint">de las alertas</div></div>
+      <div class="kpi"><div class="label">Personas promedio en alerta</div><div class="value" id="kpiPeople">—</div><div class="hint">en la selección</div></div>
+    </div>
+
+    <!-- Grid 2×2 -->
+    <div class="grid2">
+      <!-- Serie temporal -->
+      <div class="panel">
+        <div class="hd">
+          <div>
+            <h3 id="titleSerie" style="margin:0">Serie temporal (Selección)</h3>
+            <div class="hint">
+              <span class="pill"><span class="legend-dot" style="background:var(--brand)"></span> Actual</span>
+              <span class="pill" id="pillPrev"><span class="legend-dot" style="background:var(--brand-2)"></span> Periodo anterior</span>
+            </div>
+          </div>
+          <div class="hint" id="winTxt">—</div>
+        </div>
+        <div class="bd"><div id="chartSerie" class="chart" aria-label="Serie temporal"></div></div>
+      </div>
+
+      <!-- Panel 2 (dinámico, comparativo) -->
+      <div class="panel">
+        <div class="hd"><h3 id="hd2" style="margin:0">Distribución por día de la semana</h3><div class="hint" id="sub2">—</div></div>
+        <div class="bd"><div id="chart2" class="chart" aria-label="Panel 2"></div></div>
+      </div>
+
+      <!-- Panel 3 (dinámico, comparativo) -->
+      <div class="panel">
+        <div class="hd"><h3 id="hd3" style="margin:0">Distribución por hora del día</h3><div class="hint" id="sub3">—</div></div>
+        <div class="bd"><div id="chart3" class="chart" aria-label="Panel 3"></div></div>
+      </div>
+
+      <!-- Panel 4 (dinámico, comparativo) -->
+      <div class="panel">
+        <div class="hd"><h3 id="hd4" style="margin:0">Personas promedio (comparativa)</h3><div class="hint" id="sub4">—</div></div>
+        <div class="bd"><div id="chart4" class="chart" aria-label="Panel 4"></div></div>
+      </div>
+
+      <!-- Mapa -->
+      <div class="panel">
+        <div class="hd"><h3 style="margin:0">Mapa de cámaras</h3><div class="hint">Intensidad ~ total del periodo</div></div>
+        <div class="bd"><div id="map"></div></div>
+      </div>
+
+      <!-- Top 5 intervalos -->
+      <div class="panel">
+        <div class="hd"><h3 style="margin:0">Top 5 intervalos con más alertas</h3><div class="hint" id="topSub">—</div></div>
+        <div class="bd"><ul id="topList" class="list"></ul></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =============== DEMO DATA =============== */
+const Q = new URLSearchParams(location.search);
+const state = {
+  granularity: Q.get('u') || 'days',
+  cameraId:    Q.get('cam') || 'ALL',
+  compare:     Q.get('cmp') === 'true'
+};
+
+function buildDemoData(){
+  const base = { lat:-12.121, lon:-77.03 };
+  const cams = Array.from({length:10}).map((_,i)=>({
+    id: `C${String(i+1).padStart(2,'0')}`,
+    name: ['Kennedy','Pardo','Larco','Reducto','Benavides','Angamos','28 de Julio','La Mar','Villarán','Arequipa'][i],
+    objetivo: ['Comercial','Financiera','Escolar','Patrimonial'][i%4],
+    lat: base.lat + (Math.random()-0.5)*0.02,
+    lon: base.lon + (Math.random()-0.5)*0.03
+  }));
+
+  function genSeries(n, startMs, stepMs, level=5, vol=0.6){
+    const pts=[]; let v = level + Math.random()*level;
+    for(let i=0;i<n;i++){
+      const drift = (Math.random()-0.5)*vol;
+      v = Math.max(0, v + drift);
+      pts.push({ ts: startMs + i*stepMs, value: +v.toFixed(2) });
+    }
+    return pts;
+  }
+
+  const now = Date.now();
+  const H = { n: 48,  step: 3600_000,      start: now - 48*3600_000 };
+  const D = { n: 60,  step: 86400_000,     start: now - 60*86400_000 };
+  const W = { n: 20,  step: 7*86400_000,   start: now - 20*7*86400_000 };
+  const M = { n: 18,  step: 30*86400_000,  start: now - 18*30*86400_000 };
+
+  const byCamera = cams.map((c,idx)=>{
+    const bias = 3 + (idx%5);
+    const hours  = { points: genSeries(H.n, H.start, H.step, bias*0.9, 0.9),  avg_duration_min: +(8+Math.random()*8).toFixed(1),  avg_people:+(2+Math.random()*3).toFixed(2) };
+    const days   = { points: genSeries(D.n, D.start, D.step, bias*1.1, 1.2),  avg_duration_min: +(9+Math.random()*8).toFixed(1),  avg_people:+(2+Math.random()*3).toFixed(2) };
+    const weeks  = { points: genSeries(W.n, W.start, W.step, bias*1.5, 1.0),  avg_duration_min: +(10+Math.random()*9).toFixed(1), avg_people:+(2+Math.random()*3).toFixed(2) };
+    const months = { points: genSeries(M.n, M.start, M.step, bias*1.9, 0.8),  avg_duration_min: +(11+Math.random()*9).toFixed(1), avg_people:+(2+Math.random()*3).toFixed(2) };
+    return { id:c.id, name:c.name, objetivo:c.objetivo, lat:c.lat, lon:c.lon, series:{hours,days,weeks,months} };
+  });
+
+  return { cams, byCamera };
+}
+
+/* =============== UTILS =============== */
+let DATA = null;
+const fmt = {
+  hours:  d => d.toLocaleString('es-PE',{hour:'2-digit', day:'2-digit', month:'short'}),
+  days:   d => d.toLocaleDateString('es-PE',{day:'2-digit', month:'short'}),
+  weeks:  d => 'Sem '+ weekNumISO(d) +' '+ d.getFullYear(),
+  months: d => d.toLocaleDateString('es-PE',{month:'short', year:'2-digit'})
+};
+function weekNumISO(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+function sum(arr,sel){ return arr.reduce((a,b)=>a+(sel?sel(b):b),0); }
+function pctDelta(cur, prev){ if (!prev || prev===0) return {txt:'', cls:''}; const p = ((cur - prev)/prev)*100; return {txt:(p>=0?'+':'')+p.toFixed(1)+'%', cls:p>=0?'up':'down'}; }
+function prevWindowPoints(points){
+  if (!points?.length) return [];
+  const step = points[1]?.ts ? (points[1].ts - points[0].ts) : 0;
+  const n = points.length, shift = step * n;
+  return points.map(p=>({ ts: p.ts - shift, value: p.value * (0.85 + Math.random()*0.3) }));
+}
+function labelG(g){ return g==='hours'?'Horas': g==='days'?'Días' : g==='weeks'?'Semanas':'Meses'; }
+function updateURL(){ const qs = new URLSearchParams({ cam: state.cameraId, u: state.granularity, cmp: String(state.compare) }); history.replaceState(null,'',`?${qs.toString()}`); }
+
+/* agregación “Todas las cámaras” */
+function getSelectionSeries(g){
+  if (state.cameraId === 'ALL'){
+    const cams = DATA.byCamera;
+    const pts0 = cams[0].series[g].points;
+    const n = pts0.length;
+    const step = pts0[1].ts - pts0[0].ts;
+    const start = pts0[0].ts;
+    const points = Array.from({length:n},(_,i)=>{
+      const ts = start + i*step;
+      let v = 0;
+      cams.forEach(c=>{ v += c.series[g].points[i].value; });
+      return { ts, value:+v.toFixed(2) };
+    });
+    const avgDur = +(sum(cams, c=>+c.series[g].avg_duration_min)/cams.length).toFixed(1);
+    const avgPpl = +(sum(cams, c=>+c.series[g].avg_people)/cams.length).toFixed(2);
+    return { points, avg_duration_min: avgDur, avg_people: avgPpl };
+  } else {
+    const cam = DATA.byCamera.find(c=>c.id===state.cameraId) || DATA.byCamera[0];
+    return cam.series[g];
+  }
+}
+
+function smartAxisLabels(labels){ const MAX = 10; const step = Math.max(1, Math.ceil(labels.length / MAX)); return { step }; }
+
+function aggByDow(points){
+  const res = Array.from({length:7},()=>0);
+  points.forEach(p=>{
+    const d = new Date(p.ts);
+    let dn = d.getDay(); dn = (dn+6)%7; // lunes=0
+    res[dn] += p.value;
+  });
+  return res.map(v=>+v.toFixed(2));
+}
+function aggByHour(points){
+  const res = Array.from({length:24},()=>0);
+  points.forEach(p=>{ res[new Date(p.ts).getHours()] += p.value; });
+  return res.map(v=>+v.toFixed(2));
+}
+function synthPerPoint(points, baseDur, basePeople){
+  return points.map(p=>({
+    ...p,
+    dur: +(baseDur * (0.8 + Math.random()*0.4)).toFixed(1),
+    ppl: +(basePeople * (0.8 + Math.random()*0.4)).toFixed(2)
+  }));
+}
+
+/* =============== INIT =============== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  DATA = buildDemoData();
+  initSelectors();
+  renderAll();
+});
+window.addEventListener('resize', ()=>{
+  Object.values(CHARTS).forEach(ch=>ch.resize());
+  if(_map) setTimeout(()=>_map.invalidateSize(), 120);
+});
+
+function initSelectors(){
+  document.querySelectorAll('.gran-btn').forEach(btn=>{
+    const g = btn.dataset.g;
+    btn.setAttribute('aria-pressed', String(g===state.granularity));
+    btn.addEventListener('click', ()=>{
+      state.granularity = g;
+      document.querySelectorAll('.gran-btn').forEach(b=>b.setAttribute('aria-pressed','false'));
+      btn.setAttribute('aria-pressed','true');
+      renderAll();
+    });
+  });
+
+  const sel = document.getElementById('cameraSel');
+  sel.innerHTML = '';
+  const optAll = document.createElement('option');
+  optAll.value = 'ALL'; optAll.textContent = 'Todas las cámaras';
+  sel.appendChild(optAll);
+  DATA.cams.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c.id; opt.textContent = `${c.id} — ${c.name}`;
+    sel.appendChild(opt);
+  });
+  sel.value = state.cameraId;
+  sel.addEventListener('change', ()=>{ state.cameraId = sel.value; renderAll(); });
+
+  const cmp = document.getElementById('cmpToggle');
+  cmp.checked = !!state.compare;
+  cmp.addEventListener('change', ()=>{ state.compare = cmp.checked; renderAll(); });
+}
+
+/* =============== RENDER =============== */
+let CHARTS = {};
+function getChart(id){ if (!CHARTS[id]) CHARTS[id] = echarts.init(document.getElementById(id)); return CHARTS[id]; }
+function setText(id, txt){ const el=document.getElementById(id); if(el) el.textContent = txt; }
+
+function renderAll(){
+  updateURL();
+  const g = state.granularity;
+  const S = getSelectionSeries(g);
+  const points = S.points || [];
+
+  // KPIs
+  const total = +sum(points, p=>p.value).toFixed(2);
+  const prevTotal = +sum(prevWindowPoints(points), p=>p.value).toFixed(2);
+  const d = pctDelta(total, prevTotal);
+  setText('kpiTotal', total.toFixed(0));
+  const deltaEl = document.getElementById('kpiTotalDelta'); deltaEl.textContent = d.txt || '—'; deltaEl.className = 'delta ' + (d.cls||'');
+  setText('kpiSlots', points.filter(p=>p.value>0).length);
+  setText('kpiDur', (+S.avg_duration_min).toFixed(1));
+  setText('kpiPeople', (+S.avg_people).toFixed(2));
+
+  const from = new Date(points[0]?.ts || Date.now());
+  const to   = new Date(points[points.length-1]?.ts || Date.now());
+  setText('winTxt', from.toLocaleDateString('es-PE') + ' → ' + to.toLocaleDateString('es-PE'));
+
+  const selLabel = state.cameraId==='ALL' ? 'Todas' : (DATA.byCamera.find(c=>c.id===state.cameraId)?.id || 'Cámara');
+  document.getElementById('titleSerie').textContent = `Serie temporal — ${selLabel} (${labelG(g)})`;
+
+  // Serie + comparar
+  const curPts  = points.map(p=>({ x: fmt[g](new Date(p.ts)), y:+p.value.toFixed(2), ts:p.ts }));
+  const prevPts = state.compare ? prevWindowPoints(points).map(p=>({ x: fmt[g](new Date(p.ts)), y:+p.value.toFixed(2), ts:p.ts })) : null;
+  renderSerie('chartSerie', curPts, prevPts);
+  document.getElementById('pillPrev').style.display = state.compare? 'inline-flex':'none';
+
+  // Paneles dinámicos (2,3,4) — todos con comparativa
+  if (g==='hours' || g==='days'){
+    // Panel 2: DOW
+    setText('hd2','Distribución por día de la semana');
+    setText('sub2', `Por día de la semana • ${labelG(g)}`);
+    const dowCur = aggByDow(points);
+    const dowPrev = state.compare ? aggByDow(prevWindowPoints(points)) : null;
+    renderBarsOrGrouped('chart2', ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'], dowCur, dowPrev, 'alertas');
+
+    // Panel 3:
+    if (g==='hours'){
+      setText('hd3','Distribución por hora del día');
+      setText('sub3','0–23 h · selección');
+      const hCur = aggByHour(points);
+      const hPrev = state.compare ? aggByHour(prevWindowPoints(points)) : null;
+      renderBarsOrGrouped('chart3', Array.from({length:24},(_,h)=>String(h).padStart(2,'0')+':00'), hCur, hPrev, 'alertas');
+    } else {
+      setText('hd3','Últimos 12 días');
+      setText('sub3','Comparativa barras');
+      const cLast = curPts.slice(-12);
+      const pLast = state.compare ? prevPts.slice(-12) : null;
+      const labels = cLast.map(p=>p.x);
+      const curVals = cLast.map(p=>p.y);
+      const prevVals = pLast ? pLast.map(p=>p.y) : null;
+      renderBarsOrGrouped('chart3', labels, curVals, prevVals, 'alertas');
+    }
+
+    // Panel 4: Personas promedio por DOW (comparativa simulada)
+    setText('hd4','Personas promedio (por DOW)');
+    setText('sub4','Simulado a partir del periodo');
+    const avg = +S.avg_people;
+    const pplCur  = [0,1,2,3,4,5,6].map(()=> +(avg*(0.9 + Math.random()*0.3)).toFixed(2));
+    const pplPrev = state.compare ? pplCur.map(v=> +(v*(0.9 + Math.random()*0.25)).toFixed(2)) : null;
+    renderBarsOrGrouped('chart4', ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'], pplCur, pplPrev, 'pers');
+
+  } else if (g==='weeks' || g==='months'){
+    const metaCur  = synthPerPoint(points, +S.avg_duration_min, +S.avg_people);
+    const metaPrev = state.compare ? synthPerPoint(prevWindowPoints(points), +S.avg_duration_min, +S.avg_people) : null;
+
+    // Panel 2: Ranking/últimos 12 periodos
+    setText('hd2', g==='weeks' ? 'Ranking de semanas (últimas 12)' : 'Ranking de meses (últimos 12)');
+    setText('sub2', `Unidad: ${labelG(g)} — comparativa barras`);
+    const lastC = metaCur.slice(-12);
+    const lastP = metaPrev ? metaPrev.slice(-12) : null;
+    renderBarsOrGrouped('chart2', lastC.map(p=>fmt[g](new Date(p.ts))), lastC.map(p=>p.value), lastP?lastP.map(p=>p.value):null, 'alertas');
+
+    // Panel 3: Duración promedio
+    setText('hd3', g==='weeks' ? 'Duración promedio por semana' : 'Duración promedio por mes');
+    setText('sub3','minutos • comparativa');
+    renderBarsOrGrouped('chart3', lastC.map(p=>fmt[g](new Date(p.ts))), lastC.map(p=>p.dur), lastP?lastP.map(p=>p.dur):null, 'min');
+
+    // Panel 4: Personas promedio
+    setText('hd4', g==='weeks' ? 'Personas promedio por semana' : 'Personas promedio por mes');
+    setText('sub4','personas • comparativa');
+    renderBarsOrGrouped('chart4', lastC.map(p=>fmt[g](new Date(p.ts))), lastC.map(p=>p.ppl), lastP?lastP.map(p=>p.ppl):null, 'pers');
+  }
+
+  // Mapa + Top (si es ALL, muestra todas)
+  if (state.cameraId==='ALL'){
+    const items = DATA.byCamera.map(c=>{
+      const s = c.series[g].points;
+      const tot = sum(s,p=>p.value);
+      return { id:c.id, name:c.name, objetivo:c.objetivo, lat:c.lat, lon:c.lon, intensity: tot };
+    });
+    renderMap(items);
+  } else {
+    const cam = DATA.byCamera.find(c=>c.id===state.cameraId) || DATA.byCamera[0];
+    renderMap([{ id:cam.id, name:cam.name, objetivo:cam.objetivo, lat:cam.lat, lon:cam.lon, intensity: total }]);
+  }
+  renderTop5(curPts, g);
+}
+
+/* ===== Charts ===== */
+function renderSerie(id, curPts, prevPts){
+  const ch = getChart(id); ch.clear();
+  const labels = curPts.map(p=>p.x);
+  const { step } = smartAxisLabels(labels);
+  const series = [
+    ...(prevPts?[{ name:'Anterior', type:'line', data:prevPts.map(p=>p.y), lineStyle:{ width:2, type:'dashed', color:'#ffb36a' }, itemStyle:{ color:'#ffb36a' }, smooth:true, symbol:'none', sampling:'lttb' }]:[]),
+    { name:'Actual', type:'line', data:curPts.map(p=>p.y),
+      lineStyle:{ width:3, color:'#f67200' }, itemStyle:{ color:'#f67200' }, smooth:true, symbol:'circle', symbolSize:6, sampling:'lttb',
+      areaStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(246,114,0,.25)'},{offset:1,color:'rgba(246,114,0,0)'}]) }
+    }
+  ];
+  ch.setOption({
+    tooltip:{ trigger:'axis', axisPointer:{ type:'line' } },
+    legend:{ show: !!prevPts, top:0, textStyle:{ color:'#cbd5e1' } },
+    grid:{ top:30, left:36, right:18, bottom:40, containLabel:true },
+    dataZoom:[ { type:'inside' }, { type:'slider', height:14, bottom:10, handleSize:0 } ],
+    xAxis:{ type:'category', data:labels, axisLabel:{ color:'#cbd5e1', interval: step-1, hideOverlap:true }, axisLine:{ lineStyle:{ color:'#ffffff' } }, axisTick:{ show:false } },
+    yAxis:{ type:'value', show:false, splitLine:{show:false} },
+    series
+  }, true);
+}
+
+function renderBarsOrGrouped(id, labels, curVals, prevVals, unit){
+  const ch = getChart(id); ch.clear();
+  const series = prevVals ? [
+    { name:'Anterior', type:'bar', data:prevVals, barGap:'20%', itemStyle:{ color:'#ffb36a', borderRadius:[3,3,3,3] }, label:{ show:true, position:'right', color:'#fff', formatter:p=>Number(p.value).toFixed(2)+' '+(unit||'') } },
+    { name:'Actual',   type:'bar', data:curVals,  itemStyle:{ color:'#f67200', borderRadius:[3,3,3,3] }, label:{ show:true, position:'right', color:'#fff', formatter:p=>Number(p.value).toFixed(2)+' '+(unit||'') } }
+  ] : [
+    { name:'Actual', type:'bar', data:curVals, itemStyle:{ color:'#f67200', borderRadius:[4,8,8,4] }, label:{ show:true, position:'right', color:'#fff', formatter:p=>Number(p.value).toFixed(2)+' '+(unit||'') } }
+  ];
+  ch.setOption({
+    legend:{ show: !!prevVals, top:0, textStyle:{ color:'#cbd5e1' } },
+    tooltip:{ trigger:'axis', axisPointer:{ type:'shadow' }, valueFormatter:v=>Number(v).toFixed(2)+' '+(unit||'') },
+    grid:{ top:30, left:8, right:18, bottom:10, containLabel:true },
+    xAxis:{ type:'value', show:false },
+    yAxis:{ type:'category', data: labels, axisTick:{show:false}, axisLabel:{color:'#cbd5e1', width:140, overflow:'truncate'}, axisLine:{lineStyle:{color:'#ffffff'}} },
+    series
+  }, true);
+}
+
+/* ===== Mapa + Top ===== */
+let _map=null, _heat=null, _markers=null;
+function renderMap(points){
+  const center = points[0] ? [points[0].lat, points[0].lon] : [-12.121,-77.03];
+  if(!_map){
+    _map = L.map('map', {zoomControl:true, attributionControl:false}).setView(center, 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{ subdomains:'abcd', maxZoom:20 }).addTo(_map);
+  }
+  if(_heat){ _map.removeLayer(_heat); _heat=null; }
+  if(_markers){ _map.removeLayer(_markers); _markers=null; }
+
+  const heat = points.map(p=>[p.lat, p.lon, Math.max(0.2, p.intensity/50)]);
+  if(heat.length){ _heat = L.heatLayer(heat,{ radius:35, blur:22, maxZoom:17, max:1.2, gradient:{ 0:'#2b2b2b', .4:'#f67200', 1:'#ffd7b0' } }).addTo(_map); }
+
+  _markers = L.layerGroup().addTo(_map);
+  const icon = L.icon({
+    iconUrl:'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+    shadowUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]
+  });
+
+  const bounds=[];
+  points.forEach(p=>{
+    L.marker([p.lat,p.lon],{icon}).addTo(_markers)
+      .bindPopup(`<b>${p.id} — ${p.name||''}</b><br>Objetivo: ${p.objetivo||'-'}<br>Total periodo: <b>${(p.intensity||0).toFixed(1)}</b>`);
+    bounds.push([p.lat,p.lon]);
+  });
+  if(bounds.length){ _map.fitBounds(L.latLngBounds(bounds),{ padding:[20,20] }); }
+  setTimeout(()=>_map.invalidateSize(), 120);
+}
+function renderTop5(curPts, g){
+  const list = document.getElementById('topList'); list.innerHTML = '';
+  const sorted = curPts.slice().sort((a,b)=> b.y - a.y).slice(0,5);
+  document.getElementById('topSub').textContent = `Unidad: ${labelG(g)}`;
+  sorted.forEach((p,i)=>{
+    const li = document.createElement('li');
+    li.className='li';
+    li.innerHTML = `<div><b>${i+1}.</b> ${p.x}</div><div class="pill"><span class="legend-dot" style="background:var(--brand)"></span> ${p.y.toFixed(2)}</div>`;
+    list.appendChild(li);
+  });
+}
+
+/* =============== Bootstrap =============== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const DATA_LOC = buildDemoData();
+  window.DATA = DATA_LOC;
+  DATA = DATA_LOC;
+});
+</script>
+</body>
+</html>

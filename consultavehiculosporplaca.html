@@ -1,0 +1,239 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="panel panel-filled panel-c-accent">
+      <div class="panel-heading">Filtros</div>
+      <div class="panel-body">
+        <div class="row">
+          <!-- PLACA -->
+          <div class="col-lg-3">
+            <div class="form-group">
+              <input id="txtplaca" type="text" class="form-control" placeholder="Placa">
+            </div>
+          </div>
+
+          <!-- COLOR (a la derecha de placa) — opciones en crudo -->
+          <div class="col-lg-3">
+            <div class="form-group">
+              <select id="txtcolor" class="form-control" disabled>
+                <option value="all" selected>Seleccione color</option>
+                <option value="blanco">Blanco</option>
+                <option value="negro">Negro</option>
+                <option value="gris">Gris</option>
+                <option value="rojo">Rojo</option>
+                <option value="azul">Azul</option>
+                <option value="verde">Verde</option>
+                <option value="amarillo">Amarillo</option>
+                <option value="naranja">Naranja</option>
+                <option value="marron">Marrón</option>
+                <option value="morado">Morado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- BUSCAR -->
+          <div class="col-lg-3">
+            <div class="form-group">
+              <button id="btnbuscar" type="button" class="btn btn-w-md btn-primary btn-rounded">Buscar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>    
+</div>
+
+<div class="row" id="result-list"></div>
+
+<div id="panelTemplate" class="d-none" style="display:none">
+  <div class="col-md-2">
+    <div class="panel panel-c-accent">
+      <div class="panel-heading">
+        <div style="width:100%;height:122px;display:block">
+          <img 
+            style="width:100%;height:100%;border-radius: 5px;" 
+            onerror="imageprocess(this,@time)"
+            src="@foto_frame">
+        </div>
+      </div>
+      <div class="panel-body">
+        <div style="font-size:80%;height:102px">
+          <div><span class="c-white" style="float:right">@j</span>ID:</div>
+          <div><span class="c-white" style="float:right">@date_start</span>Fecha:</div>
+          <div><span class="c-white" style="float:right">@category</span>Tipo:</div>
+          <div><span class="c-white" style="float:right">@color</span>Color:</div>
+          <div><span class="c-white" style="float:right">@accuracy_plate%</span>Confianza:</div>
+          <div><span class="c-white" style="float:right">@plate</span>plate:</div>
+          <div><span class="c-white" style="float:right">@camera_name</span>Cámara:</div>
+          <small>@location</small>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <button style="width:100%;font-size:80%;" class="btn btn-w-md btn-success btn-rounded">Ver Video</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="showVideoModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header text-left">
+        <span class="c-white" style="float:right" id="showtime"></span>
+        Cámara : <span class="c-white" id="showcamera"></span>
+        <div id="showlocation"></div>
+      </div>
+      <div class="modal-body" style="height:400px"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var videoPlayer = null;
+
+/* ===== helpers existentes ===== */
+function imageprocess(obj,time){
+  var btn = obj.parentElement.parentElement.parentElement.querySelector('button');
+  btn.setAttribute('disabled',1);
+  btn.className = "btn btn-w-md btn-secondary btn-rounded";
+  setTimeout(()=>{
+    obj.src='/public/images/logowin.png';
+    obj.style.filter='grayscale(100%)';
+    obj.style.opacity='0.1';
+  }, time);
+}
+
+function showresultsearch(data){
+  log(data);
+  $("#result-list").html("");
+  var paneltemplate = $("#panelTemplate").html();
+  var itime = 1, cont = 1;
+
+  for (x of data){
+    var panel = paneltemplate;
+log("date_start",x.date_start);
+    var d  = new Date(x.date_start);
+    log("d",d)
+    var fmtOpts = (typeof options !== 'undefined' && options) ? options
+      : { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' };
+    x.date_start = new Intl.DateTimeFormat('es-PE', fmtOpts).format(d);
+
+    x.j = cont;
+    itime + 5;
+
+    for (y in x){ panel = panel.replaceAll("@"+y, x[y]); }
+    panel = panel.replaceAll("@time", itime);
+    panel = $(panel);
+log("date_start",x.date_start);
+    var anchor = $(panel).find('button');
+    anchor.attr("data", JSON.stringify(x));
+    anchor.on('click', function(){ playVideo(JSON.parse($(this).attr("data"))); });
+
+    cont++;
+    $("#result-list").append(panel);
+  }
+}
+
+function playVideo(row){
+  "#showcamera".qs().innerHTML = row.camera_name;
+  "#showtime".qs().innerHTML   = row.date_start;
+  "#showlocation".qs().innerHTML = row.location;
+
+  callAPI({
+    method: 'gestion/dolistimgbytrackid',
+    params: { 
+      cameraid: row.camera_id,
+      tracking_id: row.tracking_idm.substring(1)
+    },
+    ok: function(data){
+     
+      videoPlayer = new videoplay("#showVideoModal .modal-body".qs());
+      setTimeout(()=>{
+        $('#showVideoModal').modal('show');
+        const frames = data[2];
+        const grouped = Object.values(
+          frames.reduce((acc, item) => {
+            if (!item.coords_obj) return data[2];
+            if (!acc[item.foto]) acc[item.foto] = { foto: item.foto, coords_obj: [] };
+            acc[item.foto].coords_obj.push({
+              categoria:   item.category,
+              colorupper:  item.color_name_upper,
+              colorlower:  item.color_name_lower,
+              plate:       item.plate,
+              accuracy_obj: item.accuracy_obj,
+              coords:      (item.coords_obj || '').split(","),
+              coordsplate: item.coords_plate ? item.coords_plate.split(",") : ['']
+            });
+            return acc;
+          }, {})
+        ).sort((a,b)=>a.foto.localeCompare(b.foto));
+        videoPlayer.update(grouped, "foto", "coords_obj");
+        setTimeout(()=>{ videoPlayer.play(); }, 100);
+      },100);
+    }
+  });
+}
+
+/* ========= Normalización para comparar colores sin acentos y sin mayúsculas ========= */
+function normColor(s){
+  if (!s) return '';
+  return String(s)
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')   // quita acentos
+    .trim();
+}
+
+/* ========= Filtro en el FRONT (sin tocar backend) ========= */
+function filtrarPorColor(data, colorSel){
+  const target = normColor(colorSel);
+  if (!target || target === 'all') return data;
+
+  // comparamos contra varias propiedades posibles del backend
+  return data.filter(it => {
+    return (
+      normColor(it.color) === target ||
+      normColor(it.color_name_upper) === target ||
+      normColor(it.color_name_lower) === target
+    );
+  });
+}
+
+$(document).ready(function () {
+  // Buscar (respeta tu callAPI)
+  $("#btnbuscar").on("click", ()=>{
+    const placa = $("#txtplaca").val().trim();
+    const $colorSel = $('#txtcolor');
+
+    // siempre buscamos por placa al backend
+    callAPI({
+      method: "gestion/dolistseguimiento",
+      params: { placa: placa },
+      ok: (data)=>{
+        // habilita el select de color si aún no lo está
+        if ($colorSel.prop('disabled')) {
+          $colorSel.prop('disabled', false);
+        }
+        // si hay un color seleccionado, filtramos EN EL FRONT
+        const val = $colorSel.val() || 'all';
+        const dataFiltrada = filtrarPorColor(data, val);
+                    log("data",data)
+        showresultsearch(dataFiltrada);
+      }
+    });
+  });
+
+  // Cambio de color => NO pegamos al backend; filtramos el último resultado en memoria
+  // Para mantenerlo simple, relanzamos el click (vuelve a pedir y re-filtra).
+  $("#txtcolor").on("change", function(){
+    if ($(this).prop('disabled')) return;
+    $("#btnbuscar").trigger("click");
+  });
+
+  $("#showVideoModal").on("hidden.bs.modal", function () {
+    if (videoPlayer && typeof videoPlayer.stop === 'function') videoPlayer.stop();  
+  });
+});
+</script>

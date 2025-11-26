@@ -1,0 +1,817 @@
+<div class="row">
+    <div class="col-md-10">
+        <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Filtros
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class=form-group>
+                            <input id="txsearch" type="text" class="form-control rounded-input" placeholder="Buscar por Nombre, Documento, Sexo y Fecha de Nacimiento">
+                        </div>
+                    </div>
+                            
+                    <div class="col-lg-2">
+                        <div class=form-group>
+                            <select id="txtstatusfilter" class="form-control full-width-nowrap bg-dark">
+                                <option value="" disabled>Seleccione</option>
+                                <option value="1" selected>Activo</option>
+                                <option value="0">Sin Seguimiento</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-2">
+                        <div class=form-group>
+                            <button id="btn-rownew" type="button" class="btn btn-w-md btn-primary btn-rounded full-width-nowrap">
+                                <i class="fa pe-7s-plus"></i> Nuevo Registro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>    
+    <div class="col-md-2">
+        <div class="panel panel-filled  panel-c-accent">
+            <div class="panel-heading">
+                Total de Personas
+            </div>
+            <div class="panel-body text-center">
+                <h2 class="m-b-none " id="totalperson"></h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="result-list"></div>
+
+<div id="panelTemplate" class="d-none" style="display:none">
+    <div class="col-md-2 col-md-4 col-sm-12">
+        <div class="panel panel-filled panel-c-accent" >
+
+            <div class="panel-heading">
+                <div class="text-left">
+                    <span class="badge" style="font-size:95%;border-radius:5px;padding: 3px 3px;margin-bottom:10px;"><strong>{id_status_ia_name}</strong></span>
+                </div>
+                
+                <div class="text-left">
+                    <img style="width:auto;height:144px;border-radius: 5px;max-width:100%;" onerror="imageprocess(this,@time)"
+                        src="{foto_path}">
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <hr style="margin: 0px 5px;">
+                <div style="font-size:80%;height:150px;border-radius: 15px;">
+                    <h4 style="font-size:140%;width:100%">{personame}</h4>
+
+                    <!-- Tabla simulada -->
+                    <div style="display: grid; grid-template-columns: auto 65%; row-gap: 1px; column-gap: 5px; max-width: 100%;">
+                        <div>ID:</div>                <div class="c-white">{j}</div>
+                        <div>Edad:</div>                <div class="c-white">{edad}</div>
+                        <div>Sexo:</div>                <div class="c-white">{sexo_name}</div>
+                        <div>{ident_tipo}:</div>        <div class="c-white">{ident_nro}</div>
+                        <div>Registro:</div>            <div class="c-white">{fh_crea_formateado}</div>
+                        <div>Motivo:</div>              <div class="c-white" style="text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">{motivo_busqueda_nombre}</div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="panel-footer text-center">
+                <button id="btn-rowupdate" class="btn btn-w-md btn-success btn-rounded"><i
+                        class="fa pe-7s-edit"></i>Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modal-rownew" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-left">
+                <h4 class="modal-title mb-0">Registro de Nueva Persona</h4>
+                <h7 class="mb-0">Persona Requisitoriada</h7>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+
+                    <div class="col-lg-5 m-0" id="columna-informacion-estructurada">
+    
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 0px 15px 15px 0px">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">DATOS PERSONALES</h5>
+                            </div>
+                            <div class="panel-body">
+                                
+                                <div class="col-lg-12">
+                                    <label>Nombre Completo</label>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class=form-group>
+                                        <input id="txtnombres" type="text" class="form-control"
+                                            placeholder="Ingreso Nombre">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class=form-group>
+                                        <input id="txtapellidos" type="text" class="form-control"
+                                            placeholder="Ingreso Apellido">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>Sexo</label>
+                                    <div class=form-group>
+                                        <select id="txtsexo" class="form-control">
+                                            <option value="" disabled selected>Seleccione sexo</option>
+                                            <option value=0>Mujer</option>
+                                            <option value=1>Hombre</option>
+                                        </select>
+                                    </div>
+                                </div>
+    
+                                <div class="col-lg-6">
+                                    <label>F. Nacimiento</label>
+                                    <div class=form-group>
+                                        <input id="txtnacim_fecha_dt" type="date" class="form-control"
+                                            placeholder="Fecha de Nacimiento">
+                                    </div>
+                                </div>
+    
+                                <div class="col-lg-6">
+                                    <label>Edad</label>
+                                    <div class=form-group>
+                                        <input id="txtedad" type="integer" class="form-control" placeholder="Ingrese edad">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>Ciudad Nacimiento</label>
+                                    <div class=form-group>
+                                        <input id="txtnacim_ciud" type="text" class="form-control"
+                                            placeholder="Selecciona Ciudad">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 0px 15px 15px 0px">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">DOCUMENTO DE IDENTIDAD</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Nacionalidad</label>
+                                        <select id="txtidpais" class="form-control">
+                                            <option value="">Seleccione nacionalidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Tipo de Doc</label>
+                                        <select id="txtident_tipo" class="form-control">
+                                            <option value="" disabled selected>Seleccione tipo de doc</option>
+                                            <option value="DNI" selected>DNI</option>
+                                            <option value="CE">Carnet Extranjeria</option>
+                                            <option value="PA">Pasaporte</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Num. de Doc</label>
+                                        <input id="txtident_nro" type="text" class="form-control" placeholder="00000000">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                       </div>    
+    
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 0px 15px 15px 0px">    
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">INFORMACIÓN ADICIONAL</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-12">
+                                    <div class=form-group>
+                                        <label>Motivo Búsqueda</label>
+                                        <select id="txtmotivobusqueda" class="form-control">
+                                            <option value="">Seleccione motivo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12">
+                                    <textarea id="txtdescripcion" class="form-control" placeholder="" rows="4"
+                                        style="resize: none;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="form-group" id ="switchCaseActive">
+                            <div class="form-check form-switch mb-0" >
+                                <input class="form-check-input" type="checkbox" id="toggleActive" checked>
+                                <label class="form-check-label badge" for="toggleActive" id="toggleLabel">
+                                    SEGUIMIENTO ACTIVO
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+    
+    
+                    <div class="col-lg-7 text-center" style="padding: 0px 0px;" id="columna-imagenes">
+                            <div class="panel panel-filled " style="border-radius: 15px"> 
+                                <div class="panel-body">
+                                    <div class="col-lg-6 text-center mb-4" id ="imagen-profile">
+                                        <div class="form-group" style="height: 150px; padding: 0px 0px 0px 15%">
+                                            <img id="imagen-cambiable" src="public/images/logowin.png" alt="Clic para cambiar"
+                                                style="cursor: pointer; width: auto; height: 100%; border-radius: 15px; max-width: 100%;">
+                                            <input type="file" id="input-file" accept="image/*" style="display: none;">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 text-center mb-4" id ="imagen-vector">
+                                        <div class="form-group" style="height: 150px; padding: 0px 35% 0px 0px">
+                                            <img id="imagen-cambiable-face-extracted" src="public/images/logowin.png" alt="Clic para cambiar"
+                                                style="cursor: pointer;width: auto;  height: 100%; border-radius: 15px;  max-width: 100%;">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 mt-3">
+                                        <div class="text-center d-flex flex-wrap" id="result-images-processed-1"></div>
+                                        <div class="text-center d-flex flex-wrap" id="result-images-processed-2"></div>
+                                    </div>
+                                </div>
+                            </div>   
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+                <button id="btnSendNew" type="button" class="btn btn-accent btn-rounded">Enviar</button>
+                <button id="btnSendEdit" type="button" class="btn btn-accent btn-rounded">Modificar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /******************************************
+     * global variables
+     */
+    var videoPlayer = null;
+    // const img = $('#imagen-cambiable');
+    // const input = $('#input-file');
+    const img = document.getElementById('imagen-cambiable');
+    const input = document.getElementById('input-file');
+    const id_lista = 3;
+    const btnSaveNew = $('#btnSendNew');
+
+    const btnSaveEdit = $('#btnSendEdit');
+    btnSaveEdit.css("display", "none")
+
+    const switchCaseActive = $('#switchCaseActive');
+    switchCaseActive.css("display", "none");
+
+    const statusfilter = $('#txtstatusfilter');
+
+    var photo_new;
+
+
+    /******************************************
+     * FUNCTIONS
+     */
+    {
+
+        function imageprocess(obj, time) {
+            var btn = obj.parentElement.parentElement.parentElement.querySelector('button')
+            btn.setAttribute('disabled', 1);
+            btn.className = "btn btn-w-md btn-secondary btn-rounded"
+            //obj.setAttribute('errorload',1);
+            setTimeout(
+                () => {
+                    obj.src = '/public//images/logowin.png'
+                    obj.style.filter = 'grayscale(100%)'
+                    obj.style.opacity = '0.1'
+                },
+                time
+            );
+        }
+        function getStatusColor(statusId) {
+            switch (statusId) {
+                case 0: return {'background-color': "#E1AA04",'color': '#FFFFFF','border-color':'#E1AA04'}; //amarillo
+                case 1: return {'background-color': "#28a745",'color': '#FFFFFF','border-color':'#28a745'};// verde
+                default: return {'background-color': "#dc3545",'color': '#FFFFFF','border-color':'#dc3545'}; // rojo
+
+            }
+        }
+        function formatFecha(fechaStr) {
+            const d = new Date(fechaStr);
+            
+            if (isNaN(d)) return ""; 
+
+            const pad = n => n.toString().padStart(2, '0');
+            const day = pad(d.getDate());
+            const month = pad(d.getMonth() + 1);
+            const year = d.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        }
+        function showresultsearch(data) {
+
+            $("#result-list").html("")
+            $("#result-list").empty();
+
+            var paneltemplate = $("#panelTemplate").html();
+            var itime = 1
+            var cont= 1;
+            for (x of data) {
+                var panel = paneltemplate;
+                var d = new Date(x.date_start);
+                x.j = cont;
+                cont++;
+                x.motivo_busqueda_nombre = x.motivo_busqueda_nombre || "";
+                
+                x.id_status_ia_name = ""
+                switch (x.id_status_ia) {
+                    case 0: x.id_status_ia_name = 'No procesado'; break;
+                    case 1: x.id_status_ia_name = 'Procesado'; break;// verde
+                    case 2: x.id_status_ia_name = 'Error al abrir'; break; // rojo
+                    case 3: x.id_status_ia_name = 'Error en detección'; break;// rojo
+                    case 4: x.id_status_ia_name = 'Error procesamiento'; break;// rojo
+                    
+                    default: x.id_status_ia_name = 'Error'; break;// rojo
+                };
+
+                x.sexo_name = ""
+                switch (x.sexo) {
+                    case '0': x.sexo_name = 'Mujer'; break;
+                    case '1': x.sexo_name = 'Hombre'; break;
+                };
+
+                x.fh_crea_formateado = formatFecha(x.fh_crea);
+                for (y in x) {
+                    panel = panel.replaceAll("{" + y + "}", x[y])
+
+                }
+                log(x.fh_crea_formateado)
+                panel = panel.replaceAll("@time", itime)
+                itime += 5
+                panel = $(panel)
+                panel.attr('data-status', x.status);
+                panel.attr('data-id_status_ia', x.id_status_ia);
+
+                panel.find('img').each(function () {
+                    const base = $(this).attr('src').split('?')[0];
+                    $(this).attr('src', base + '?_ts=' + Date.now());
+                });
+
+                const statusId = x.id_status_ia;
+                const bgColor = getStatusColor(statusId);
+
+                panel.find('.badge').css(bgColor);
+                var anchor = $(panel).find('button')
+
+                anchor.attr("data-record", JSON.stringify(x));
+                anchor.off("click")
+                anchor.on('click', function () {
+                    const record = JSON.parse($(this).attr("data-record"));
+                    abrirModalEdicion(record);
+
+                });
+                
+                //var btn = obj.parentElement.parentElement.parentElement.querySelector('button')
+                if (!x.status){
+                    anchor.attr('disabled', true);
+                    anchor.attr('class', "btn btn-w-md btn-secondary btn-rounded");
+                }
+                    
+                $("#result-list").append(panel)
+            }
+        }
+        
+        function photoSrc(recordId, ext) {
+          return `personimages/processings/${recordId}.${ext}?_ts=${Date.now()}`;
+        }
+
+        function abrirModalEdicion(record) {
+            btnSaveNew.css("display", "none")
+            btnSaveEdit.css("display", "")
+            switchCaseActive.css("display", "")
+
+            const $m = $("#modal-rownew");
+            const fechaRaw = record.nacim_fecha_dt;
+            const fechaFormateada = fechaRaw ? fechaRaw.split('T')[0] : "";
+
+            $m.find("#txtnacim_fecha_dt").val(fechaFormateada);
+            $m.find("#txtnombres").val(record.nombres);
+            $m.find("#txtapellidos").val(record.apellidos);
+            $m.find("#txtsexo").val(record.sexo);
+            $m.find("#txtnacim_ciud").val(record.nacim_ciud);
+            $m.find("#txtedad").val(record.edad);
+            $m.find("#txtidpais").val(record.idpais);
+            $m.find("#txtident_tipo").val(record.ident_tipo);
+            $m.find("#txtident_nro").val(record.ident_nro);
+            $m.find("#txtpersocontacname").val(record.persocontacname);
+            $m.find("#txtparentesco").val(record.parentesco);
+            $m.find("#txtpersocontac").val(record.persocontac);
+            $m.find("#txtdescripcion").val(record.descripcion);
+            $m.find("#txtmotivobusqueda").val(record.motivo_busqueda_id);
+            $('#modal-rownew .modal-title').text("Ficha de " + record.nombres + ' ' + record.apellidos);
+
+            img.src = ""
+            const photo_profile = 'personimages/inputs/' + record.id + '.jpg' + '?_ts=' + Date.now();
+            log(photo_profile)
+            
+            $m.find("#imagen-cambiable")
+                .off("error")                      // quita viejos handlers
+                .attr("src", photo_profile)             // asigna la ruta con ID real
+                .on("error", function () {          // en caso de fallo
+                    $(this).off("error")
+                        .attr("src", "public/images/logowin.jpg");
+                });
+
+            const $img_cambiable_face_extracted = $m.find("#imagen-cambiable-face-extracted").off("error");
+
+            $img_cambiable_face_extracted
+              .attr("src", photoSrc(record.id, "png"))
+              .on("error", function tryJpeg() {
+                $img_cambiable_face_extracted.off("error");
+                $img_cambiable_face_extracted
+                  .attr("src", photoSrc(record.id, "jpeg"))
+                  .on("error", function setDefault() {
+                    $img_cambiable_face_extracted.off("error");
+                    $img_cambiable_face_extracted.attr("src", "public/images/logowin.png");
+                  });
+              });
+
+            $m.find("#input-file").val(null);
+
+            // Almacena el ID para el update
+            $m.data("edit-id", record.id);
+
+            $("#result-images-processed-1").html("");
+            $("#result-images-processed-1").empty();
+            
+            $m.find('#columna-informacion-estructurada').removeClass('col-lg-6').addClass('col-lg-5');
+            $m.find('#columna-imagenes').removeClass('col-lg-6').addClass('col-lg-7');
+            
+            $m.find('#imagen-profile').removeClass('col-lg-12').addClass('col-lg-6').find('.form-group').css({
+                    padding: "0px 0px 0px 15%",
+                    height: "150px",
+                });
+            $m.find('#imagen-vector').css("display", "");
+            
+       
+       
+           if (record.id_status_ia == 1) {
+                for (let i = 1; i < 15; i++) {
+                    const $col = $('<div class="col col-lg-1 col-md-auto text-center"></div>').css({
+                        padding: "2px",
+                        width: "65px",
+                        height: "130px",
+                    });
+            
+                    ["f", "l"].forEach(suffix => {
+                        // Creamos el elemento <img>
+                        const $imagen = $("<img>", {
+                            class: "rounded",
+                            css: {
+                                "max-width": "60px",
+                                "max-height": "60px",
+                                width: "auto",
+                                height: "auto",
+                                display: "block",
+                                margin: "auto",
+                                marginBottom: "4px"
+                            }
+                        });
+            
+                        // Función para generar URL con timestamp
+                        function fotoUrl(ext) {
+                            return `personimages/processings/${record.id}_${suffix}_${i}.${ext}?_ts=${Date.now()}`;
+                        }
+            
+                        // 1) Intentamos con .png
+                        $imagen
+                            .attr("src", fotoUrl("png"))
+                            .on("error", function tryJpeg() {
+                                // PNG falló, quitamos este handler y probamos .jpeg
+                                $imagen.off("error")
+                                       .attr("src", fotoUrl("jpeg"))
+                                       .on("error", function setDefault() {
+                                           // JPEG falló, quitamos handler y ponemos imagen por defecto
+                                           $imagen.off("error")
+                                                  .attr("src", "public/images/logowin.png");
+                                       });
+                            });
+            
+                        $col.append($imagen);
+                    });
+            
+                    $("#result-images-processed-1").append($col);
+                }
+            }
+
+
+            $m.find('.panel').each(function() {
+                  const $panel = $(this);
+                  const $body  = $panel.find('.panel-body');
+                  const $icon  = $panel.find('.panel-tools .panel-toggle i');
+            
+                  // 1) Oculto el body (anula cualquier inline style)
+                if ($icon.length != 0){
+                  $body.css('display', 'none');
+
+                  // 2) Ajusto icono a “abierto=false”
+                  $icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            
+                  // 3) Marco como colapsado
+                  $panel.addClass('panel-collapse');
+                }
+                });
+            
+            $m.modal("show");
+        }
+
+        function getvalues() {
+            const file = $('#input-file')[0].files[0];
+            const reader = new FileReader();
+            const txtphoto_new = img.src
+            toggleActive = $('#toggleActive').prop('checked');
+            const status = toggleActive ? 1 : 0;
+
+            return {
+                id: Date.now(),
+                id_lista: id_lista,
+                nombres: $("#txtnombres").val(),
+                apellidos: $("#txtapellidos").val(),
+                sexo: $("#txtsexo").val(),
+                nacim_fecha_dt: $("#txtnacim_fecha_dt").val(),
+                edad: $("#txtedad").val(),
+                nacim_ciud: $("#txtnacim_ciud").val(),
+                idpais: $("#txtidpais").val(),
+                ident_tipo: $("#txtident_tipo").val(),
+                ident_nro: $("#txtident_nro").val(),
+                persocontacname: $("#txtpersocontacname").val(),
+                parentesco: $("#txtparentesco").val(),
+                persocontac: $("#txtpersocontac").val(),
+                descripcion: $("#txtdescripcion").val(),
+                personame: $("#txtnombres").val() + " " + $("#txtapellidos").val(),
+                photo_new: txtphoto_new,
+                status: status,
+                motivo_busqueda_id: $("#txtmotivobusqueda").val(),
+            }
+        }
+
+        function dodelete(editId) {
+            var values = getvalues();
+            delete values.photo_new;
+            values.delete_id = editId;
+
+            callAPI({
+                method: "gestion/dodelete",
+                post: 1,
+                params: values,
+                ok: (data) => {
+                    doinsert();
+                }
+            });
+        }
+
+        function doupdate(editId, file) {
+            var values = getvalues();
+            values.id_status_ia = 0;
+            if (!file) {
+                values.id_status_ia = 1;
+                delete values.photo_new;
+            }
+            values.id = editId;
+            values.edit_id = editId;
+            log(values)
+            callAPI({
+                method: "gestion/doupdatereq",
+                post: 1,
+                params: values,
+                ok: (data) => {
+                    setTimeout(
+                        () => {
+
+                            $("#modal-rownew").modal('hide');
+                            $(".modal-backdrop").remove();
+                            statusfilter.val(1);
+                            showresultsearch(data);
+                            applyFilters();
+                        },
+                        150
+                    );
+                }
+            });
+        }
+
+        function doinsert() {
+            var values = getvalues();
+            callAPI({
+                method: "gestion/donewreq",
+                post: 1,
+
+                params: values,
+                ok: (data) => {
+                    $("#modal-rownew").modal('hide');
+                    $(".modal-backdrop").remove(); // elimina backdrop
+                    showresultsearch(data);
+                    applyFilters();
+                }
+            });
+        }
+        
+        function applyFilters() {
+          const textFilter   = $('#txsearch').val().toLowerCase();
+          const statusFilter = $('#txtstatusfilter').val();
+          let cont = 0;
+        
+          $('#result-list').children().each(function () {
+            const $item      = $(this);
+            const text       = $item.text().toLowerCase();
+            const status     = $item.data('status')      + '';
+            const statusIa   = $item.data('id_status_ia') + '';
+        
+            const matchesText = text.includes(textFilter);
+        
+            let matchesStatus = true;
+            if (statusFilter) {
+                  if (statusFilter === '1') {
+                    matchesStatus = (status === '1' && statusIa === '1');
+                  } else {
+                    matchesStatus = !(status === '1' && statusIa === '1');
+                  }
+                }
+            
+                if (matchesText && matchesStatus) {
+                  $item.show();
+                  cont++;
+                } else {
+                  $item.hide();
+                }
+              });
+          $('#totalperson').text(cont);
+        }
+
+    }
+
+    /******************************************
+     * EVENTS
+         */
+    {
+
+        $('#btnSendNew').on('click', function () {
+            doinsert();
+        });
+
+        $('#btnSendEdit').on('click', function () {
+            const editId = $("#modal-rownew").data("edit-id");
+            const file = $('#input-file')[0].files[0];
+
+            doupdate(editId, file);
+        });
+
+
+        $("#txsearch").keyup(function (ev) {
+            var value = $("#txsearch").val().toLowerCase();
+            var list = $("#result-list")[0].childNodes
+            for (x of list) {
+                x.style.display = "";
+                var data = x.innerHTML.toLowerCase()
+                if (data.indexOf(value) == -1) {
+                    x.style.display = "none";
+                }
+            }
+            log(list)
+        });
+        
+        $('#txtstatusfilter').on('change', applyFilters);
+
+        $('#btn-rownew').on('click', function () {
+            btnSaveNew.css("display", "")
+            btnSaveEdit.css("display", "none")
+            switchCaseActive.css("display", "none")
+
+            const $m = $('#modal-rownew');
+            $m.find('input[type="text"], input[type="date"], input[type="integer"]').val('');
+            $m.find('#input-file').val(null);
+            $m.find('select').prop('selectedIndex', 0);
+            $m.find('textarea').val('');
+
+            $m.find("#result-images-processed").empty();
+            $m.find("#result-images-processed-1").empty();
+
+            $m.find('#imagen-cambiable').attr('src', 'public/images/logowin.png');
+            $m.find('#imagen-cambiable-face-extracted').attr('src', 'public/images/logowin.png');
+
+            $('#modal-rownew .modal-title').text("Registro de Persona");
+            
+            $m.find('#columna-informacion-estructurada').removeClass('col-lg-5').addClass('col-lg-6');
+            $m.find('#columna-imagenes').removeClass('col-lg-7').addClass('col-lg-6');
+            
+            $m.find('#imagen-profile').removeClass('col-lg-6').addClass('col-lg-12').find('.form-group').css({
+                        padding: "20px 0px 0px 0px",
+                        height: "250px",
+                    });
+            $m.find('#imagen-vector').css("display", "none");
+            
+            $m.modal('show');
+        });
+
+        $('#toggleActive').on('change', function () {
+            const isActive = $(this).is(':checked');
+            var isChecked = $('#toggleActive').prop('checked');
+
+            $('#toggleLabel').text(isActive ? 'SEGUIMIENTO ACTIVO' : 'SIN SEGUIMIENTO');
+        });
+
+        img.addEventListener('click', () => input.click());
+
+        input.addEventListener('change', () => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        });
+
+    }
+
+    /********************************************
+     * ONLOAD
+     */
+
+    {
+        $(document).ready(function () {
+            var statusfilter_val = statusfilter.val()
+
+            callAPI({
+                method: "gestion/listpaises",
+                ok: (data) => {
+                    log(data)
+                    const select = document.getElementById("txtidpais");
+                    select.innerHTML = '<option value="">Seleccione nacionalidad</option>';
+                    for (let i = 1; i < data.length; i++) {
+                        const nombre = data[i].nombre
+                        const codigo = data[i].iso2
+                        const opt = document.createElement("option");
+                        opt.value = codigo;
+                        opt.textContent = nombre;
+                        select.appendChild(opt);
+                    }
+                }
+            });
+
+
+            callAPI({
+                method: "gestion/listmotivobusqueda",
+                params: { id_lista: 3 },
+                ok: (data) => {
+                    log(data)
+                    const select = document.getElementById("txtmotivobusqueda");
+                    select.innerHTML = '<option value="">Seleccione motivo de búsqueda</option>';
+                    for (let i = 1; i < data.length; i++) {
+                        const nombre = data[i].nombre
+                        const codigo = data[i].id
+                        const opt = document.createElement("option");
+                        opt.value = codigo;
+                        opt.textContent = nombre;
+                        select.appendChild(opt);
+                    }
+                }
+            });
+
+            callAPI({
+                method: "gestion/dolistreq",
+                params: { id_lista: 3, filter_status : statusfilter_val },
+                ok: (data) => {
+                    showresultsearch(data)
+                    applyFilters()
+                }
+            });
+ 
+
+        });
+
+    }
+
+</script>

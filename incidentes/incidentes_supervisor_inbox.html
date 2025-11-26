@@ -1,0 +1,849 @@
+<div id="incidentes-supervisor-inbox" class="civix-view">
+    <style>
+        /* Scoped styles to avoid leaking into the app */
+        #incidentes-supervisor-inbox { font-family: system-ui, -apple-system, sans-serif; }
+        #incidentes-supervisor-inbox .list-container { padding: 1.25rem; max-width: 1400px; margin: 0 auto; }
+
+        /* Supervisor info section */
+        #incidentes-supervisor-inbox .supervisor-info-section {
+            text-align: center;
+            margin-bottom: 1.25rem;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        #incidentes-supervisor-inbox .supervisor-info-section .supervisor-label {
+            font-size: 0.9rem;
+            color: #a6adbb;
+            margin-bottom: 0.5rem;
+        }
+        #incidentes-supervisor-inbox .supervisor-info-section .supervisor-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffd7b0;
+        }
+
+        /* KPI Section */
+        #incidentes-supervisor-inbox .kpi-section { margin-bottom: 1.25rem; }
+        #incidentes-supervisor-inbox .kpi-section h2 { font-size: 1.4rem; margin-bottom: 1rem; text-align: left; }
+        #incidentes-supervisor-inbox .kpi-header { display:flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        #incidentes-supervisor-inbox .kpi-header h2 { margin: 0; }
+
+        /* KPI styles adapted from operator inbox */
+        #incidentes-supervisor-inbox .kpis { display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+        @media(min-width:1100px){ #incidentes-supervisor-inbox .kpis{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        #incidentes-supervisor-inbox .kpi { background:#171a21; border:1px solid #262b36; border-radius:12px; padding:12px; }
+        #incidentes-supervisor-inbox .kpi .label{ font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:#a6adbb }
+        #incidentes-supervisor-inbox .kpi .value{ font-size:26px; font-weight:900; margin-top:6px; color:#ffd7b0 }
+        #incidentes-supervisor-inbox .hint{ font-size:12px; color:#a6adbb }
+        #incidentes-supervisor-inbox .delta{ font-weight:800 }
+        #incidentes-supervisor-inbox .update-info { text-align: right; }
+
+        /* Reassignment action button */
+        #incidentes-supervisor-inbox .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0; justify-content: center; align-items: center; }
+        #incidentes-supervisor-inbox .btn { padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
+        #incidentes-supervisor-inbox .btn:disabled { opacity: .6; cursor: not-allowed; }
+        #incidentes-supervisor-inbox #btnBulkReassign { font-size: 1.78rem; padding: 0.75rem 1.5rem; min-width: 420px; border-radius: 12px; }
+        @media (max-width: 768px) {
+          #incidentes-supervisor-inbox #btnBulkReassign { font-size: 1rem; padding: 0.6rem 1rem; min-width: 70%; }
+        }
+
+        /* Filters */
+        #incidentes-supervisor-inbox .filters-container { margin-bottom: 1.5rem; }
+        #incidentes-supervisor-inbox .search-wrapper { margin-bottom: 1.5rem; }
+        #incidentes-supervisor-inbox .search-wrapper input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1.3rem;
+        }
+        #incidentes-supervisor-inbox .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+        #incidentes-supervisor-inbox .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        #incidentes-supervisor-inbox .filter-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #a6adbb;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        #incidentes-supervisor-inbox .filter-select {
+            font-size: 1.2rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            #incidentes-supervisor-inbox .search-wrapper input { font-size: 1rem; padding: 0.75rem; }
+            #incidentes-supervisor-inbox .filter-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Table */
+        #incidentes-supervisor-inbox .table-wrap { overflow-x: auto; }
+        #incidentes-supervisor-inbox table { width: 100%; border-collapse: collapse; }
+        #incidentes-supervisor-inbox th, #incidentes-supervisor-inbox td { padding: 0.75rem; text-align: left; }
+        #incidentes-supervisor-inbox th { cursor: pointer; }
+        #incidentes-supervisor-inbox tr:hover { filter: brightness(0.98); }
+
+        /* SLA Semaphore */
+        #incidentes-supervisor-inbox .sla-semaphore { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        #incidentes-supervisor-inbox .sla-ok { background:#16a34a; }
+        #incidentes-supervisor-inbox .sla-warning { background:#f59e0b; }
+        #incidentes-supervisor-inbox .sla-critical { background:#f97316; }
+        #incidentes-supervisor-inbox .sla-expired { background:#ef4444; }
+
+        /* Small reassign button in table */
+        #incidentes-supervisor-inbox .reassign-btn-small {
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Pagination */
+        #incidentes-supervisor-inbox .pagination { display: flex; align-items: center; gap: 0.5rem; justify-content: center; padding: 0.75rem; }
+        #incidentes-supervisor-inbox .pagination-info { }
+
+        /* Modal Styles */
+        #incidentes-supervisor-inbox .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #incidentes-supervisor-inbox .modal-overlay.show {
+            display: flex;
+        }
+        #incidentes-supervisor-inbox .modal-content {
+            background-color: #1c1f2a;
+            border: 1px solid #262b36;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+        #incidentes-supervisor-inbox .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #262b36;
+        }
+        #incidentes-supervisor-inbox .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffd7b0;
+        }
+        #incidentes-supervisor-inbox .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            color: #a6adbb;
+        }
+        #incidentes-supervisor-inbox .modal-close:hover {
+            color: #ffd7b0;
+        }
+
+        /* Operator message section */
+        #incidentes-supervisor-inbox .operator-message-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: #171a21;
+            border: 1px solid #262b36;
+            border-radius: 8px;
+        }
+        #incidentes-supervisor-inbox .message-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffd7b0;
+            margin-bottom: 0.75rem;
+        }
+        #incidentes-supervisor-inbox .message-content {
+            font-size: 0.9rem;
+            color: #a6adbb;
+            line-height: 1.6;
+            padding: 0.75rem;
+            background-color: #1c1f2a;
+            border: 1px solid #262b36;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+        }
+        #incidentes-supervisor-inbox .message-metadata {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #a6adbb;
+            align-items: center;
+        }
+        #incidentes-supervisor-inbox .message-timestamp {
+            font-weight: 500;
+            color: #ffd7b0;
+        }
+        #incidentes-supervisor-inbox .message-timing-type {
+            font-style: italic;
+            color: #a6adbb;
+        }
+
+        /* Modal filters */
+        #incidentes-supervisor-inbox .modal-filters {
+            margin-bottom: 1.5rem;
+        }
+        #incidentes-supervisor-inbox .operator-search-input {
+            width: 100%;
+            padding: 0.6rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        /* Operators list */
+        #incidentes-supervisor-inbox .operators-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #incidentes-supervisor-inbox .operator-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #262b36;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background-color: #171a21;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #incidentes-supervisor-inbox .operator-option:hover {
+            background-color: #1c1f2a;
+            border-color: #ffd7b0;
+        }
+        #incidentes-supervisor-inbox .operator-option.selected {
+            background-color: #ffd7b0;
+            color: #171a21;
+            border-color: #ffd7b0;
+        }
+        #incidentes-supervisor-inbox .operator-info-modal {
+            flex: 1;
+        }
+        #incidentes-supervisor-inbox .operator-name-modal {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        #incidentes-supervisor-inbox .operator-details-modal {
+            font-size: 0.85rem;
+            color: #a6adbb;
+        }
+        #incidentes-supervisor-inbox .operator-option.selected .operator-name-modal {
+            color: #171a21;
+        }
+        #incidentes-supervisor-inbox .operator-option.selected .operator-details-modal {
+            color: #171a21;
+        }
+        #incidentes-supervisor-inbox .operator-workload {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        #incidentes-supervisor-inbox .operator-option.selected .operator-workload {
+            color: #171a21;
+        }
+
+        /* Modal actions */
+        #incidentes-supervisor-inbox .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #262b36;
+        }
+
+        @media (max-width: 768px) {
+            #incidentes-supervisor-inbox .list-container { padding: .75rem; }
+        }
+    </style>
+
+    <div class="list-container">
+        <!-- Supervisor Info Section -->
+        <section class="supervisor-info-section">
+            <div class="supervisor-label">Supervisor:</div>
+            <div class="supervisor-name" id="supervisorName">Jorge Martínez Sánchez</div>
+        </section>
+
+        <!-- KPI Section -->
+        <section class="kpi-section">
+            <div class="kpi-header">
+                <h2>KPIs del turno actual</h2>
+                <div class="update-info slight">
+                    <i class="fa fa-clock-o"> </i> Actualización: <span class="c-white time" id="updateTime">17:29:22 pm</span>
+                </div>
+            </div>
+            <div class="kpis" id="kpiGrid"></div>
+        </section>
+
+        <!-- Reassignment Action Button -->
+        <div class="actions">
+            <button class="btn btn-accent btn-rounded" id="btnBulkReassign">Reasignar incidentes automáticamente</button>
+        </div>
+
+        <!-- Table Section -->
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Incidentes pendientes de reasignación
+            </div>
+            <div class="panel-body">
+                <div class="filters-container">
+                    <div class="search-wrapper">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Buscar por ID o Operador" />
+                    </div>
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <label class="filter-label">Clasificación</label>
+                            <select class="form-control filter-select" id="clasificacionFilter">
+                                <option value="">Todas</option>
+                                <option value="Urgente">Urgente</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Crítico">Crítico</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Tipos</label>
+                            <select class="form-control filter-select" id="typeFilter">
+                                <option value="">Todos los tipos</option>
+                                <option value="Robo">Robo</option>
+                                <option value="Accidente de tránsito">Accidente de tránsito</option>
+                                <option value="Disturbio">Disturbio</option>
+                                <option value="Vandalismo">Vandalismo</option>
+                                <option value="Emergencia médica">Emergencia médica</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">¿Cuándo?</label>
+                            <select class="form-control filter-select" id="cuandoFilter">
+                                <option value="">Todos</option>
+                                <option value="durante">Durante el turno</option>
+                                <option value="final">Al final del turno</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="incidentsTable" class="table table-hover-1">
+                        <thead>
+                            <tr>
+                                <th data-col="id">Número (ID)</th>
+                                <th data-col="fecha">Fecha y hora de solicitud</th>
+                                <th data-col="operador">Operador actual</th>
+                                <th data-col="tipo">Tipo</th>
+                                <th data-col="subtipo">Subtipo</th>
+                                <th data-col="turnoTerminado">Turno terminado</th>
+                                <th data-col="sla">SLA</th>
+                                <th>Agentes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button class="btn btn-default btn-rounded" id="prevBtn">Anterior</button>
+                    <span class="pagination-info" id="paginationInfo">Mostrando 1-10 de 0</span>
+                    <button class="btn btn-default btn-rounded" id="nextBtn">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reassignment Modal -->
+    <div class="modal-overlay" id="reassignModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Reasignar incidente</h3>
+                <button class="modal-close" id="modalCloseBtn" aria-label="Cerrar modal">&times;</button>
+            </div>
+
+            <div class="operator-message-section">
+                <h4 class="message-label">Mensaje para el supervisor</h4>
+                <div class="message-content" id="operatorMessage">
+                    Cargando mensaje...
+                </div>
+                <div class="message-metadata" id="messageMetadata">
+                    <span class="message-timestamp" id="messageTimestamp"></span>
+                    <span class="message-timing-type" id="messageTimingType"></span>
+                </div>
+            </div>
+
+            <div class="modal-filters">
+                <input type="text" class="form-control operator-search-input" id="operatorSearchInput" placeholder="Buscar operador por nombre...">
+            </div>
+
+            <div class="operators-list" id="operatorsList">
+                <!-- Operators will be populated by JavaScript -->
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-default btn-rounded" id="btnCancelReassign">Cancelar</button>
+                <button class="btn btn-accent btn-rounded" id="confirmReassignBtn" disabled>Reasignar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        // Local state (scoped)
+        const root = document.getElementById('incidentes-supervisor-inbox');
+        if (!root) return;
+        let incidents = [];
+        let filteredIncidents = [];
+        let currentPage = 1;
+        const incidentsPerPage = 10;
+        let sortKey = 'id';
+        let sortDir = 'asc';
+        let selectedIncidentId = null;
+        let selectedOperatorId = null;
+
+        // Demo data - operators for next shift
+        const nextShiftOperators = [
+            {
+                id: 'OP-001',
+                name: 'Ana Rodríguez Pérez',
+                shift: 'Tarde',
+                shiftTime: '14:00 - 22:00',
+                currentWorkload: 3,
+                status: 'Disponible'
+            },
+            {
+                id: 'OP-002',
+                name: 'Carlos Mendoza Silva',
+                shift: 'Tarde',
+                shiftTime: '14:00 - 22:00',
+                currentWorkload: 5,
+                status: 'Disponible'
+            },
+            {
+                id: 'OP-003',
+                name: 'Laura Torres Gómez',
+                shift: 'Tarde',
+                shiftTime: '14:00 - 22:00',
+                currentWorkload: 2,
+                status: 'Disponible'
+            },
+            {
+                id: 'OP-004',
+                name: 'Miguel Ángel Rojas',
+                shift: 'Tarde',
+                shiftTime: '14:00 - 22:00',
+                currentWorkload: 4,
+                status: 'Disponible'
+            },
+            {
+                id: 'OP-005',
+                name: 'Patricia Vargas León',
+                shift: 'Noche',
+                shiftTime: '22:00 - 06:00',
+                currentWorkload: 0,
+                status: 'Próximo turno'
+            }
+        ];
+
+        // Demo data - pending incidents
+        const testIncidents = [
+            {
+                id: 'INC-2024-001',
+                fecha: '05/11/2024 08:30',
+                operador: 'María López Fernández',
+                clasificacion: 'Urgente',
+                tipo: 'Robo',
+                subtipo: 'Hurto',
+                turnoTerminado: 'Sí',
+                sla: '2h 15m',
+                slaStatus: 'ok',
+                agentes: 2,
+                mensaje: 'Necesito finalizar mi turno urgentemente por motivos personales. Este incidente requiere seguimiento continuo.',
+                fechaMensaje: '05/11/2024 13:55',
+                tipoMensaje: 'final'
+            },
+            {
+                id: 'INC-2024-002',
+                fecha: '05/11/2024 09:15',
+                operador: 'Juan Pérez García',
+                clasificacion: 'Normal',
+                tipo: 'Accidente de tránsito',
+                subtipo: 'Choque',
+                turnoTerminado: 'No',
+                sla: '1h 45m',
+                slaStatus: 'ok',
+                agentes: 3,
+                mensaje: 'Caso complejo con múltiples vehículos involucrados. Requiere coordinación con tránsito.',
+                fechaMensaje: '05/11/2024 11:30',
+                tipoMensaje: 'durante'
+            },
+            {
+                id: 'INC-2024-003',
+                fecha: '05/11/2024 10:00',
+                operador: 'María López Fernández',
+                clasificacion: 'Crítico',
+                tipo: 'Disturbio',
+                subtipo: 'Manifestación',
+                turnoTerminado: 'Sí',
+                sla: '45m',
+                slaStatus: 'warning',
+                agentes: 4,
+                mensaje: 'La situación está controlada pero necesita monitoreo constante. Mi turno ha finalizado.',
+                fechaMensaje: '05/11/2024 14:02',
+                tipoMensaje: 'final'
+            },
+            {
+                id: 'INC-2024-004',
+                fecha: '05/11/2024 11:30',
+                operador: 'Carmen Ruiz Díaz',
+                clasificacion: 'Normal',
+                tipo: 'Vandalismo',
+                subtipo: 'Destrucción',
+                turnoTerminado: 'No',
+                sla: '30m',
+                slaStatus: 'critical',
+                agentes: 1,
+                mensaje: 'Tengo sobrecarga de trabajo. Necesito que otro operador tome este caso.',
+                fechaMensaje: '05/11/2024 12:45',
+                tipoMensaje: 'durante'
+            },
+            {
+                id: 'INC-2024-005',
+                fecha: '05/11/2024 12:15',
+                operador: 'Juan Pérez García',
+                clasificacion: 'Urgente',
+                tipo: 'Emergencia médica',
+                subtipo: 'Lesiones',
+                turnoTerminado: 'Sí',
+                sla: '1h 20m',
+                slaStatus: 'ok',
+                agentes: 3,
+                mensaje: 'Mi turno terminó hace 15 minutos. Por favor reasignar a operador del siguiente turno.',
+                fechaMensaje: '05/11/2024 14:15',
+                tipoMensaje: 'final'
+            },
+            {
+                id: 'INC-2024-006',
+                fecha: '05/11/2024 13:00',
+                operador: 'María López Fernández',
+                clasificacion: 'Crítico',
+                tipo: 'Robo',
+                subtipo: 'Asalto',
+                turnoTerminado: 'No',
+                sla: '25m',
+                slaStatus: 'critical',
+                agentes: 2,
+                mensaje: 'Estoy atendiendo otro incidente de mayor prioridad en este momento.',
+                fechaMensaje: '05/11/2024 13:20',
+                tipoMensaje: 'durante'
+            },
+            {
+                id: 'INC-2024-007',
+                fecha: '05/11/2024 13:45',
+                operador: 'Carmen Ruiz Díaz',
+                clasificacion: 'Normal',
+                tipo: 'Accidente de tránsito',
+                subtipo: 'Lesiones',
+                turnoTerminado: 'Sí',
+                sla: '3h 30m',
+                slaStatus: 'ok',
+                agentes: 4,
+                mensaje: 'Finalizando turno. El caso está estable pero necesita seguimiento.',
+                fechaMensaje: '05/11/2024 13:58',
+                tipoMensaje: 'final'
+            },
+            {
+                id: 'INC-2024-008',
+                fecha: '05/11/2024 14:20',
+                operador: 'Juan Pérez García',
+                clasificacion: 'Urgente',
+                tipo: 'Disturbio',
+                subtipo: 'Riña',
+                turnoTerminado: 'No',
+                sla: '4h 15m',
+                slaStatus: 'ok',
+                agentes: 1,
+                mensaje: 'Solicito apoyo. Ya tengo 5 incidentes activos y no puedo atender más casos.',
+                fechaMensaje: '05/11/2024 14:25',
+                tipoMensaje: 'durante'
+            }
+        ];
+
+        function updateKPIs() {
+            const kpiData = [
+                { value: incidents.length, label: 'Incidentes pendientes de reasignación' },
+                { value: 15, label: 'Incidentes reasignados' },
+                { value: 5, label: 'Incidentes en curso' },
+                { value: 12, label: 'Incidentes cerrados' },
+                { value: 7, label: 'Solicitudes de reasignación durante el turno' },
+                { value: 3, label: 'Solicitudes de reasignación al final del turno' },
+                { value: 4, label: 'Mayor número de solicitudes por un mismo operador' },
+                { value: 2.3, label: 'Promedio de solicitudes de reasignación durante el turno' },
+                { value: 1.5, label: 'Promedio de solicitudes de reasignación al final del turno' }
+            ];
+
+            const kpiGrid = root.querySelector('#kpiGrid');
+            kpiGrid.innerHTML = kpiData.map(kpi => `
+                <div class="panel min-b-height panel-filled panel-c-accent">
+                    <div class="panel-heading">${kpi.label}</div>
+                    <div class="panel-body">
+                        <h1 class="m-b-none">${kpi.value}</h1>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTable() {
+            const startIndex = (currentPage - 1) * incidentsPerPage;
+            const endIndex = startIndex + incidentsPerPage;
+            const pageIncidents = filteredIncidents.slice(startIndex, endIndex);
+
+            const tableBody = root.querySelector('#tableBody');
+            tableBody.innerHTML = pageIncidents.map(incident => `
+                <tr>
+                    <td>${incident.id}</td>
+                    <td>${incident.fecha}</td>
+                    <td>${incident.operador}</td>
+                    <td>${incident.tipo}</td>
+                    <td>${incident.subtipo}</td>
+                    <td>${incident.turnoTerminado}</td>
+                    <td>
+                        <span class="sla-semaphore sla-${incident.slaStatus}" title="SLA ${incident.slaStatus}"></span>
+                        ${incident.sla}
+                    </td>
+                    <td>${incident.agentes}</td>
+                    <td>
+                        <button class="btn btn-accent btn-rounded btn-sm reassign-btn-small" data-incident-id="${incident.id}">
+                            Reasignar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Bind reassign buttons
+            tableBody.querySelectorAll('.reassign-btn-small').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    openReassignModal(this.dataset.incidentId);
+                });
+            });
+
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredIncidents.length / incidentsPerPage);
+            const startIndex = (currentPage - 1) * incidentsPerPage + 1;
+            const endIndex = Math.min(currentPage * incidentsPerPage, filteredIncidents.length);
+            root.querySelector('#paginationInfo').textContent = `Mostrando ${startIndex}-${endIndex} de ${filteredIncidents.length}`;
+            root.querySelector('#prevBtn').disabled = currentPage === 1;
+            root.querySelector('#nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        function applyFilters() {
+            const searchTerm = root.querySelector('#searchInput').value.toLowerCase();
+            const clasificacionFilter = root.querySelector('#clasificacionFilter').value;
+            const typeFilter = root.querySelector('#typeFilter').value;
+            const cuandoFilter = root.querySelector('#cuandoFilter').value;
+
+            filteredIncidents = incidents.filter(incident => {
+                const matchesSearch = !searchTerm ||
+                    incident.id.toLowerCase().includes(searchTerm) ||
+                    incident.operador.toLowerCase().includes(searchTerm);
+                const matchesClasificacion = !clasificacionFilter || incident.clasificacion === clasificacionFilter;
+                const matchesType = !typeFilter || incident.tipo === typeFilter;
+                const matchesCuando = !cuandoFilter || incident.tipoMensaje === cuandoFilter;
+                return matchesSearch && matchesClasificacion && matchesType && matchesCuando;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function sortBy(key) {
+            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            filteredIncidents.sort((a,b)=>{
+                const av = (a[key]||'').toString().toLowerCase();
+                const bv = (b[key]||'').toString().toLowerCase();
+                if (av < bv) return sortDir==='asc' ? -1 : 1;
+                if (av > bv) return sortDir==='asc' ? 1 : -1;
+                return 0;
+            });
+            renderTable();
+        }
+
+        function nextPage() {
+            const total = Math.ceil(filteredIncidents.length / incidentsPerPage);
+            if (currentPage < total) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        // Modal functions
+        function openReassignModal(incidentId) {
+            selectedIncidentId = incidentId;
+            selectedOperatorId = null;
+
+            // Find the incident and display its message
+            const incident = incidents.find(i => i.id === incidentId);
+            if (incident && incident.mensaje) {
+                root.querySelector('#operatorMessage').textContent = incident.mensaje;
+
+                // Display timestamp
+                if (incident.fechaMensaje) {
+                    root.querySelector('#messageTimestamp').textContent = incident.fechaMensaje;
+                } else {
+                    root.querySelector('#messageTimestamp').textContent = '';
+                }
+
+                // Display timing type
+                if (incident.tipoMensaje === 'durante') {
+                    root.querySelector('#messageTimingType').textContent = '(durante el turno)';
+                } else if (incident.tipoMensaje === 'final') {
+                    root.querySelector('#messageTimingType').textContent = '(al final del turno)';
+                } else {
+                    root.querySelector('#messageTimingType').textContent = '';
+                }
+            } else {
+                root.querySelector('#operatorMessage').textContent = 'No hay mensaje del operador para este incidente.';
+                root.querySelector('#messageTimestamp').textContent = '';
+                root.querySelector('#messageTimingType').textContent = '';
+            }
+
+            root.querySelector('#reassignModal').classList.add('show');
+            renderOperatorsList();
+        }
+
+        function closeReassignModal() {
+            root.querySelector('#reassignModal').classList.remove('show');
+            selectedIncidentId = null;
+            selectedOperatorId = null;
+            root.querySelector('#confirmReassignBtn').disabled = true;
+        }
+
+        function renderOperatorsList() {
+            const searchTerm = root.querySelector('#operatorSearchInput').value.toLowerCase();
+
+            const filteredOperators = nextShiftOperators.filter(operator => {
+                const matchesSearch = !searchTerm ||
+                    operator.name.toLowerCase().includes(searchTerm) ||
+                    operator.id.toLowerCase().includes(searchTerm);
+                return matchesSearch;
+            });
+
+            const operatorsList = root.querySelector('#operatorsList');
+            operatorsList.innerHTML = filteredOperators.map(operator => `
+                <div class="operator-option ${selectedOperatorId === operator.id ? 'selected' : ''}"
+                     data-operator-id="${operator.id}">
+                    <div class="operator-info-modal">
+                        <div class="operator-name-modal">${operator.name}</div>
+                        <div class="operator-details-modal">
+                            ${operator.id} | Turno ${operator.shift} (${operator.shiftTime})
+                        </div>
+                    </div>
+                    <div class="operator-workload">${operator.currentWorkload} incidentes</div>
+                </div>
+            `).join('');
+
+            // Bind operator selection
+            operatorsList.querySelectorAll('.operator-option').forEach(opt => {
+                opt.addEventListener('click', function() {
+                    selectOperator(this.dataset.operatorId);
+                });
+            });
+        }
+
+        function selectOperator(operatorId) {
+            selectedOperatorId = operatorId;
+            renderOperatorsList();
+            root.querySelector('#confirmReassignBtn').disabled = false;
+        }
+
+        function confirmReassignment() {
+            if (!selectedIncidentId || !selectedOperatorId) return;
+
+            const incident = incidents.find(i => i.id === selectedIncidentId);
+            const operator = nextShiftOperators.find(o => o.id === selectedOperatorId);
+
+            if (incident && operator) {
+                alert(`Incidente ${incident.id} reasignado exitosamente a ${operator.name}`);
+                closeReassignModal();
+                // Here you would make the backend call to update the assignment
+            }
+        }
+
+        function bulkReassignIncidents() {
+            if (confirm('¿Desea reasignar automáticamente todos los incidentes pendientes al siguiente turno?')) {
+                alert('Proceso de reasignación masiva iniciado. Se balancearán los incidentes entre los operadores disponibles del siguiente turno.');
+                // Here you would make the backend call for bulk reassignment
+            }
+        }
+
+        function bindEvents() {
+            root.querySelector('#searchInput').addEventListener('input', applyFilters);
+            root.querySelector('#clasificacionFilter').addEventListener('change', applyFilters);
+            root.querySelector('#typeFilter').addEventListener('change', applyFilters);
+            root.querySelector('#cuandoFilter').addEventListener('change', applyFilters);
+            root.querySelector('#nextBtn').addEventListener('click', nextPage);
+            root.querySelector('#prevBtn').addEventListener('click', prevPage);
+            root.querySelector('#btnBulkReassign').addEventListener('click', bulkReassignIncidents);
+
+            // Modal events
+            root.querySelector('#modalCloseBtn').addEventListener('click', closeReassignModal);
+            root.querySelector('#btnCancelReassign').addEventListener('click', closeReassignModal);
+            root.querySelector('#confirmReassignBtn').addEventListener('click', confirmReassignment);
+            root.querySelector('#operatorSearchInput').addEventListener('input', renderOperatorsList);
+
+            // Sortable columns
+            root.querySelectorAll('th[data-col]').forEach(th => {
+                th.addEventListener('click', () => {
+                    sortKey = th.dataset.col;
+                    sortBy(sortKey);
+                });
+            });
+        }
+
+        function init(){
+            incidents = [...testIncidents];
+            filteredIncidents = [...incidents];
+            updateKPIs();
+            renderTable();
+            bindEvents();
+        }
+
+        // Initialize immediately when fragment is inserted
+        init();
+    })();
+    </script>
+</div>

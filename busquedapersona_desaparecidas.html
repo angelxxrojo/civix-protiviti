@@ -1,0 +1,610 @@
+<div class="row">
+    <div class="col-md-7">
+        <div class="panel panel-filled panel-c-accent">
+          <div class="panel-heading">
+            <div class="panel-tools">
+            </div>
+            Filtros
+          </div>
+          <div class="panel-body" >
+            <div class="row">
+              <!-- IZQUIERDA: filtros apilados -->
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="txtname">Nombre</label>
+                    <div class="input-group">
+                      <input id="txtname" type="text" class="form-control" placeholder="Selecciona una persona..." readonly="" data-toggle="modal" data-target="#searchPersonModal">
+                      <div class="input-group-append input-group-addon">
+                        <span class="input-group-text" data-toggle="modal" data-target="#searchPersonModal"><i class="pe-7s-search"></i></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!--
+                <div class="col-md-3">
+                  <div class="form-group">
+                      <label for="txtprecision">Precisión</label>
+                      <select id="txtprecision" class="form-control">
+                            <option value="">Cargando...</option>
+                      </select>
+                  </div>
+                </div>
+                -->
+                <div class="col-md-3">
+                  <div class="form-group ">
+                    <label for="txtFechaIni">Fecha Inicio</label>
+                    <input id="txtFechaIni" type="date" class="form-control">
+                  </div>
+                </div>
+                <div class="col-md-3">  
+                  <div class="form-group ">
+                    <label for="txtFechaFin">Fecha Fin</label>
+                    <input id="txtFechaFin" type="date" class="form-control">
+                  </div>
+                </div>
+                <div class="col-md-3 text-center">  
+                    <div class="form-group" style="margin-top: 26px">
+                      <button id="btnbuscar" class="btn btn-w-md btn-primary btn-rounded">
+                        Buscar
+                      </button>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="col-md-5" id="image-container" >
+        <div class="panel panel-filled panel-c-accent">
+          <!-- Imagen a la izquierda -->
+          
+    
+          <!-- Información a la derecha -->
+            <div class="panel-body">
+                <div class="col-md-4">
+                    <img style="width:100%; height:160px; border-radius: 5px;" src="@foto"  onerror="this.onerror=null;this.src='public/images/logowin.png';" >
+                </div>
+                      
+                <div class="col-md-8">
+                    <div style="font-size:100%; height:auto; width:100%">
+                      <div><span class="c-white" style="float:right">@nombre</span>Nombre:</div>
+                      <div><span class="c-white" style="float:right">@apellidos</span>Apellido:</div>
+                      <div><span class="c-white" style="float:right">@documento</span>Documento:</div>
+                      <div><span class="c-white" style="float:right">@edad</span>Edad:</div>
+                      <div style="display: flex; justify-content: space-between;">
+                                <span>Descripción:</span><span class="c-white text-right" style="max-width: 60%; word-break: break-word;">@descripcion</span>
+                            </div>
+                      <div><span class="c-white" style="float:right">@persocontacname</span>Persona de Contacto:</div>
+                      <div><span class="c-white" style="float:right">@fh_crea</span>Fecha de Registro:</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+      
+    </div>
+</div>
+
+
+<div class="modal fade" id="searchPersonModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                  <div class="modal-header">
+                        <h5 class="modal-title">Buscar personas</h5>
+                  </div>
+                  <div class="modal-body modal-body-scroll">
+                        <div class="form-group">
+                              <div class="row">
+                                    <div class="col-md-9 mb-2">
+                                          <input id="personSearchInput" type="text" class="form-control"
+                                                placeholder="Escribe nombre o número de documento ...">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                          <button id="btnPersonSearch"
+                                                class="btn btn-w-md btn-accent btn-rounded">Buscar</button>
+                                    </div>
+                              </div>
+                        </div>
+                        <div class="form-group">
+                              <div id="personSearchResults" class="table-responsive"></div>
+                        </div>
+                  </div>
+                  
+                  <div class="modal-footer">
+                        <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+                  </div>
+            </div>
+      </div>
+</div>
+
+<div class="row" id="result-list"></div>
+
+<div id="subpanelTemplate" class="d-none" style="display:none">
+      <div class="col-md-4">
+            <div class="panel panel-c-accent"  style="border-radius: 0px 15px 15px 0px;background: #252525 !important;">
+
+                  <!-- Panel Body: imagen y descripción en fila -->
+                  <div class="panel-body" style="display:flex; align-items:flex-start; gap:10px; padding:10px;height:140px;">
+                        <!-- Zona de imagen recortada -->
+                        <div class="face-crop"
+                              style="width:80px; height:80px; border-radius:5px; overflow:hidden; flex-shrink:0;">
+                        </div>
+                        <!-- Zona de texto al lado -->
+                        <div style="flex:1; font-size:80%;">
+                              <div>ID: <span class="c-white" style="float:right">@j</span></div>
+                              <div>Nombre: <span class="c-white" style="float:right">@nombre</span></div>
+                              <div>Fecha: <span class="c-white" style="float:right">@date_start</span></div>
+                              <div>Documento: <span class="c-white" style="float:right">@documento</span></div>
+                              <div>Precisión: <span class="c-white" style="float:right">@acc_parecido%</span></div>
+                              
+                              <div style="display: flex; justify-content: space-between;">
+                                <span>Locación:</span><span class="c-white text-right" style="max-width: 60%; word-break: break-word;">@location</span>
+                            </div>
+                        </div>
+                  </div>
+
+                  <!-- Panel Footer: botón debajo -->
+                  <div class="panel-footer" style="padding:10px;">
+                        <button class="btn btn-w-md btn-success btn-rounded" style="width:100%; font-size:80%;">Ver Video</button>
+                  </div>
+
+            </div>
+      </div>
+</div>
+
+
+
+<div class="modal fade" id="showVideoModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog">
+            <div class="modal-content">
+
+                  <div class="modal-header text-left">
+
+                        <span class="c-white" style="float:right" id="showtime"></span>
+                        Cámara : <span class="c-white" id="showcamera"></span>
+                        <div id="showlocation"></div>
+                  </div>
+
+                  <div class="modal-body" style="height:400px">
+                  </div>
+                  <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                  </div>
+            </div>
+      </div>
+</div>
+
+
+
+<script>
+var videoPlayer = null;
+let selectedDocument = "";
+const hoy = new Date();
+const ayer = new Date(hoy);
+ayer.setDate(hoy.getDate() - 1);
+const formatear = d => {
+    const limaDate = new Date(d);
+    limaDate.setHours(limaDate.getUTCHours() - 5);
+    return limaDate.toISOString().split('T')[0];
+};
+
+// Asegúrate de que 'ayer' y 'hoy' sean objetos Date válidos antes de pasarlos.
+
+$('#txtFechaIni').val(formatear(ayer));
+$('#txtFechaFin').val(formatear(hoy));
+// ------------------------------------------------------
+const id_lista = 4;
+
+function imageprocess(obj, time) {
+    obj.onerror = null;
+
+    var btn = obj.parentElement.parentElement.parentElement.querySelector('button')
+    btn.setAttribute('disabled', 1);
+    btn.className = "btn btn-w-md btn-secondary btn-rounded"
+
+    setTimeout(
+        () => {
+            obj.src = '/public/images/logowin.png'
+            obj.style.filter = 'grayscale(100%)'
+            obj.style.opacity = '0.1'
+        },
+        time
+    );
+}
+
+function showresultsearch(data) {
+    log(data)//coords_obj
+    $("#result-list").html("")
+    //var paneltemplate = $("#subpanelTemplate").html();
+      //  const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    var paneltemplate = $("#subpanelTemplate").html();
+    var cont = 1;
+    var itime = 1;
+    for (const x of data) {
+        //const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+
+        var panel = paneltemplate;
+        var d = new Date(x.date_start);
+        x.date_start = new Intl.DateTimeFormat('es-PE', options).format(d)
+        itime += 5;
+        x.j = cont;
+        cont ++;
+        for (y in x) { panel = panel.replaceAll("@" + y, x[y]) }
+
+
+        panel = panel.replaceAll("@time", itime)
+        panel = $(panel)
+        const $crop = panel.find(".face-crop");
+
+        const [xf1, yf1, xf2, yf2] = (x.coords_face || "0,0,1,1").split(",").map(Number);
+        const [xb1, yb1] = (x.coords_obj || "0,0").split(",").map(Number);
+
+        const x1 = xf1 + xb1;
+        const y1 = yf1 + yb1;
+        const w = xf2 - xf1;
+        const h = yf2 - yf1;
+
+        const containerW = 110;  // igual al width de tu panel-heading
+        const containerH = 122;  // igual al height de tu panel-heading
+
+        const fotoUrl = x.foto_frame;
+        const img = new Image();
+        img.src = fotoUrl;
+        img.onload = () => {
+            const imgW = img.naturalWidth;
+            const imgH = img.naturalHeight;
+
+            const scale = Math.min(containerW / w, containerH / h);
+            const bgW = imgW * scale;
+            const bgH = imgH * scale;
+
+            const bgX = (containerW - w * scale) / 2 - x1 * scale;
+            const bgY = (containerH - h * scale) / 2 - y1 * scale;
+            
+           // const $heading = panel.find(".panel-heading > div"); // el contenedor interno
+            //$heading.empty(); // quita el <img> original
+            log("fotoUrl",fotoUrl)
+            if(!fotoUrl || fotoUrl==""){
+                log("vacio",fotoUrl);
+            }
+            $crop.css({
+
+                width: `${containerW}px`,
+                height: `${containerH}px`,
+                backgroundImage: `url(${fotoUrl})`,
+                backgroundSize: `${bgW}px ${bgH}px`,
+                backgroundPosition: `${bgX}px ${bgY}px`,
+                backgroundRepeat: "no-repeat",
+            });
+
+            //$heading.append($crop);
+        };
+        
+        var anchor = $(panel).find('button')
+        anchor.attr("data", JSON.stringify(x));
+        anchor.on('click', function () {
+            playVideo(JSON.parse($(this).attr("data")))
+        });
+
+        $("#result-list").append(panel)
+    }
+}
+
+function showpersonresultsearch(data) {
+  const container = $('#image-container');
+  container.empty();
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+
+  let itime = 1;
+  data.forEach(person => {
+
+    const d = new Date(person.fh_crea);
+    person.fh_crea = new Intl.DateTimeFormat('es-PE', options).format(d);
+
+    // fallback de foto
+    
+    person.foto = person.foto+ "?_ts=" + Date.now();
+    person.apellidos = person.apellidos || '';
+    log(person.foto)
+    // clonamos la plantilla
+    let html = panelTemplate;
+    itime += 5;
+
+    // reemplazamos todas las variables @campo
+    Object.keys(person).forEach(key => {
+      html = html.replaceAll(`@${key}`, person[key]);
+    });
+    html = html.replaceAll('@time', itime);
+    
+
+
+    // convertimos a jQuery y enganchamos eventos
+    const $panel = $(html);
+    $panel.find('img').each(function () {
+        const base = $(this).attr('src').split('?')[0];
+        $(this).attr('src', person.foto + '?_ts=' + Date.now());
+    });
+    $panel.find('button')
+      .attr('data', JSON.stringify(person))
+      .on('click', () => playVideo(person));
+
+    container.append($panel);
+  });
+}
+
+
+function playVideo(row) {
+    "#showcamera".qs().innerHTML = row.cameraname
+    "#showtime".qs().innerHTML = row.date_start
+    "#showlocation".qs().innerHTML = row.location
+    callAPI({
+        method: 'gestion/getframesperson',
+        params: {
+            camara: row.camera_id,
+            tracking_id: row.xtracking_id,
+            id: row.id,
+            epoch: 1751914863469
+
+        },
+        ok: function (data) {
+            log(data)
+            videoPlayer = new videoplay("#showVideoModal .modal-body".qs());
+            setTimeout(() => {
+                $('#showVideoModal').modal('show');
+                log("showVideoModal")
+
+                const frames = data;
+
+                // Reducimos SOLO ese array
+                const grouped = Object.values(
+                    frames.reduce((acc, frame) => {
+                        if (!acc[frame.foto]) {
+                          acc[frame.foto] = { foto: frame.foto, coords_obj: [] };
+                        }
+                        acc[frame.foto].coords_obj.push({
+                          categoria: frame.category,
+                          accuracy_obj: frame.acc_parecido,
+                          colorupper: frame.color_name_upper,
+                          colorlower: frame.color_name_lower,
+                          coords: (frame.coords_obj || '').split(","),
+                          coordsplate: (frame.coords_face || '').split(","),
+                          plate: row.nombre
+                        });
+
+                        return acc;
+                    }, {})
+                ).sort((a, b) => a.foto.localeCompare(b.foto));
+                videoPlayer.update(grouped, "foto", "coords_obj")
+                setTimeout(() => { videoPlayer.play() }, 100)
+
+            }, 100)
+        }
+    });
+
+}
+
+$(document).ready(function () {
+     panelTemplate = $('#image-container').html();
+        $('#image-container')
+      // A) Borra los span que contienen @xxx
+      .find('span.c-white').each(function() {
+        if ($(this).text().trim().startsWith('@')) {
+          $(this).text('');
+        }
+      })
+      // B) Sustituye cualquier src="@foto" por tu fallback
+      .end()
+      .find('img').each(function() {
+        const src = $(this).attr('src');
+        if (src && src.startsWith('@')) {
+          $(this).attr('src', '/public/images/logowin.png');
+        }
+      });
+      
+      
+    callAPI({
+        method: "gestion/getpresicion",
+        ok: function (vals) {
+
+            const sel = $('#txtprecision').empty();
+            vals.forEach(obj => {
+                const p = obj.numero;
+                if (p == 20) { sel.append(`<option selected="selected" value="${p}"> >= ${p}%</option>`); }
+                else { sel.append(`<option value="${p}"> >= ${p}%</option>`); }
+            });
+        },
+        error: function () {
+            $('#txtprecision').html('<option value="">Error</option>');
+        }
+    })
+    ;
+    
+   callAPI({
+        method: 'gestion/getiperson',
+        params: {
+            id_lista: id_lista,
+            nombre: 'all',
+            ident_nro: 'all'
+        },
+        ok: function (data) {
+            log(data);
+            const $container = $('#personSearchResults').empty();
+
+            if (!data.length) {
+                $container.html('<div class="alert alert-warning">No se encontraron resultados.</div>');
+                return;
+            }
+
+            let table = `
+                <table class="table table-hover-1">
+                  <thead>
+                    <tr>
+                      <th>Foto</th>
+                      <th>Nombre</th>
+                      <th>Documento</th>
+                      <th>Edad</th>
+                      <th>Descripción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+            `;
+
+            data.forEach(person => {
+                const personData = JSON.stringify(person).replace(/'/g, "&apos;");
+                const foto = person.foto && person.foto.trim() && !person.foto.startsWith('@') ?
+                    `<img src="${person.foto}" 
+                          alt="Foto de ${person.nombres}" 
+                          style="width:40px; height:40px; object-fit:cover; border-radius:50%;" 
+                          onerror="this.onerror=null;this.src='/public/images/logowin.png';">` :
+                    `<img src="/public/images/logowin.png" 
+                          alt="Sin foto" 
+                          style="width:40px; height:40px; object-fit:cover; border-radius:50%;">`;
+
+                table += `
+                    <tr class="select-person" data-person='${personData}'>
+                        <td>${foto}</td>
+                        <td>${person.nombres} ${person.apellidos}</td>
+                        <td>${person.ident_nro}</td>
+                        <td>${person.edad || ''}</td>
+                        <td>${person.descripcion || ''}</td>
+                    </tr>`;
+            });
+
+            table += `</tbody></table>`;
+            $container.html(table);
+        },
+        error: () => {
+            alert('Error al buscar personas.');
+        }
+    });
+    
+});
+
+$("#btnbuscar").on("click", () => {
+    log("Value selectedDocument" + selectedDocument)
+    const nombre = $('#txtname').val().trim();
+    const id = selectedDocument ;
+    const precision = $('#txtprecision').val() || null;
+    const subzonas = 'all';
+    const colorsup = 'all';
+    const colorinf = 'all';
+    
+    log("hola");
+    log("nombre", nombre);
+    log("documento", id)
+
+    const fechaIni = $('#txtFechaIni').val()
+    ? new Date($('#txtFechaIni').val() + 'T00:00:00').getTime()
+    : "";
+
+    const fechaFin = $('#txtFechaFin').val()
+        ? new Date($('#txtFechaFin').val() + 'T23:59:59.999').getTime()
+        : "";
+
+    log(fechaIni)
+    log(fechaFin)
+    callAPI({
+        method: "gestion/getlistpersondetect",
+        params: {
+            nombre: nombre || "all",
+            id: id,
+            precision: precision,
+            subzonas: subzonas,
+            colorsuperior: colorsup,
+            colorinferior: colorinf,
+            persona: 3,
+            fechaini: fechaIni,
+            fechafin: fechaFin,
+            edad: "all",
+            genero: "all"
+        },
+        ok: (data)=>{
+            showresultsearch(data)
+        }
+    });
+
+});
+
+$("#showVideoModal").on("hidden.bs.modal", function () {
+    videoPlayer.stop();
+});
+
+$('#btnPersonSearch').on('click', function () {
+    const term = $('#personSearchInput').val().trim();
+    if (!term) return;
+
+    callAPI({
+        method: 'gestion/getiperson',
+        params: {
+            id_lista: id_lista,
+            nombre: term || 'all',
+            ident_nro: term || 'all'
+        },
+
+        ok: function (data) {
+            log(data);
+            const $container = $('#personSearchResults').empty();
+
+            if (!data.length) {
+                $container.html('<div class="alert alert-warning">No se encontraron resultados.</div>');
+                return;
+            }
+
+            let table = `
+            <table class="table table-hover-1">
+              <thead>
+                <tr>
+                  <th>Foto</th>
+                  <th>Nombre</th>
+                  <th>Documento</th>
+                  <th>Edad</th>
+                  <th>Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+            `;
+
+            data.forEach(person => {
+                const personData = JSON.stringify(person).replace(/'/g, "&apos;");
+                const foto = person.foto ? 
+                  `<img src="${person.foto}?_ts=${Date.now()}" 
+                        alt="Foto de ${person.nombres}" 
+                        style="width:40px; height:40px; object-fit:cover; border-radius:50%;" 
+                        onerror="this.onerror=null;this.src='/public/images/logowin.png';">`
+                  : `<img src="/public/images/logowin.png" 
+                          alt="Sin foto" 
+                          style="width:40px; height:40px; object-fit:cover; border-radius:50%;">`;
+
+                table += `
+                <tr class="select-person" data-person='${personData}'>
+                    <td>${foto}</td>
+                    <td>${person.nombres} ${person.apellidos}</td>
+                    <td>${person.ident_nro}</td>
+                    <td>${person.edad || ''}</td>
+                    <td>${person.descripcion || ''}</td>
+                </tr>
+                `;
+            });
+
+            table += `</tbody></table>`;
+            $container.html(table);
+        },
+
+        error: () => {
+            alert('Error al buscar personas.');
+        }
+    });
+});
+
+$('#personSearchResults').on('click', '.select-person', function () {
+    const person = JSON.parse($(this).attr('data-person'));
+
+    nombres = person.nombres || ""
+    apellidos = person.apellidos || ""
+    $('#txtname').val(nombres + " " + apellidos  );
+    selectedDocument = person.id;
+
+    showpersonresultsearch([person]);
+    $('#searchPersonModal').modal('hide');
+});
+
+</script>

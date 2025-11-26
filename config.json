@@ -1,0 +1,750 @@
+[
+    {"title":"Dashboard y Consultas", "__version__": "2511171440"}
+    ,
+    {
+        "path":"dash",
+        "title":"Dashboard",
+        "list":[
+            {
+                "title":"Dash Main",
+                "file":"main",
+                "icon":"pe-7s-shield",
+                "small":"Dashboard principal"
+            },
+            {"title":"Dash vehiculos1","file":"dashboardbase","icon":"pe-7s-server",
+                "small":"Dashboard de prueba"},
+            {"title":"Mapa de calor","file":"mapacalor","icon":"pe-7s-shield"},
+            {"title":"Dashboard de Accidentes de Tránsito","file":"dash_accidentes_transito"},
+            {"title":"Dashboard de Vehículos","file":"dash_vehiculos"},
+            {"title":"Dashboard de Alertas (old)", "file":"dashalertas/dash_alertas",
+               "fragments":{
+                    "fragmento1":"dashalertas/fragmento1"
+                }, 
+                "sources": [
+                        "gestion/dolistimgbytrackid",
+                        "gestion/dolistseguimiento"
+                        
+                    ],
+                "profiles": [
+                    "administrador"
+                ]},
+            {"title":"Dashboard de Zona Restringida de Personas", "file":"dash_zonarest_persona", "icon":"pe-7s-graph3",
+                "small":"Este dashboard muestra indicadores referentes a personas detectadas por hora en zonas restringidas.",
+                "sources": [
+                        "gestion/dolistimgbytrackid",
+                        "gestion/dolistseguimiento"
+                        
+                    ],
+                "profiles": [
+                    "administrador"
+                ]
+            },
+            {"title":"Dashboard de aglomeracion de personas", "file":"aglomeracionPersona", "icon":"pe-7s-graph3",
+                "small":"Este Dashboard muestra indicadores referentes ah la aglomeracion de personas",
+                "sources": [
+                        "evaluedzone/api/frames/summary"
+                    
+                        
+                    ],
+                "profiles": [
+                    "administrador"
+                ]
+            },
+            {"title":"Dashboard de Zonas Permanencia Alertas", "file":"DashboardZonasPermanencia", "icon":"pe-7s-graph3",
+                "small":"Este Dashboard da informacion de zonas de permanencia y alertas",
+                "sources": [
+                      " "
+                        
+                    ],
+                "profiles": [
+                    "administrador"
+                ]
+            },
+            {"title":"Dashboard de Zona Restringida de Vehiculos", "file":"dash_zonarest_vehiculo_nuevo","icon":"pe-7s-car",
+            "small":"Este dashboard muestra indicadores referentes a vehiculos detectados en zonas restringidas por horas. Ejm: Cantidad de vehiculos, tipos de vehiculos, etc",
+                "sources": [
+                        "gestion/dolistimgbytrackid",
+                        "gestion/dolistseguimiento"
+                        
+                    ],
+                "profiles": [
+                    "administrador"
+                ]
+            },
+            {"title":"Dashboard de Analisis de efectividad", "file":"contadorPersonas_parecidas","icon":"pe-7s-graph3",
+            "small":"Este dashboard muestra la cantidad de personas, vehiculos y frames por camaras. ademas, placas de vehiculos, frames/min y personas analizadas y parecidas.",
+                "sources": [
+                        "dashboards/unificado"
+                        
+
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            },
+                
+            
+            {"title":"Dashboard de Congestión Vehicular", "file":"dash_congestion_vehiculo","icon":"pe-7s-car",
+            "small":"Este dashboard muestra indicadores referentes a congewstiones vehiculares captadas por las cámaras de vigilancia. Ejm: Cantidad de congestiones, congestiones geolocalizadas, etc"},
+            {"title":"Dashboard de Aglomeración de Personas", "file":"dash_congestion_persona","icon":"pe-7s-add-user",
+            "small":"Este dashboard muestra indicadores referentes a aglomeraciones de personas captadas por las cámaras de vigilancia. Ejm: Cantidad de aglomeraciones, aglomeraciones geolocalizadas, etc"},
+            {"title":"Dashboard de Zona de Estacionamiento", "file":"dash_zonaesta_vehiculo","icon":"pe-7s-car",
+            "small":"Este dashboard muestra indicadores referentes a vehiculos detectados en zonas de estacionamiento. Ejm: Cantidad de vehiculos, tipos de vehiculos, etc",
+                "sources": [
+                        "gestion/dolistimgbytrackid",
+                        "gestion/dolistseguimiento"
+                        
+                    ],
+                "profiles": [
+                    "administrador"
+                ]},
+                {"title":"Dashboard de Alertas", "file":"dashalert", "icon":"pe-7s-car",
+            "small":"Este dashboard muestra indicadores referentes a las alertas del sistema",
+                "sources": [
+                        "gestion/getalerts",
+                        "gestion/dolistseguimiento",
+                        "dashboards/unificado/minuto_cerrado",
+                        "dashboards/alerts/cache",
+                        "dashboards/alertscache",
+                        "dashboards/lastframe",
+                        "gestion/dolistimgevents",
+                        "gestion/getframesperson"
+                    ],
+                "profiles": [
+                    "operador"
+                ]}
+        ]
+    }
+    ,
+    {
+        "path":"querys",
+        "title":"Búsquedas",
+        "list":[
+            {
+                "title":"Consulta de video por cámara","file":"consultavideoporcamara","icon":"pe-7s-photo",
+                "small":"Este página permite visualizar los ultimos 5 minutos de cada cámara",
+                "sources": [
+                        "gestion/getframesnow",
+                        "gestion/getcamaras"
+                        
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            },
+
+            {"title":"Consulta de Vehículos por Placa","file":"consultavehiculosporplaca","icon":"pe-7s-note2",
+            "small":"Este página permite encontrar un vehículo a travez de su número de placa",
+                "sources": [
+                        "gestion/dolistimgbytrackid",
+                        "gestion/dolistseguimiento"
+                        
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            },
+
+            {"title":"Búsqueda de personas desaparecidas","file":"busquedapersona_desaparecidas","icon":"pe-7s-add-user",
+            "small":"Esta página permite encontrar a una persona desaparecida que seleccione de la lista",
+                "sources": [
+                        "gestion/getframesperson",
+                        "gestion/getpresicion",
+                        "gestion/getiperson",
+                        "gestion/getlistpersondetect",
+                        "gestion/getframespersonvid"
+                        
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+                
+            },
+
+            {"title":"Búsqueda de Personas Sospechosas","file":"busquedapersona_sospechosas","icon":"pe-7s-add-user",
+            "small":"Este página permite encontrar a una Persona Sospechosa que seleccione en la lista",
+                "sources": [
+                        "gestion/getframesperson",
+                        "gestion/getpresicion",
+                        "gestion/getiperson",
+                        "gestion/getlistpersondetect",
+                        "gestion/getframespersonvid"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+                
+            },
+
+            {"title":"Búsqueda de Personas Requisitoriadas","file":"busquedapersona_requisitoriadas","icon":"pe-7s-add-user",
+            "small":"Este página permite encontrar a una Persona Requisitoriadas que seleccione en la lista",
+                "sources": [
+                        "gestion/getframesperson",
+                        "gestion/getpresicion",
+                        "gestion/getiperson",
+                        "gestion/getlistpersondetect",
+                        "gestion/getframespersonvid"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+                
+            },
+
+
+            {"title":"Búsqueda de Personas por Características","file":"busquedapersonascaracteristicas","icon":"pe-7s-users",
+            "small":"Este página permite buscar a una personas haciendo uso de los filtros de características",
+                "sources": [
+                        "gestion/getframespersoncaract",
+                        "gestion/getlistpersoncaract",
+                        "gestion/getpresicion",
+                        "gestion/jerarquia_territorial",
+                        "gestion/color"
+                        
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+                },
+
+
+            {"title":"Detecciones por Cámara","file":"evento_camara","icon":"pe-7s-users",
+            "small":"Este página permite listar las detecciones de automóviles y personas",
+                "sources": [
+                        "gestion/getframesperson",
+                        "gestion/dolistimgbytrackid",
+                        "gestion/geteventoscamara",
+                        "gestion/getcamaras",  
+                        "gestion/getlistperson",
+                        "gestion/dolistseguimient"
+                        
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            }
+            
+        ]
+    }
+        ,
+    {
+        "path":"alerts",
+        "title":"Alertas",
+        "icon":"alarm",
+        "list":[
+            {"title":"Mapa de Alertas","file":"alert_map","icon":"pe-7s-note2",
+            "small":"Este página permite visualizar alertas y notificaciones, en tiempo real",
+                "fragments": {
+                    "styleshtml": "alertlocales/locales_styles"
+                },
+                "sources": [
+                        "gestion/getframesperson",
+                        "gestion/getalerts",
+                        "gestion/getTypeAlerts",
+                        "gestion/dolistimgevents",
+                        "gestion/dolistimgbytrackid",
+                        "gestion/get_vehiculos_lista",
+                        "gestion/getiperson",
+                        "gestion/color",
+                        "gestion/camarabytype",
+                        "gestion/getlistpersondetect",
+                        "gestion/dolistseguimiento",
+                        "gestion/dolistseguimientoalert",
+                        "gestion/getlistpersoncaract",
+                        "gestion/jerarquia_territorial",
+                        "gestion/getframespersoncaract",
+                        "gestion/get_listas",
+                        "gestion/get_areas",
+                        "dashboards/lastframe",
+                        "gestion/getbuilding"
+                        
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            
+            },
+            {
+                "title":"Monitor Locales",
+                "file":"alertlocales1",
+                "icon":"pe-7s-note2",
+                "small":"Este página permite visualizar alertas y notificaciones, en tiempo real",
+                "fragments": {
+                    "styleshtml": "alertlocales/locales_styles"
+                },
+                "sources": [
+                        "gestion/getframesperson",
+                        "gestion/getalerts",
+                        "gestion/camarabytype",
+                        "gestion/dolistimgevents",
+                        "gestion/dolistimgbytrackid",
+                        "gestion/getlistpersondetect",
+                        "gestion/getiperson",
+                        "gestion/get_vehiculos_lista",
+                        "gestion/dolistseguimiento",
+                        "gestion/dolistseguimientoalert",
+                        "gestion/color",
+                        "gestion/getlistpersoncaract",
+                        "gestion/jerarquia_territorial",
+                        "gestion/getframespersoncaract",
+                        "gestion/getbuilding",
+                        "gestion/get_areas",
+                        "gestion/get_listas",
+                        "dashboards/lastframe"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            
+            },
+            {"title":"Monitor personas","file":"mapapersonas","icon":"pe-7s-note2",
+            "small":"Este página permite visualizar la densidad de personas en el local",
+                "sources": [
+                        "gestion/getframesperson",
+                        "gestion/getalerts",
+                        "gestion/camarabytype",
+                        "gestion/dolistimgevents",
+                        "gestion/dolistimgbytrackid",
+                        "gestion/getlistpersondetect",
+                        "gestion/getiperson",
+                        "gestion/get_vehiculos_lista",
+                        "gestion/dolistseguimientoalert",
+                        "gestion/color",
+                        "gestion/getlistpersoncaract",
+                        "gestion/jerarquia_territorial",
+                        "gestion/getframespersoncaract",
+                        "gestion/getbuilding",
+                        "gestion/get_areas",
+                        "gestion/get_listas",
+                        "dashboards/lastframe"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            
+            },
+           
+                {"title":"Monitor de cámaras y alertas", "file":"videowall2","icon":"pe-7s-video",
+            "small":"Este dashboard muestra videos de las cámaras seleccionadas",
+                "sources": [
+                        "gestion/dolistimgbytrackid",
+                        "gestion/getcamarasall",
+                        "gestion/getalerts",
+                        "gestion/dolistimgevents",
+                        "gestion/dolistimgbytrackid",
+                        "gestion/getframesperson",
+                        "gestion/getframeslast",
+                        "gestion/getcamaras",
+                        "dashboards/lastframe"
+                    ],
+                "profiles": [
+                    "operador"
+                ]},
+                {"title":"Tablero de alertas", "file":"tableroalertas","icon":"pe-7s-video",
+            "small":"Este dashboard permite visualza tipos de alertas en 6paneles",
+                "sources": [
+                        "gestion/dolistimgbytrackid",
+                        "gestion/getcamarasall",
+                        "gestion/getalerts",
+                        "gestion/dolistimgevents",
+                        "gestion/dolistimgbytrackid",
+                        "gestion/getframesperson",
+                        "gestion/getframeslast",
+                        "gestion/getcamaras",
+                        "dashboards/lastframe",
+                        "gestion/getTypeAlerts",
+                        "dashboards/alertscache"
+                    ],
+                "profiles": [
+                    "operador"
+                ]}
+        ]
+    }
+    ,
+      {"title":"Modulo de incidentes"}
+    ,
+      {
+        "path":"incidentes_operadores",
+        "title":"Operadores",
+        "icon":"pe-7s-airplay",
+        "list":[
+            {
+                "title":"Bandeja del operador",
+                "file":"incidentes/incidentes_operador_inbox",
+                "fragments": {
+                    "modal_nuevo_incidente": "incidentes/fragments/incidentes_operador_nuevo_incidente_modal"
+                },
+                "icon":"pe-7s-headphones",
+                "small":"Este página permite listar y registrar nuevos incidencidentes",
+                "sources": [
+                    "gestion/getincidence"
+                ],
+                "profiles": [
+                    "operador"
+                ]
+            },
+            {
+                "title":"Chat por incidente",
+                "file":"incidentes/incidentes_operador_chat",
+                "fragments": {
+                    "modal_nuevo_incidente": "incidentes/fragments/incidentes_operador_nuevo_incidente_modal"
+                },
+                "icon":"pe-7s-radio",
+                "small":"Intefaz de chat con los agentes asignados a cada uno de los incidentes",
+                "sources": [
+                    "gestion/getincidence",
+                    "dashboards/alertscache"
+                ],
+                "profiles": [
+                    "operador"
+                ]
+            },
+            {
+                "title":"Chat por incidente Prueba",
+                "file":"incidentes/incidentes_operador_chat_prueba",
+                "fragments": {
+                    "modal_nuevo_incidente": "incidentes/fragments/incidentes_operador_nuevo_incidente_modal"
+                },
+                "icon":"pe-7s-radio",
+                "small":"Intefaz de chat con los agentes asignados a cada uno de los incidentes Prueba",
+                "sources": [
+                    "gestion/getincidence",
+                    "dashboards/alertscache"
+                ],
+                "profiles": [
+                    "operador"
+                ]
+            }  
+
+        ]
+      }
+    ,
+      {
+        "path":"incidentes_supervisor",
+        "title":"Supervisor",
+        "icon":"pe-7s-airplay",
+        "list":[
+            {
+                "title":"Bandeja del supervisor",
+                "file":"incidentes/incidentes_supervisor_inbox",
+                "icon":"pe-7s-headphones",
+                "small":"Este página permite gestionar la reasignación de incidencidentes",
+                "sources": [
+                    "gestion/getincidence"
+                ],
+                "profiles": [
+                    "operador"
+                ]
+            },
+            {
+                "title":"Dashboard del supervisor",
+                "file":"incidentes/incidentes_supervisor_dashboard",
+                "icon":"pe-7s-radio",
+                "small":"Indicadores de gestión sobre la actividad de los operadores y los incidenes",
+                "sources": [
+                    "gestion/getincidence"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            }            
+        ]
+      }
+    ,
+    {
+        "path":"incidentes_sandbox",
+        "title":"Sandbox",
+        "icon":"pe-7s-airplay",
+        "list":[
+            {
+                "title":"Sandbox 01",
+                "file":"incidentes/sandbox_01",
+                "icon":"pe-7s-headphones",
+                "small":"Sandbox 01",
+                "sources": [
+                    "gestion/getincidence"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            },
+            {
+                "title":"Sandbox 02",
+                "file":"incidentes/sandbox_02",
+                "icon":"pe-7s-headphones",
+                "small":"Sandbox 02",
+                "sources": [
+                    "gestion/getincidence"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            }
+        ]
+    }
+    ,
+    {
+        "path":"incidencias",
+        "title":"Incidencias (old)",
+        "icon":"alarm",
+        "list":[
+            
+            {"title":"Bandeja de incidencias","file":"a2c_modulo","icon":"pe-7s-note2",
+            "small":"Este página permite visualizar y registrar incidencias",
+                "sources": [
+                        "gestion/getincidence",
+                        "gestion/getincidences",
+                        "gestion/getclassification",
+                        "gestion/getorigin",
+                        "gestion/gettypeincidence",
+                        "gestion/getsubtypeincidence",
+                        "gestion/getunit",
+                        "gestion/getmode",
+                        "gestion/getagent",
+                        "gestion/getincidencestate",
+                        "gestion/incidencenew",
+                        "gestion/geteventsbytype",
+                        "gestion/getframesperson",
+                        "gestion/dolistimgevents",
+                        "gestion/getincidencesfilter",
+                        "gestion/getagent",
+                        "gestion/incidenceagents",
+                        "gestion/getincidenceagent",
+                        "gestion/incidenceagentsupt",
+                        "gestion/incidenceupt",
+                        "gestion/incidencederivated",
+                        "gestion/getderivatedcount"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            
+            },
+            
+            {"title":"Incidencias openwebui","file":"incidence_openwebui","icon":"pe-7s-note2",
+            "small":"Este página permite visualizar y registrar incidencias con openwebui",
+                "sources": [
+                        "gestion/getincidence",
+                        "gestion/getincidences",
+                        "gestion/getclassification",
+                        "gestion/getorigin",
+                        "gestion/gettypeincidence",
+                        "gestion/getsubtypeincidence",
+                        "gestion/getunit",
+                        "gestion/getmode",
+                        "gestion/getagent",
+                        "gestion/getincidencestate",
+                        "gestion/incidencenew",
+                        "gestion/geteventsbytype",
+                        "gestion/getframesperson",
+                        "gestion/dolistimgevents",
+                        "gestion/getincidencesfilter",
+                        "gestion/getagent",
+                        "gestion/incidenceagents",
+                        "gestion/getincidenceagent",
+                        "gestion/incidenceagentsupt",
+                        "gestion/incidenceupt",
+                        "gestion/incidencederivated",
+                        "gestion/getderivatedcount"
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+            
+            },
+            
+            {"title":"Registro Operador CAD","file":"demo1/incidentes_front","icon":"pe-7s-note2",
+            "small":"Registro Operador CAD",
+                "fragments":{
+                    "myscript":"demo1/incidentes_scripts",
+                    "mymodal":"demo1/modal"
+                    
+                },
+                "sources": [
+                        "gestion/getderivatedcount"
+                    ],
+                "profiles": [
+                    "operador","administrador"
+                ]
+            
+            }
+            
+            ,
+            
+            {"title":"Registro Operador CAD demo1","file":"demo1/demo1_cad_front","icon":"pe-7s-note2",
+            "small":"Registro Operador CAD",
+                "fragments":{
+                    "myscripts":"demo1/demo1_cad_script"
+                    
+                },
+                "sources": [
+                        "gestion/getderivatedcount"
+                    ],
+                "profiles": [
+                    "operador","administrador"
+                ]
+            
+            }
+            
+        ]
+    }
+    ,
+    {"title":"Gestión y Seguimiento"}
+    ,
+    {
+        "path":"listaspyv",
+        "title":"Gestión de Listas",
+        "icon":"inboxes",
+        "list":[
+            {"title":"Lista de Personas Desaparecidas","file":"geslist_personasdesaparecidas","icon":"pe-7s-user",
+                "small":"Este módulo le permite realizar el registro de las personas que figuran como desaparecidas.",
+                "sources": [
+                        "gestion/dolistdes",
+                        "gestion/dodelete",
+                        "gestion/doupdatedes",
+                        "gestion/donewdes",
+                        "gestion/listpaises",
+                        "gestion/listmotivobusqueda"
+                        
+                    ],
+                "profiles": [
+                    "operador","configurador"
+                ]},
+                
+            {"title":"Lista de Personas Sospechosas","file":"geslist_personassospechosas","icon":"pe-7s-user",
+                "small":"Este módulo le permite realizar el registro de las personas que figuran como sospechosas.",
+                "sources": [
+                        "gestion/dodelete",
+                        "gestion/doupdatesospect",
+                        "gestion/donewsospect",
+                        "gestion/listpaises",
+                        "gestion/dolistsospect",
+                        "gestion/listmotivobusqueda"
+                        
+                    ],
+                "profiles": [
+                    "operador","configurador"
+                ]},
+            {"title":"Lista de Personas Requisitoriadas","file":"geslist_personasrequisitorias","icon":"pe-7s-user",
+                "small":"Este módulo le permite realizar el registro de las personas que figuran como requisitoriadas.",
+                "sources": [
+                        "gestion/dodelete",
+                        "gestion/doupdatereq",
+                        "gestion/donewreq",
+                        "gestion/listpaises",
+                        "gestion/dolistreq",
+                        "gestion/listmotivobusqueda"
+                        
+                        
+                    ],
+                "profiles": [
+                    "operador","configurador"
+                ]},            
+            {"title":"Lista de Vehículos Robados","file":"geslist_vehiculosrobados", "icon":"pe-7s-car",
+                "small":"Este módulo le permite realizar el registro de vehiculos robados.",
+                "sources": [
+                        "gestion/donewrob",
+                        "gestion/doupdaterob",
+                        "gestion/get_list_robados"
+                        
+                    ],
+                "profiles": [
+                    "operador","configurador"
+                ]},
+            {"title":"Lista de Vehículos Sospechosos","file":"geslist_vehiculossospechosos", "icon":"pe-7s-car",
+                "small":"Este módulo le permite realizar el registro de vehiculos Sospechosos.",
+                "sources": [
+                        "gestion/donewvehiclesospect",
+                        "gestion/doupdatevehiclessospect",
+                        "gestion/get_list_sospechosos"
+                        
+                        
+                    ],
+                "profiles": [
+                    "operador","configurador"
+                ]}
+        ]
+    }
+    ,
+    {"title":"Administrativos"}
+    ,
+    {
+        "path":"administration",
+        "title":"Settings",
+        "icon":"inboxes",
+        "list":[
+            {"title":"Mantenimiento de camaras","file":"setting_camaramant","icon":"pe-7s-video",
+                "small":"Este página permite realizar el mantenimiento de camaras",
+                "sources": [
+                        "gestion/getcamarasall",
+                        "gestion/getcuadrante",
+                        "gestion/getobjetivo",
+                        "gestion/delanaliticcameraparamsdet" ,
+                        "gestion/getcamaranodofree",
+                        "gestion/camaranew",
+                        "gestion/nodecoreupt",
+                        "gestion/getcamara",
+                        "gestion/getcamaralist",
+                        "gestion/getanaliticasall",
+                        "gestion/camaracontenedorrem",
+                        "gestion/camaranodeupt",
+                        "gestion/analiticadel",
+                        "gestion/camaracontenedoradd",
+                        "gestion/camaraupt",
+                        "gestion/analiticacamaranew",
+                        "gestion/analiticacamaraupt",
+                        "gestion/getmetricsbyanalitic",
+                        "gestion/getparamsdet",
+                        "gestion/getcamaraframe",
+                        "gestion/zoneinterest",
+                        "gestion/getanaliticcameraparamsdet",
+                        "gestion/typezone",
+                        "gestion/zoneinterestnew",
+                        "gestion/zoneinterestredisbyid",
+                        "gestion/zoneinterestdel",
+                        "gestion/uptanaliticcameraparamsdet",
+                        "gestion/postanaliticcameraparamsdet" ,
+                        "gestion/getparams",
+                        "gestion/getjerartetrritorial"
+                    ],
+                "profiles": [
+                    "configurador","administrador"
+                ]},
+                          
+            {"title":"Cluster de cámaras","file":"setting_clustercamara","icon":"pe-7s-server",
+                "small":"Este modulo permite realizar el mantenimiento de nodos",
+                "sources": [
+                        "gestion/getnodosall",
+                        "gestion/clusternew",
+                        "gestion/getnodobyid",
+                        "gestion/nodoupt",
+                        "gestion/clusterlist",
+                        "gestion/getcamarasbynodo"
+                        
+                    ],
+                "profiles": [
+                    "operador"
+                ]
+                
+            },
+            {"title":"Mapa de Coberturas","file":"adcoberturas.js"},
+            {
+                "title": "Usuarios",
+                "file": "usersmanagment",
+                "icon": "pe-7s-users",
+                "small": "Módulo de administracion de usuarios y accesos",
+                "sources": [
+                    "authrequest/getusers",
+                    "authrequest/adduser",
+                    "authrequest/updateuser",
+                    "authrequest/getperfiles",
+                    "authrequest/getapps"
+                ],
+                "profiles": [
+                    "superadministrador","administrador"
+                ]
+            }
+        ]
+    }
+]
+

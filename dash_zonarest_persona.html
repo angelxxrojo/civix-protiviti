@@ -1,0 +1,1315 @@
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <!-- Leaflet CSS -->
+<link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+<style>
+  
+    #main-chart2, #main-chart3, #main-chart4, #main-chart5, #pie-chart, #line-chart, #line-chart1, #line-chart2 {
+      width: 100%;
+      min-height: 360px;
+    }
+    #main-chart, #map1{
+      min-height: 400px;  
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map, #map2 {
+      position: relative;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      min-height: 360px;
+    }
+    
+    .legend-box {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    #lineChart {
+      width: 100%;
+      min-height: 300px;
+      position: relative; /* necesario para posicionar las etiquetas absolutas */
+    }
+    .data-point-label {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .min-b-height{
+        flex: 1 1 160px; /* Esto es un atajo para flex-grow, flex-shrink y flex-basis */
+          box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
+          margin: 0.5em;
+    }
+</style>
+<div style="display:flex; justify-content: space-between">
+    <h2>
+        Visión General
+    </h2>
+    <h2>
+        Últimos 12 meses
+    </h2>
+</div>
+<div class="" style="display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start; gap: 1em">
+    <!--
+        <div class="panel min-b-height panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Período
+            </div>
+            <div class="panel-body">
+                <h1 class="m-b-none" id="period">
+                    08/2025
+                </h1>
+            </div>
+        </div>
+        -->
+        <div class="panel min-b-height panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Total de cámaras con zonas restringidas
+            </div>
+            <div class="panel-body">
+                <h1 class="m-b-none" id="activeCameras">
+                    95
+                </h1>
+            </div>
+        </div>
+        <div class="panel min-b-height panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Total de zonas restringidas
+            </div>
+            <div class="panel-body">
+                <h1 class="m-b-none" id="zonesAmount">
+                    74
+                </h1>
+            </div>
+        </div>
+        <div class="panel min-b-height panel-b-accent">
+            <div class="panel-heading">
+                Total de personas en zonas restringidas.
+            </div>
+            <div class="panel-body">
+                <h1 class="m-b-none" id="averageAmount">
+                    200
+                </h1>
+            </div>
+        </div>
+        <div class="panel min-b-height panel-b-accent">
+            <div class="panel-heading">
+                Tiempo de ocupación en zonas restringidas.
+            </div>
+            <div class="panel-body">
+                <h1 class="m-b-none" id="averageTime">
+                    34
+                </h1>
+            </div>
+        </div>
+    
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Tiempo de ocupación en zonas restringidas por mes
+            </div>
+            <div class="panel-body">
+                <div id="main-chart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Mapa de Calor por cámaras
+            </div>
+            <div class="panel-body">
+                <div id="map1"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+    <h2>
+        Ocupación por cámara
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Tiempo de ocupación por cámara
+            </div>
+            <div class="panel-body">
+                <div id="main-chart2"></div>
+            </div>
+        </div>
+    </div>
+    <!--
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>        
+                </div>
+                Tendencia de ocupación (por minuto) en el tiempo
+            </div>
+            <div class="panel-body">
+                <div id="line-chart1"></div>
+            </div>
+        </div>
+    </div>
+    -->
+    <div class="col-md-8">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                <br>
+            </div>
+            <div class="panel-body">
+                <div id="main-chart3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    
+    <!--
+    <div class="col-md-6">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Tendencia de permanencia promedio (en minutos) al día en zonas restringidas
+            </div>
+            <div class="panel-body">
+                <div id="line-chart"></div>
+            </div>
+        </div>
+    </div>
+    -->
+</div>
+
+<div>
+    <h2>
+        Distribución y segmentación
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Tiempo de ocupación por zona objetivo
+            </div>
+            <div class="panel-body">
+                <div id="main-chart5"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                <br>
+            </div>
+            <div class="panel-body">
+                <div id="main-chart4"></div>
+            </div>
+        </div>
+    </div>
+    <!--
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Mapa de Calor (Zonas Objetivo)
+            </div>
+            <div class="panel-body">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    -->
+</div>
+
+
+
+<script>
+    
+    $(document).ready(function() {
+        getData();
+    });
+    
+    var dataZones
+    function getData(){
+        fetch('http://10.23.62.93:8700/evaluatezones/api/analytics/history?type=personas')
+          .then(response => {
+            // Check if the request was successful
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            // Parse the JSON data from the response
+            return response.json();
+          })
+          .then(data => {
+              log(data);
+                let dataGlobal=data.items.slice(0, 7);
+                log("data",dataGlobal);
+                dataZones = data.items[0];
+                //document.getElementById('period').textContent = dataZones.periodo;
+                document.getElementById('activeCameras').textContent = dataZones.total_camaras_activas;
+                document.getElementById('zonesAmount').textContent = dataZones.total_zonas_restringidas;
+                
+                // For the decimal values, you might want to round them for cleaner display
+                const ocupacionPromedio = Math.ceil(dataZones.promedio_personas_en_zonas);
+                const permanenciaPromedio = dataZones.permanencia_promedio_min.toFixed(2);
+                
+                document.getElementById('averageAmount').textContent = ocupacionPromedio;
+                document.getElementById('averageTime').textContent = permanenciaPromedio;
+                //renderMap(dataZones.mapa_camaras, 'map')
+                renderMap(dataZones.mapa_camaras, 'map1')
+                renderChartTime('main-chart5', dataZones.por_zona_objetivo, 'main-chart4');
+                renderChartTime('main-chart2', dataZones.por_camara, 'main-chart3');
+                //renderChartAmount('main-chart4', dataZones.por_zona_objetivo)
+                //renderChartAmount('main-chart3', dataZones.por_camara)
+                //renderLineChart('line-chart',formatDates(dataGlobal));
+            // Work with the data retrieved from the API
+          })
+          .catch(error => {
+            // Handle any errors that occurred during the fetch
+            console.error('There was a problem with the fetch operation:', error);
+          })
+          /*
+        callAPI({
+            method:'/analytics/history?type=personas',
+            params:{},
+            ok:(data)=>{
+                log(data);
+                let dataGlobal=data.items.slice(0, 7);
+                log("data",dataGlobal);
+                dataZones = data.items[0];
+                //document.getElementById('period').textContent = dataZones.periodo;
+                document.getElementById('activeCameras').textContent = dataZones.total_camaras_activas;
+                document.getElementById('zonesAmount').textContent = dataZones.total_zonas_restringidas;
+                
+                // For the decimal values, you might want to round them for cleaner display
+                const ocupacionPromedio = Math.ceil(dataZones.promedio_personas_en_zonas);
+                const permanenciaPromedio = dataZones.permanencia_promedio_min.toFixed(2);
+                
+                document.getElementById('averageAmount').textContent = ocupacionPromedio;
+                document.getElementById('averageTime').textContent = permanenciaPromedio;
+                //renderMap(dataZones.mapa_camaras, 'map')
+                renderMap(dataZones.mapa_camaras, 'map1')
+                renderChartTime('main-chart5', dataZones.por_zona_objetivo, 'main-chart4');
+                renderChartTime('main-chart2', dataZones.por_camara, 'main-chart3');
+                //renderChartAmount('main-chart4', dataZones.por_zona_objetivo)
+                //renderChartAmount('main-chart3', dataZones.por_camara)
+                //renderLineChart('line-chart',formatDates(dataGlobal));
+            // Work with the data retrieved from the API
+            }
+        });
+        */
+    }
+    
+    function formatDates(dataArray) {
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const formattedData = [];
+    
+        // Today is Tuesday (index 1), so we'll start there and wrap around the array
+        let todayIndex = 1;
+    
+        // Loop through the data and manually assign a day of the week
+        for (let i = 0; i < dataArray.length; i++) {
+            const item = dataArray[i];
+            
+            // Calculate the day index, wrapping around to the beginning if we go past Sunday
+            const dayIndex = (todayIndex + i) % 7;
+            const dayName = dayNames[dayIndex];
+            
+            // For demonstration, let's also give them a fake date to make it look like different days.
+            const fakeDate = new Date();
+            fakeDate.setDate(fakeDate.getDate() + (i - (dataArray.length - 1)));
+            const formattedDate = `${dayName}`;
+            
+            formattedData.push({
+                ...item,
+                formattedTs: formattedDate
+            });
+        }
+    
+        return formattedData;
+    }
+    
+    /*
+    // Inicializa la instancia de ECharts en el contenedor con el ID 'main-chart2'
+const myChart2 = echarts.init(document.getElementById('main-chart2'));
+
+// Datos originales del gráfico
+const dataValues2 = [15, 20, 12, 25, 18, 30];
+const categoryNames2 = ["P1WPTZA1-DP", "OFICINA_GISE", "P35WFJ2A1-DP", "P69WFJ1A4-DP", "P62WPTZA4-RR", "P9WFJ1A3-DP"];
+
+// 1. Combina los datos y nombres en un array de objetos para mantener la correspondencia
+const combinedData2 = dataValues2.map((value, index) => ({
+    value: value,
+    name: categoryNames2[index]
+}));
+
+// 2. Ordena el array de objetos de menor a mayor valor
+combinedData2.sort((a, b) => a.value - b.value);
+
+// 3. Separa de nuevo los datos y los nombres ya ordenados
+const sortedValues2 = combinedData2.map(item => item.value);
+const sortedNames2 = combinedData2.map(item => item.name);
+
+// Opciones de configuración para el gráfico ECharts
+const option2 = {
+    // Configuración del tooltip para mostrar información al pasar el cursor
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+            type: 'shadow'
+        }
+    },
+    // Configuración de la cuadrícula del gráfico
+    grid: {
+        top: '5%',
+        left: '3%',
+        right: '10%',
+        bottom: '3%',
+        containLabel: true // Asegura que las etiquetas del eje se contengan dentro del área del gráfico
+    },
+    // Configuración del eje X (eje de valores)
+    xAxis: {
+        type: 'value',
+        show: false // Oculta el eje X para un diseño más limpio
+    },
+    // Configuración del eje Y (eje de categorías)
+    yAxis: {
+        type: 'category',
+        data: sortedNames2, // Usa los nombres ya ordenados para las etiquetas
+        axisTick: {
+            show: false
+        },
+        axisLine: {
+            lineStyle: {
+                color: 'white' // Color de la línea del eje
+            }
+        }
+    },
+    // Configuración de la serie de datos (el tipo de gráfico, los datos, etc.)
+    series: [{
+        type: 'bar',
+        data: sortedValues2, // Usa los valores ya ordenados para las barras
+        label: {
+            show: true, // Muestra las etiquetas de los valores en las barras
+            position: 'right', // Posición de la etiqueta
+            color: 'white', // Color del texto de la etiqueta
+            fontWeight: 'bold' // Grosor del texto
+        },
+        itemStyle: {
+            color: '#f67200' // Color sólido para todas las barras
+        }
+    }]
+};
+
+// Aplica la configuración al gráfico
+myChart2.setOption(option2);
+
+// Asegura que el gráfico se redimensione automáticamente al cambiar el tamaño de la ventana
+window.addEventListener('resize', function() {
+    myChart2.resize();
+});
+*/
+/*
+    const myChart3 = echarts.init(document.getElementById('main-chart3'));
+    
+    const dataValues3 = [15, 20, 12, 25, 18, 30];
+    const categoryNames3 = ["P1WPTZA1-DP", "OFICINA_GISE", "P35WFJ2A1-DP", "P69WFJ1A4-DP", "P62WPTZA4-RR", "P9WFJ1A3-DP"];
+
+    // 1. Combina los datos y nombres en un array de objetos
+    const combinedData3 = dataValues3.map((value, index) => ({
+        value: value,
+        name: categoryNames3[index]
+    }));
+
+    // 2. Ordena el array de objetos de mayor a menor valor
+    combinedData3.sort((a, b) => a.value - b.value);
+
+    // 3. Separa de nuevo los datos y los nombres ya ordenados
+    const sortedValues3 = combinedData3.map(item => item.value);
+    const sortedNames3 = combinedData3.map(item => item.name);
+
+    const option3 = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
+      grid: {
+        top: '10%',
+        left: '3%',
+        right: '10%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'value',
+        show: false
+      },
+      yAxis: {
+        type: 'category',
+        data: sortedNames3, // Usa los nombres ya ordenados
+        axisTick: {
+          show: false
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'white'
+          }
+        }
+      },
+      series: [
+        {
+          type: 'bar',
+          data: sortedValues3, // Usa los valores ya ordenados
+          label: {
+            show: true,
+            position: 'right',
+            color: 'white',
+            fontWeight: 'bold'
+          },
+          itemStyle: {
+            color: '#f67200' // Color sólido para todas las barras
+          }
+        }
+      ]
+    };
+    
+    myChart3.setOption(option3);
+    
+    window.addEventListener('resize', function() {
+      myChart3.resize();
+    });
+*/
+    // Variable global para almacenar el estado de selección de cada gráfico de control
+var chartStates = {};
+
+function renderChartTime(name, object, name2) {
+    const myChart = echarts.init(document.getElementById(name));
+
+    // Inicializa el estado para este gráfico si no existe
+    if (!chartStates[name]) {
+        chartStates[name] = {
+            selectedIndex: -1
+        };
+    }
+
+    const combinedData = object.map(item => ({
+        value: Math.round(item.permanencia_promedio_min * 100) / 100,
+        name: item.camera_code ? item.camera_code : item.objetivo
+    }));
+
+    // Ordena de MENOR a MAYOR
+    combinedData.sort((a, b) => a.value - b.value);
+
+    const sortedValues = combinedData.map(item => item.value);
+    const sortedNames = combinedData.map(item => item.name);
+    
+    const numBars = sortedValues.length;
+    const colors = [];
+    const maxOpacity = 1;
+    const minOpacity = 0.5;
+
+    for (let i = 0; i < numBars; i++) {
+        const opacity = minOpacity + (maxOpacity - minOpacity) * (i / (numBars - 1));
+        colors.push(`rgba(246, 114, 0, ${opacity.toFixed(2)})`);
+    }
+
+    const option = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        grid: {
+            top: '10%',
+            left: '3%',
+            right: '10%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            show: false
+        },
+        yAxis: {
+            type: 'category',
+            data: sortedNames,
+            axisTick: {
+                show: false
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'white'
+                }
+            }
+        },
+        series: [{
+            type: 'bar',
+            data: sortedValues,
+            label: {
+                show: true,
+                position: 'right',
+                color: 'white',
+                fontWeight: 'bold',
+                formatter: '{c}'
+            },
+            itemStyle: {
+                color: function(params) {
+                    if (params.dataIndex === chartStates[name].selectedIndex) {
+                        return '#ffc107'; // Color de resaltado
+                    }
+                    return colors[params.dataIndex]; // Color base con opacidad
+                }
+            }
+        }]
+    };
+
+    myChart.setOption(option);
+
+    myChart.on('click', function(params) {
+        chartStates[name].selectedIndex = params.dataIndex;
+        myChart.setOption(option, true);
+        var selectedItemName = params.name;
+        renderHistoricalChart(name2, selectedItemName);
+    });
+
+    if (sortedNames.length > 0) {
+        // Selecciona el ÚLTIMO elemento por defecto (índice = longitud - 1)
+        chartStates[name].selectedIndex = sortedNames.length - 1;
+        renderHistoricalChart(name2, sortedNames[sortedNames.length - 1]);
+        myChart.setOption(option, true);
+    }
+}
+
+function renderChartAmount(name, object, name2) {
+    const myChart = echarts.init(document.getElementById(name));
+
+    // Inicializa el estado para este gráfico si no existe
+    if (!chartStates[name]) {
+        chartStates[name] = {
+            selectedIndex: -1
+        };
+    }
+
+    const combinedData = object.map(item => ({
+        value: Math.ceil(item.personas_promedio_min),
+        name: item.camera_code ? item.camera_code : item.objetivo
+    }));
+
+    // Ordena de MENOR a MAYOR
+    combinedData.sort((a, b) => a.value - b.value);
+
+    const sortedValues = combinedData.map(item => item.value);
+    const sortedNames = combinedData.map(item => item.name);
+    
+    const numBars = sortedValues.length;
+    const colors = [];
+    const maxOpacity = 1;
+    const minOpacity = 0.5;
+
+    for (let i = 0; i < numBars; i++) {
+        const opacity = minOpacity + (maxOpacity - minOpacity) * (i / (numBars - 1));
+        colors.push(`rgba(246, 114, 0, ${opacity.toFixed(2)})`);
+    }
+
+    const option = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        grid: {
+            top: '10%',
+            left: '3%',
+            right: '10%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            show: false
+        },
+        yAxis: {
+            type: 'category',
+            data: sortedNames,
+            axisTick: {
+                show: false
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'white'
+                }
+            }
+        },
+        series: [{
+            type: 'bar',
+            data: sortedValues,
+            label: {
+                show: true,
+                position: 'right',
+                color: 'white',
+                fontWeight: 'bold',
+                formatter: '{c}'
+            },
+            itemStyle: {
+                color: function(params) {
+                    if (params.dataIndex === chartStates[name].selectedIndex) {
+                        return '#ffc107'; // Color de resaltado
+                    }
+                    return colors[params.dataIndex]; // Color base con opacidad
+                }
+            }
+        }]
+    };
+
+    myChart.setOption(option);
+
+    myChart.on('click', function(params) {
+        chartStates[name].selectedIndex = params.dataIndex;
+        myChart.setOption(option, true);
+        var selectedItemName = params.name;
+        renderHistoricalChart(name2, selectedItemName);
+    });
+
+    if (sortedNames.length > 0) {
+        // Selecciona el ÚLTIMO elemento por defecto (índice = longitud - 1)
+        chartStates[name].selectedIndex = sortedNames.length - 1;
+        renderHistoricalChart(name2, sortedNames[sortedNames.length - 1]);
+        myChart.setOption(option, true);
+    }
+}
+
+function renderHistoricalChart(name, selectedItemName) {
+    var historicalChart = echarts.init(document.getElementById(name));
+    var historicalData = generateHistoricalData();
+
+    var option = {
+        title: {
+            text: `Tiempo de ocupación histórico para ${selectedItemName}`,
+            left: 'center',
+            textStyle: {
+                color: '#fff'
+            }
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        grid: {
+            top: '20%',
+            left: '3%',
+            right: '3%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: historicalData.months,
+            axisLabel: {
+                rotate: 45,
+                interval: 0,
+                color: '#fff'
+            },
+            axisLine: {
+                lineStyle: {
+                    color: '#fff'
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            show: false,
+            splitLine: {
+                show: false
+            }
+        },
+        series: [{
+            name: 'Horas de Ocupación',
+            type: 'bar',
+            data: historicalData.hours,
+            label: {
+                show: true,
+                position: 'top',
+                color: '#fff',
+                formatter: '{c} h'
+            },
+            itemStyle: {
+                color: '#f67200'
+            }
+        }]
+    };
+
+    historicalChart.setOption(option);
+}
+
+function generateHistoricalData() {
+    var months = [];
+    var hours = [];
+    var today = new Date();
+
+    for (var i = 11; i >= 0; i--) {
+        var month = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        months.push(month.toLocaleString('es-ES', {
+            month: 'short'
+        }));
+        hours.push(Math.floor(Math.random() * 200) + 50);
+    }
+
+    return {
+        months: months,
+        hours: hours
+    };
+}
+    
+    function renderChartAmount(name, object) {
+        const myChart = echarts.init(document.getElementById(name));
+        
+        // 1. Extraer y ordenar los datos
+        const combinedData = object.map(item => ({
+            value: Math.ceil(item.personas_promedio_min),
+            name: item.camera_code ? item.camera_code : item.objetivo
+        }));
+        
+        // Ordena el array de objetos de menor a mayor valor para que el gráfico quede ascendente
+        combinedData.sort((a, b) => a.value - b.value);
+        
+        // 3. Separa los datos y los nombres ya ordenados
+        const sortedValues = combinedData.map(item => item.value);
+        const sortedNames = combinedData.map(item => item.name);
+        
+        // 4. Genera el array de colores con opacidad decreciente
+        const baseColor = '#f67200';
+        const numBars = sortedValues.length;
+        const colors = [];
+        const maxOpacity = 1;
+        const minOpacity = 0.5; // O el valor que prefieras
+    
+        for (let i = 0; i < numBars; i++) {
+            // Calcula la opacidad en función de la posición.
+            const opacity = minOpacity + (maxOpacity - minOpacity) * (i / (numBars - 1));
+            colors.push(`rgba(246, 114, 0, ${opacity.toFixed(2)})`);
+        }
+    
+        const option4 = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                top: '10%',
+                left: '3%',
+                right: '10%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                show: false
+            },
+            yAxis: {
+                type: 'category',
+                data: sortedNames,
+                axisTick: {
+                    show: false
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: 'white'
+                    }
+                }
+            },
+            series: [
+                {
+                    type: 'bar',
+                    data: sortedValues,
+                    label: {
+                        show: true,
+                        position: 'right',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        formatter: '{c}'
+                    },
+                    // Usa una función para asignar un color de la lista `colors` a cada barra
+                    itemStyle: {
+                        color: function(params) {
+                            return colors[params.dataIndex];
+                        }
+                    }
+                }
+            ]
+        };
+        
+        myChart.setOption(option4);
+        
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+    
+    /* logica de mapa*/
+    function renderMap(mapCameras,name) {
+        const mapaCamarasData = mapCameras;
+    
+        // Inicializar el mapa en una ubicación por defecto, si no hay datos de cámaras
+        if (mapaCamarasData.length === 0) {
+            var map = L.map(name).setView([-12.1211, -77.0305], 15);
+        } else {
+            // Inicializa el mapa sin una vista fija para que `fitBounds` la determine
+            var map = L.map(name);
+        }
+    
+        // Capa base (OpenStreetMap)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+    
+        // Forzar a Leaflet a recalcular dimensiones
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 200);
+    
+        window.addEventListener("resize", () => {
+            map.invalidateSize();
+        });
+    
+        // Array para guardar las coordenadas y un objeto para los límites
+        const latLngs = [];
+    
+        // Definir un ícono de color naranja para los pines
+        var orangeIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+    
+        // Iterar sobre los datos de la API para crear marcadores
+        mapaCamarasData.forEach(function (item) {
+            const latLng = [item.latitud, item.longitud];
+            latLngs.push(latLng);
+    
+            var marker = L.marker(latLng, { icon: orangeIcon }).addTo(map);
+    
+            const popupContent = `
+                <b>Cámara:</b> ${item.camera_name}<br>
+                <b>Código:</b> ${item.camera_code}<br>
+                <b>Objetivo:</b> ${item.objetivo}<br>
+                <b>Intensidad:</b> ${item.intensidad.toFixed(2)}
+            `;
+            marker.bindPopup(popupContent);
+        });
+    
+        // Procesar los datos para crear los puntos de calor
+        var heatPoints = mapaCamarasData.map(item => [
+            item.latitud,
+            item.longitud,
+            item.intensidad*20
+        ]);
+    
+        // Crear la capa de calor con los datos procesados
+        if (heatPoints.length > 0) {
+            L.heatLayer(heatPoints, {
+                radius: 40,
+                blur: 25,
+                maxZoom: 17,
+                max: 20,
+                gradient: {
+                    0.0: 'red',
+                    0.5: '#f67200',
+                    1.0: '#ffc180'
+                }
+            }).addTo(map);
+        }
+        
+        // Si hay puntos, ajustar los límites del mapa para que todos sean visibles
+        if (latLngs.length > 0) {
+            const bounds = L.latLngBounds(latLngs);
+            map.fitBounds(bounds);
+        }
+    };
+    
+    /*
+    /* logica de mapa
+    document.addEventListener("DOMContentLoaded", function () {
+        // Inicializar el mapa en Miraflores
+        var map1 = L.map('map1').setView([-12.1211, -77.0305], 15);
+     
+        // Capa base (OpenStreetMap) en MODO OSCURO
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map1);
+     
+        // Forzar a Leaflet a recalcular dimensiones al inicio
+        setTimeout(() => {
+            map1.invalidateSize();
+        }, 200);
+     
+        // Recalcular también cuando la ventana cambie de tamaño
+        window.addEventListener("resize", () => {
+            map1.invalidateSize();
+        });
+     
+        // Datos de ejemplo para el mapa de calor
+        var heatPoints = [
+            [-12.1211, -77.0305, 0.9],  // Parque Kennedy
+            [-12.1175, -77.0283, 0.8],  // Larcomar
+            [-12.1230, -77.0320, 0.7],  // Av. Pardo
+            [-12.1200, -77.0355, 0.6],  // Reducto
+            [-12.1150, -77.0300, 0.5]   // Malecón
+        ];
+     
+        // ➡️ Crear capa de calor con degradado naranja
+        L.heatLayer(heatPoints, {
+            radius: 40,
+            blur: 25,
+            maxZoom: 17,
+            max: 1.0,
+            gradient: {
+                0.0: '#f67200',
+                0.5: '#f67200',
+                1.0: '#ffc180'
+            }
+        }).addTo(map1);
+     
+        // ➡️ Definir un ícono de color naranja para los pines
+        var orangeIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+     
+        // Datos de los pines con sus nombres y coordenadas
+        var pinData = [
+            { name: "P1WPTZA1-DP", lat: -12.1211, lng: -77.0305 },
+            { name: "OFICINA_GISE", lat: -12.1175, lng: -77.0283 },
+            { name: "P35WFJ2A1-DP", lat: -12.1230, lng: -77.0320 },
+            { name: "P69WFJ1A4-DP", lat: -12.1200, lng: -77.0355 },
+            { name: "P62WPTZA4-RR", lat: -12.1150, lng: -77.0300 },
+            { name: "P9WFJ1A3-DP", lat: -12.1220, lng: -77.0310 } // Ejemplo de un punto adicional
+        ];
+     
+        // Iterar sobre los datos de los pines para crear marcadores
+        pinData.forEach(function (pin) {
+            // ➡️ Usar el ícono naranja
+            var marker = L.marker([pin.lat, pin.lng], { icon: orangeIcon }).addTo(map1);
+            marker.bindPopup(pin.name);
+        });
+    });
+    */
+    /*
+    document.addEventListener("DOMContentLoaded", function () {
+      // Inicializar el mapa en Miraflores
+      var map2 = L.map('map2').setView([-12.1211, -77.0305], 14);
+
+      // Capa base (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map2);
+
+      // Forzar a Leaflet a recalcular dimensiones al inicio
+      setTimeout(() => {
+        map2.invalidateSize();
+      }, 200);
+
+      // Recalcular también cuando la ventana cambie de tamaño
+      window.addEventListener("resize", () => {
+        map2.invalidateSize();
+      });
+
+      // Datos de ejemplo (lat, lng, intensidad opcional)
+      var heatPoints = [
+        [-12.1211, -77.0305, 0.9],  // Parque Kennedy
+        [-12.1175, -77.0283, 0.8],  // Larcomar
+        [-12.1230, -77.0320, 0.7],  // Av. Pardo
+        [-12.1200, -77.0355, 0.6],  // Reducto
+        [-12.1150, -77.0300, 0.5]   // Malecón
+      ];
+
+      // Crear capa de calor (más grande por defecto)
+      L.heatLayer(heatPoints, {
+        radius: 40,   // 🔥 radio más grande
+        blur: 25,     // más difuminado
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+          0.4: 'blue',
+          0.6: 'lime',
+          0.8: 'orange',
+          1.0: 'red'
+        }
+      }).addTo(map2);
+    });
+    */
+    
+    
+    // Inicializa el gráfico en el contenedor con el ID 'main-chart'
+    const myChart = echarts.init(document.getElementById('main-chart'));
+
+    // 1. Obtener la fecha de hoy
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const allMonths = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const xAxisData = [];
+    for (let i = 0; i < 12; i++) {
+        const monthIndex = (currentMonth - i + 12) % 12;
+        xAxisData.unshift(allMonths[monthIndex]);
+    }
+    
+    // 2. Datos de ejemplo para el tiempo de ocupación
+    const dataOcupacion = [15, 20, 10, 25, 18, 20, 22, 17, 28, 19, 24, 16];
+    
+    // 3. Datos de ejemplo para las zonas restringidas
+    const dataZonasRestringidas = [7, 5, 3, 5, 4, 4, 8, 4, 5, 5, 6, 8];
+    
+    const option = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            }
+        },
+        legend: {
+            bottom: 0,
+            data: [{
+                name: 'Tiempo de Ocupación',
+                itemStyle: {
+                    color: '#f67200' // Color del marcador/cuadro de la leyenda
+                },
+                textStyle: {
+                    color: 'white' // Mantiene el texto de la leyenda en blanco
+                }
+            }, {
+                name: 'Zonas Restringidas',
+                itemStyle: {
+                    color: '#4caf50'
+                },
+                textStyle: {
+                    color: 'white'
+                }
+            }]
+        },
+        grid: {
+            top: '15%',
+            left: '0%',
+            right: '3%',
+            bottom: '10%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: xAxisData,
+            axisLine: {
+                lineStyle: {
+                    color: 'white'
+                }
+            },
+            axisLabel: {
+                color: 'white'
+            }
+        },
+        yAxis: {
+            type: 'value',
+            show: false
+        },
+        series: [
+            {
+                name: 'Tiempo de Ocupación',
+                type: 'bar',
+                data: dataOcupacion,
+                itemStyle: {
+                    color: (params) => {
+                        const lastIndex = dataOcupacion.length - 1;
+                        if (params.dataIndex === lastIndex) {
+                            return '#f67200';
+                        } else {
+                            return 'rgba(246, 114, 0, 0.6)';
+                        }
+                    }
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    formatter: (params) => {
+                        const lastIndex = dataOcupacion.length - 1;
+                        if (params.dataIndex === lastIndex) {
+                            return `{b|${params.value}}`;
+                        } else {
+                            return params.value;
+                        }
+                    },
+                    rich: {
+                        b: {
+                            color: '#fff',
+                            fontSize: 14,
+                            fontWeight: 'bold'
+                        }
+                    }
+                }
+            },
+            {
+                name: 'Zonas Restringidas',
+                type: 'line',
+                data: dataZonasRestringidas,
+                lineStyle: {
+                    color: '#4caf50',
+                    width: 2
+                },
+                itemStyle: {
+                    color: '#4caf50'
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: '#fff'
+                }
+            }
+        ]
+    };
+    
+    myChart.setOption(option);
+    
+    window.addEventListener('resize', function() {
+        myChart.resize();
+    });
+
+    function renderLineChart(name, object) {
+        const myChart5 = echarts.init(document.getElementById(name));
+        const xAxisData5 = object.map(item => item.formattedTs);
+        const combinedSeriesData = object.map(item => Math.round(item.permanencia_promedio_min * 100) / 100);
+    
+        const option5 = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                show: false
+            },
+            grid: {
+                top: '15%',
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: xAxisData5,
+                axisLine: {
+                    lineStyle: {
+                        color: '#fff'
+                    }
+                }
+            },
+            yAxis: {
+                type: 'value',
+                show: false,
+                axisLine: {
+                    lineStyle: {
+                        color: '#fff'
+                    }
+                },
+                splitLine: {
+                    show: false
+                }
+            },
+            series: [{
+                name: 'Promedio Personas',
+                type: 'line',
+                data: combinedSeriesData,
+                itemStyle: {
+                    color: '#f67200'
+                },
+                lineStyle: {
+                    width: 2
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: '#fff'
+                }
+            }]
+        };
+        myChart5.setOption(option5);
+        window.addEventListener('resize', function () {
+            myChart5.resize();
+        });
+    }
+  
+    
+</script>
+
+<!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Plugin Leaflet Heat -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>

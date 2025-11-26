@@ -1,0 +1,703 @@
+<div class="row col-lg-12  col-md-12  col-sm-12" id="list">
+        <div class="col-lg-6  col-md-6  col-sm-6">
+            <div class="panel panel-filled panel-c-accent">
+                <div class="panel-heading">
+                    Filtros
+                </div>
+                <div class="panel-body">
+                    
+                        <div class="col-lg-8 col-md-8 col-sm-8">
+                            <div class=form-group>
+                                <input id="txtsearch" type="text" class="form-control" placeholder="Nodo">
+                            </div>
+                        </div>
+                                       
+                        <div class="col-lg-2 col-md-2 col-sm-2">
+                            <div class=form-group>
+                                <button id="btnnewnodo" type="button" href="#" class="btn btn-w-md btn-success btn-rounded" style="width:100%">Nuevo Nodo</button>
+                            </div>
+                        </div>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2  col-md-2  col-sm-2">
+            <div class="panel panel-filled  panel-c-accent">
+                <div class="panel-heading">
+                    Total de Nodos
+                </div>
+                <div class="panel-body text-center">
+                    <h2 class="m-b-none " id="totalnodos"></h2>
+                </div>
+            </div>
+        </div>
+                <div class="col-lg-2  col-md-2  col-sm-2">
+            <div class="panel panel-filled  panel-c-accent">
+                <div class="panel-heading">
+                    Nodos activos
+                </div>
+                <div class="panel-body text-center">
+                    <h2 class="m-b-none " id="nodosact"></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2  col-md-2  col-sm-2">
+            <div class="panel panel-filled  panel-c-accent">
+                <div class="panel-heading">
+                    Nodos inactivos
+                </div>
+                <div class="panel-body text-center">
+                    <h2 class="m-b-none " id="nodosinact"></h2>
+                </div>
+            </div>
+        </div>
+     
+    
+    <div class="col-lg-12  col-md-12  col-sm-12">
+        <div class="table-responsive">
+             <table class="table table-hover-1" >
+                <thead>
+                <tr style="background: rgba(0,0,0,1)">
+                    <th>Nombre</th>
+                    <th>Dirección IP</th>
+                    <th>Caractersticas</th>
+                    <th>Capacidad</th>
+                    <th>Usabilidad</th>
+                    <th>Disponible</th>
+                    <th>Fecha Alta</th>
+                    <th>Estado</th>
+                    <th>Cámaras</th>
+                </tr>
+                </thead>
+                <tbody>
+                
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_new" tabindex="-1" style="background:rgba(0,0,0,0.9)" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content" >
+            
+            <div class="modal-header text-left">
+                <h4 class="modal-title">Nuevo Nodo</h4>
+                <small>Esta pantalla permite registrar nuevos nodos</small>
+
+            </div>
+            
+            <div class="modal-body" >    
+            
+                <form  class="row">
+                     <div class="form-group col-sm-3">
+                        <label for="node_name">Nombre del Nodo</label>
+                        <input type="text" class="form-control" id="node_name" placeholder="Ej: Nodo Luke">
+                    </div>
+                    
+                    <div class="form-group col-sm-3">
+                        <label for="ipnode">Dirección IP</label>
+                        <input type="text" class="form-control" id="ipnode" placeholder="Ej: 10.23.62.102">
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="portnode">Puerto</label>
+                        <input type="text" class="form-control" id="portnode" placeholder="Ej: 5000">
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="capacidad">Capacidad</label>
+                        <input type="text" class="form-control" id="capacidad" placeholder="Ej: 100">
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="fps">FPS</label>
+                        <input type="text" class="form-control" id="fps" placeholder="Ej: 5">
+                    </div>
+                    <!-- RTSP -->
+                    <div class="form-group col-sm-3">
+                        <label for="memoria">Memoria</label>
+                        <input type="text" class="form-control" id="memoria" placeholder="Ej: 16">
+                    </div>
+                                 <!-- Tipo, Zona, Cuadrante -->
+                  <div class="form-group col-sm-3">
+                    <label for="tipo_disco">Tipo de disco</label>
+                    <select class="form-control" id="tipo_disco">
+                      <option value="HDD">HDD</option>
+                      <option value="SSD">SSD</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group col-sm-3">
+                    <label for="disco">Espacio de disco</label>
+                    <input type="text" class="form-control" id="disco" placeholder="Ej: 8">
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="imagedocker">Imagen DOCKERS</label>
+                    <input type="text" class="form-control" id="imagedocker" placeholder="Ej: grabber:202505">
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="target">Ruta GRABBER</label>
+                    <input type="text" class="form-control" id="target" >
+                  </div>
+            
+                 <!-- Coordenadas -->
+                  <div class="form-group col-sm-9">
+                    <label for="amqp">AMQP</label>
+                    <input type="text" class="form-control" id="amqp" placeholder="Ej: amqp://root:winempresas@10.23.62.102:5672">
+                  </div>
+                  
+                                    <!-- Coordenadas -->
+                  <div class="form-group col-sm-3">
+                    <label for="corecount"># Nucleos</label>
+                    <input type="text" class="form-control" id="corecount" placeholder="Ej: 32">
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="redishost">Dirección REDIS</label>
+                    <input type="text" class="form-control" id="redishost" placeholder="Ej: 10.23.62.102">
+                  </div>
+                  
+                  <div class="form-group col-sm-6">
+                    <label for="redisport">Puerto REDIS</label>
+                    <input type="text" class="form-control" id="redisport" placeholder="Ej: 6379">
+                  </div>
+                  
+                  <div class="form-group col-sm-6">
+                    <label for="exchangename">Nombre del EXCHANGE</label>
+                    <input type="text" class="form-control" id="exchangename" placeholder="Ej: frames">
+                  </div>
+                  
+                  <div class="form-group col-sm-6">
+                    <label for="exchangeerror">Carpeta de errores del EXCHANGE</label>
+                    <input type="text" class="form-control" id="exchangeerror" placeholder="Ej: exchangeerror">
+                  </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn btn-accent btn-rounded" id="btnenviarnew">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_edit" tabindex="-1" style="background:rgba(0,0,0,0.9)" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content" >
+            
+            <div class="modal-header text-left">
+                <h4 class="modal-title">Editar Nodo</h4>
+                <small>Esta pantalla permite registrar nuevos nodos</small>
+
+            </div>
+            
+            <div class="modal-body" >    
+            
+                <form  class="row">
+                     <div class="form-group col-sm-3">
+                        <label for="node_name">Nombre del Nodo</label>
+                        <input type="text" class="form-control" id="node_name" placeholder="Ej: Nodo Luke">
+                    </div>
+                    
+                    <div class="form-group col-sm-3">
+                        <label for="ipnode">Dirección IP</label>
+                        <input type="text" class="form-control" id="ipnode" placeholder="Ej: 10.23.62.102">
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="portnode">Puerto</label>
+                        <input type="text" class="form-control" id="portnode" placeholder="Ej: 5000">
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="capacidad">Capacidad</label>
+                        <input type="text" class="form-control" id="capacidad" placeholder="Ej: 100">
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="fps">FPS</label>
+                        <input type="text" class="form-control" id="fps" placeholder="Ej: 5">
+                    </div>
+                    <!-- RTSP -->
+                    <div class="form-group col-sm-3">
+                        <label for="memoria">Memoria</label>
+                        <input type="text" class="form-control" id="memoria" placeholder="Ej: 16">
+                    </div>
+                                 <!-- Tipo, Zona, Cuadrante -->
+                  <div class="form-group col-sm-3">
+                    <label for="tipo_disco">Tipo de disco</label>
+                    <select class="form-control" id="tipo_disco">
+                      <option value="HDD">HDD</option>
+                      <option value="SSD">SSD</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group col-sm-3">
+                    <label for="disco">Espacio de disco</label>
+                    <input type="text" class="form-control" id="disco" placeholder="Ej: 8">
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="imagedocker">Imagen DOCKERS</label>
+                    <input type="text" class="form-control" id="imagedocker" placeholder="Ej: grabber:202505">
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="target">Ruta GRABBER</label>
+                    <input type="text" class="form-control" id="target" >
+                  </div>
+            
+                  <!-- Coordenadas -->
+                  <div class="form-group col-sm-9">
+                    <label for="amqp">AMQP</label>
+                    <input type="text" class="form-control" id="amqp" placeholder="Ej: amqp://root:winempresas@10.23.62.102:5672">
+                  </div>
+                  
+                                    <!-- Coordenadas -->
+                  <div class="form-group col-sm-3">
+                    <label for="corecount"># Nucleos</label>
+                    <input type="text" class="form-control" id="corecount" placeholder="Ej: 32" readonly>
+                  </div>
+            
+                  <div class="form-group col-sm-6">
+                    <label for="redishost">Dirección REDIS</label>
+                    <input type="text" class="form-control" id="redishost" placeholder="Ej: 10.23.62.102">
+                  </div>
+                  
+                  <div class="form-group col-sm-6">
+                    <label for="redisport">Puerto REDIS</label>
+                    <input type="text" class="form-control" id="redisport" placeholder="Ej: 6379">
+                  </div>
+                  
+                  <div class="form-group col-sm-6">
+                    <label for="exchangename">Nombre del EXCHANGE</label>
+                    <input type="text" class="form-control" id="exchangename" placeholder="Ej: frames">
+                  </div>
+                  
+                  <div class="form-group col-sm-6">
+                    <label for="exchangeerror">Carpeta de errores del EXCHANGE</label>
+                    <input type="text" class="form-control" id="exchangeerror" placeholder="Ej: exchangeerror">
+                  </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+               <button type="button" class="btn btn-accent btn-rounded" id="btngrabar">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal_camaras" tabindex="-1" role="dialog" >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            
+            <div class="modal-header text-left">
+                <h4 id="tituloModal" class="modal-title">Nodo @nodo - Listado de cámaras Cámara</h4>
+                <small>Esta pantalla muestra el listado de camras asociadas a un nodo</small>
+
+            </div>
+               <div class="modal-body" > 
+                <div class="col-md-12">
+                    
+                    
+                    <div class="table-responsive-nodos">
+                        <table class="table table-hover-1" >
+                            <thead style="border-radius:20px; overflow:hidden;">
+                            <tr>
+                                <!--th>ID</th-->
+                                <th>Cámara</th>
+                                <th>Ubicación</th>
+                                <th>Tipo</th>
+                                <th>Zona Objetivo</th>
+                                <th>Fecha Alta</th>
+                                <th>Estado</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                  </div>  
+                    
+                </div>
+            
+            <div id="contenedor"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+//$("#btnToggleFS").hide();
+  $('#modal_camaras').modal('hide'); 
+//  $('#modal_camaras').modal('show'); 
+function convertirFecha(fechaISO) {
+    const fecha = new Date(fechaISO);
+
+    const dia = fecha.getDate().toString().padStart(2, "0");
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, "0"); // meses empiezan en 0
+    const año = fecha.getFullYear();
+
+    const hora = fecha.getHours().toString().padStart(2, "0");
+    const minutos = fecha.getMinutes().toString().padStart(2, "0");
+
+    return `${dia}/${mes}/${año} ${hora}:${minutos}`;
+}
+    
+    //$("#modal_edit").hide();
+    $("#modal_edit").hide();
+    var rows_data=[]   
+
+    // Si hay un ID, precargar datos
+    // SEARCH EVENTS
+    function render_nodos(loc,data){
+        let html="";
+        let i=0;
+        //log(data)
+        for(r of data){
+            let estado = (r.activo == 1) ? 'Activo' : 'Inactivo';
+            let disponible = parseInt(r.capacidad) - parseInt(r.uso);
+            let color = (r.activo == 1) ? "background-color: #1bbf89;" : "background-color: #DB524B";
+            let colortext = (r.activo == 1) ? "label label-success" : "label label-danger";
+            let fecha = convertirFecha(r.fechareg);
+            let row = `
+            <tr onclick="onClickListRow('${r.idnode}')">
+                <th>${r.node_name}</th>
+                <th>${r.ipnode}</th>
+                <th>Disco ${r.tipo_disco} de ${r.disco}TB, ${r.memoria} de RAM GB</th>
+                <th>${r.capacidad}</th>
+                <th>${r.uso}</th>
+                <th>${disponible}</th>
+                <th>${fecha}</th>
+                <th><span class="${colortext}">${estado}</span></th>
+                <th>
+                  <span 
+                    style="color: blue; text-decoration: underline; cursor: pointer;"
+                    onmouseover="this.style.color='orange'; this.style.textDecoration='none';"
+                    onmouseout="this.style.color='blue'; this.style.textDecoration='underline';"
+                    onclick="event.stopPropagation(); onClickListCamara('${r.idnode}')">
+                    Ver lista
+                  </span>
+                </th>
+            </tr>`;
+
+                
+            html+=row;
+            i++;
+        }
+        
+        loc.html(html)
+        rows_data=data;
+    }
+    
+        function render_camaras(loc,data){
+        let html="";
+        let i=0;
+        log(data)
+        for(r of data){
+            let estado = (r.estado_general == 1) ? 'Activa' : 'Inactiva';
+            let colortext = (r.estado_general == 1) ? "label label-success" : "label label-danger";
+            let fecha = convertirFecha(r.fecha_registro);
+            
+           // let row=`<tr    onclick="onClickListRow('`+r.idnode+`') ">
+              let row=`<tr>
+                    <th>`+r.camera_id+`</th>
+                    <th>`+r.location+`</th>
+                    <th>`+r.tipo+`</th>
+                    <th>`+r.nombre_objetivo+`</th>
+                    <th>`+fecha+`</th>
+                    <th><span class="${colortext}">`+estado+`<span></th>
+                </tr>`
+                
+            html+=row;
+            i++;
+                             
+        }
+        
+        loc.html(html)
+        rows_data=data;
+    }
+    
+    function load_nodos(){
+        callAPI({
+            method:"gestion/getnodosall",            
+            params:{},
+            ok:(data)=>{
+                render_nodos(
+                    $(".table-responsive tbody"),
+                    data
+                )
+                log(data)
+                $("#totalnodos").html(data.length)
+                $("#nodosact").html((data.filter(n => n.activo == 1)).length);
+                $("#nodosinact").html((data.filter(n => n.activo == 0)).length);
+            }
+        });
+    
+    }
+    
+    $("#txtsearch").keyup( function (ev) {
+        //videoPlayer.stop();  
+        //log(ev)
+        var value=$("#txtsearch").val().toLowerCase();
+        var list=$(".table-responsive tbody")[0].childNodes
+        for(x of list){
+            x.style.display="";
+            var data=x.innerHTML.toLowerCase()
+            if(data.indexOf(value)==-1){
+                log("encnotrado")
+                x.style.display="none";
+            }
+        }
+
+    }); 
+    
+    //MODAL NEW EVENTS
+    $("#btnnewnodo").on("click",()=>{
+        $("#modal_new form")[0].reset();
+        $('#modal_new').modal('show');    
+      
+    });
+    
+    $("#btnenviarnew").on("click",()=>{
+    
+        //$('#modal_cameranew').modal('hide');               
+        var objetivoSeleccionado = $('#id_objetivo').find(':selected').text();
+        
+        callAPI({
+            method: "gestion/clusternew",
+            post:1,
+            params: {
+              "node_name": $("#modal_new #node_name").val(),
+              "ipnode": $("#modal_new #ipnode").val(),
+              "portnode": $("#modal_new #portnode").val(),
+              "capacidad": $("#modal_new #capacidad").val(),
+              "fps": $("#modal_new #fps").val(),
+              "tipo_disco": $("#modal_new #tipo_disco").val(),
+              "disco": $("#modal_new #disco").val(),
+              "memoria":  $("#modal_new #memoria").val(),
+              "amqp": $("#modal_new #amqp").val(),
+              "imagedocker": $("#modal_new #imagedocker").val(),
+              "redishost": $("#modal_new #redishost").val(),
+              "exchangename": $("#modal_new #exchangename").val(),
+              "exchangeerror": $("#modal_new #exchangeerror").val(),
+              "redisport": $("#modal_new #redisport").val(),
+              "target": $("#modal_new #target").val(),
+              "corecount": $("#modal_new #corecount").val()
+            },
+            ok: (data) => {
+                $('#modal_new').modal('hide');               
+                render_nodos(
+                    $(".table-responsive tbody"),
+                    data
+                );
+            }
+         });
+        
+       
+    }); 
+    
+    //Listado de cámaras
+     function onClickListCamara(idnode){
+       $('#modal_camaras').modal('show'); 
+        
+        callAPI({
+            method:'gestion/getcamarasbynodo',            
+            params:{
+                
+                idnode:idnode
+            },
+            ok:(data)=>{
+                render_camaras(
+                    $(".table-responsive-nodos tbody"),
+                    data
+                )
+                
+                let nodo = data[0].node_name;
+                document.getElementById("tituloModal").innerText = `Nodo ${nodo} - Listado de cámaras`;
+                log(data)
+            }
+        });
+     }
+    
+    //RENDERROW TO EDIT
+    let idnode=0;
+    function onClickListRow(index){
+        
+        idnode=index;
+        const numCores = 32; // número total de cores
+     
+        for (let i = 0; i < numCores; i += 2) {
+            const core_primary = i;
+            const core_secondary = i + 1;
+            const camera_count = 0; // puedes cambiarlo si deseas
+        
+            const sql = `INSERT INTO node_core (idnode, core_primary, core_secondary, camera_count) VALUES (${idnode}, ${core_primary}, ${core_secondary}, ${camera_count});`;
+            //console.log(sql);
+        }
+
+        
+        
+        //$("#modal_edit").show();
+                $('#modal_edit').modal('show');    
+       // $("#list").hide();
+        //carga_combo_edit();
+        log("id: "+index)
+            callAPI({
+            method: 'gestion/getnodobyid',
+            params: {
+              idnode: index
+            },
+                ok: function (vals) {
+              
+              vals.forEach(obj => {
+                
+               // log("obj");
+               //log(obj);
+                $('#modal_edit #node_name').val(obj.node_name);
+                $('#modal_edit #ipnode').val(obj.ipnode);
+                $('#modal_edit #portnode').val(obj.portnode);
+                $('#modal_edit #fps').val(obj.fps);
+                $('#modal_edit #capacidad').val(obj.capacidad);
+                $('#modal_edit #memoria').val(obj.memoria);
+                $('#modal_edit #tipo_disco').val(obj.tipo_disco);
+                $('#modal_edit #disco').val(obj.disco);
+                $('#modal_edit #imagedocker').val(obj.imagedocker);
+                $('#modal_edit #amqp').val(obj.amqp);
+                $('#modal_edit #target').val(obj.target);
+                $('#modal_edit #redisport').val(obj.redisport);
+                $('#modal_edit #redishost').val(obj.redishost);
+                $('#modal_edit #exchangename').val(obj.exchangename);
+                $('#modal_edit #exchangeerror').val(obj.exchangeerror);
+                $('#modal_edit #corecount').val(obj.corecount);
+                
+          });
+        },
+        error: function () {
+          $('#id_cuadrante').html('<option value="">Error al cargar</option>');
+        }
+      });
+    }
+    
+    $("#cancelBtn").on("click", function () {
+      if (confirm("¿Estás seguro de que deseas cancelar el registro?")) {
+        $("#cameraForm")[0].reset();
+      }
+    });
+    
+    $("#btncerrar").on("click", function () {
+      //if (confirm("¿Estás seguro de que deseas cancelar el registro?")) {
+       // $("#cameraForm")[0].reset();
+      //  $("#list").show();
+       // $("#modal_edit").hide();
+      // $("#modal_edit").hide();
+        
+        
+     // }
+     
+     
+  
+      
+       Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas cerrar el formulario?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí',
+      cancelButtonText: 'No',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    }).then((result) => {
+          if (result.isConfirmed) {
+                 $("#list").show();
+            $("#modal_edit").hide();
+             $("#modal_edit").hide();
+
+            // Aquí puedes colocar la lógica para cancelar realmente
+            console.log('Registro cancelado');
+          } else {
+            Swal.fire(
+              'Acción detenida',
+              'No se realizó ninguna acción.',
+              'info'
+            );
+          }
+        });
+        
+    });
+    
+    $(document).ready(function () {
+        
+        load_nodos()
+
+  });
+  
+      $("#btngrabar").on("click", () => {
+          
+        //var objetivoSeleccionado = $('#id_objetivo').find(':selected').text();
+      callAPI({
+        method: "gestion/nodoupt",
+        post:1,
+        params: {
+              "node_name":  $("#modal_edit #node_name").val(),
+              "idnode": idnode,
+              "ipnode": $("#modal_edit #ipnode").val(),
+              "portnode": $("#modal_edit #portnode").val(),
+              "capacidad": $("#modal_edit #capacidad").val(),
+              "fps": $("#modal_edit #fps").val(),
+              "tipo_disco": $("#modal_edit #tipo_disco").val(),
+              "disco": $("#modal_edit #disco").val(),
+              "memoria":  $("#modal_edit #memoria").val(),
+              "amqp": $("#modal_edit #amqp").val(),
+              "imagedocker": $("#modal_edit #imagedocker").val(),
+              "redishost": $("#modal_edit #redishost").val(),
+              "exchangename": $("#modal_edit #exchangename").val(),
+              "exchangeerror": $("#modal_edit #exchangeerror").val(),
+              "redisport": $("#modal_edit #redisport").val(),
+              "target": $("#modal_edit #target").val(),
+              "corecount": $("#modal_new #corecount").val()
+        },
+        ok: (data) => {
+                  callAPI({
+                    method: 'gestion/getnodobyid',
+                    params: {
+                      idnode: idnode
+                    },
+                        ok: function (vals) {
+                      
+                      vals.forEach(obj => {
+                        
+                       // log("obj");
+                       //log(obj);
+                        $('#modal_edit #node_name').val(obj.node_name);
+                        $('#modal_edit #ipnode').val(obj.ipnode);
+                        $('#modal_edit #capacidad').val(obj.capacidad);
+                        $('#modal_edit #fps').val(obj.fps);
+                        $('#modal_edit #tipodisco').val(obj.tipodisco);
+                        $('#modal_edit #disco').val(obj.disco);
+                        $('#modal_edit #amqp').val(obj.amqp);
+                        $('#modal_edit #memoria').val(obj.memoria);
+                        $('#modal_edit #imagedocker').val(obj.imagedocker);
+                        $('#modal_edit #redishost').val(obj.redishost);
+                        $('#modal_edit #exchangename').val(obj.exchangename);
+                        $('#modal_edit #exchangeerror').val(obj.exchangeerror);
+                        $('#modal_edit #target').val(obj.target);
+                        $('#modal_edit #redisport').val(obj.redisport);
+                        $('#modal_edit #corecount').val(obj.corecount);
+
+                  });
+                },
+                error: function () {
+                 // $('#id_cuadrante').html('<option value="">Error al cargar</option>');
+                }
+              });
+        }
+      });
+    });
+    
+    
+
+
+</script>

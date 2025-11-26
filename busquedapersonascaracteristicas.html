@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CIVIX • Overview — Naranja Futurista</title>
+
+<!-- Libs ya presentes en tu layout global (jQuery/Bootstrap) -->
+<script defer src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  /* Solo señales visuales temporales al habilitar (sin cambiar layout) */
+  .just-enabled {
+    box-shadow: 0 0 0 3px rgba(0,180,255,.35);
+    transition: box-shadow .6s ease;
+  }
+  .is-disabled { opacity: .55; }
+</style>
+</head>
+<body>
+
+<div class="row">
+  <!-- PANEL DE FILTROS -->
+  <div class="col-md-10" id="section-filters">
+    <div class="panel panel-filled panel-c-accent">
+      <div class="panel-heading">
+        <div class="panel-tools"></div>
+        Filtros
+      </div>
+      <div class="panel-body">
+        <!-- FILA 1: Fecha inicio, Fecha fin, Ubicación, Color Superior (obligatorio) -->
+        <div class="row">
+          <!-- Fecha/hora inicio -->
+          <div class="col-lg-3">
+            <label for="txtFechaIni">Fecha y hora inicio</label>
+            <div class="form-group">
+              <input id="txtFechaIni" type="datetime-local" class="form-control" step="1">
+            </div>
+          </div>
+
+          <!-- Fecha/hora fin -->
+          <div class="col-lg-3">
+            <label for="txtFechaFin">Fecha y hora fin</label>
+            <div class="form-group">
+              <input id="txtFechaFin" type="datetime-local" class="form-control" step="1">
+            </div>
+          </div>
+
+          <!-- Ubicación -->
+          <div class="col-lg-3">
+            <div class="form-group">
+              <label for="txtUbicacion">Ubicación</label>
+              <div class="input-group">
+                <input id="txtUbicacion" type="text" class="form-control" placeholder="Selecciona aquí..." readonly data-toggle="modal" data-target="#searchUbicacion">
+                <div class="input-group-append input-group-addon">
+                  <span class="input-group-text" data-toggle="modal" data-target="#searchUbicacion"><i class="pe-7s-search"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Color prenda superior (OBLIGATORIO) -->
+          <div class="col-lg-3">
+            <div class="form-group">
+              <label>Color Prenda Superior <span class="text-danger">*</span></label>
+              <select id="txtcolorsup" class="form-control">
+                <option value="all" selected>Seleccione color</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILA 2: Botón Buscar centrado -->
+        <div class="row">
+          <div class="col-lg-12 text-center">
+            <div class="form-group" style="padding: 10px 0 0;">
+              <button id="btnbuscar" class="btn btn-w-md btn-primary btn-rounded">Buscar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILA 3: Secundarios (se activan tras primera búsqueda en base a los 3 primeros) -->
+        <div class="row">
+          <!-- Color prenda inferior -->
+          <div class="col-lg-2">
+            <div class="form-group is-disabled">
+              <label>Color Prenda Inferior</label>
+              <select id="txtcolorinf" class="form-control" disabled>
+                <option value="all" selected>Seleccione color</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Sexo -->
+          <div class="col-lg-2">
+            <label>Sexo</label>
+            <div class="form-group is-disabled">
+              <select id="txtsexo" class="form-control" disabled>
+                <option value="all" selected>Seleccione sexo</option>
+                <option value="0">Mujer</option>
+                <option value="1">Hombre</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Edad -->
+          <div class="col-lg-2">
+            <label>Edad</label>
+            <div class="form-group is-disabled">
+              <select id="txtedad" class="form-control" disabled>
+                <option value="all" selected>Seleccione Rango</option>
+                <option value="0">0-2 años</option>
+                <option value="1">3-6 años</option>
+                <option value="2">7-13 años</option>
+                <option value="3">14-22 años</option>
+                <option value="4">23-35 años</option>
+                <option value="5">36-46 años</option>
+                <option value="6">47-56 años</option>
+                <option value="7">57-100 años</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-lg-6"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL DE INFORMACIÓN -->
+  <div class="col-md-2" id="section-information">
+    <div class="panel panel-filled panel-c-accent">
+      <div class="panel-heading">Total de Detecciones</div>
+      <div class="panel-body text-center">
+        <h2 class="m-b-none" id="totaldetection">-</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTADOS -->
+<div class="row" id="result-list"></div>
+
+<!-- MODAL: Selección de Ubicación -->
+<div class="modal fade" id="searchUbicacion" tabindex="-1" aria-hidden="true" style="background: rgba(0, 0, 0, 0.9);">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Selecciona Ubicación</h5>
+      </div>
+      <div class="modal-body modal-body-scroll">
+        <div class="form-group mb-2">
+          <div class="row">
+            <div class="col-lg-12">
+              <input id="ubicacionSearchInput" type="text" class="form-control" placeholder="Buscar ubicaciones...">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th style="width:30px;"><input type="checkbox" id="checkAllUbicaciones"></th>
+                  <th>Seleccionar todo</th>
+                </tr>
+              </thead>
+              <tbody id="ubicacionSearchResults"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+        <button class="btn btn-accent btn-rounded" id="btnAplicarSubzonas">Aplicar filtro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE de card -->
+<div id="subpanelTemplate" class="d-none" style="display:none">
+  <div class="col-md-4">
+    <div class="panel panel-c-accent" style="background:#252525 !important;">
+      <div class="panel-body" style="display:flex; align-items:flex-start; gap:10px; padding:10px 2px; height:180px;">
+        <div class="face-crop" style="width:80px; height:80px; border-radius:5px; overflow:hidden; flex-shrink:0;"></div>
+        <div style="flex:1; font-size:80%;">
+          <div>Id: <span class="c-white" style="float:right">@j</span></div>
+          <div>Cámara: <span class="c-white" style="float:right">@cameraname</span></div>
+          <div>Fecha: <span class="c-white" style="float:right">@date_start</span></div>
+          <div>Color Superior: <span class="c-white" style="float:right">@colorup</span></div>
+          <div>Color Inferior: <span class="c-white" style="float:right">@colorlow</span></div>
+          <div>Sexo: <span class="c-white" style="float:right">@genero</span></div>
+          <div>Edad: <span class="c-white" style="float:right">@val_edad</span></div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>Locación:</span><span class="c-white text-right" style="max-width:60%; word-break:break-word;">@location</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-footer" style="padding:10px;">
+        <button class="btn btn-w-md btn-success btn-rounded" style="width:100%; font-size:80%;">Ver Video</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Video -->
+<div class="modal fade" id="showVideoModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header text-left">
+        <span class="c-white" style="float:right" id="showtime"></span>
+        Cámara : <span class="c-white" id="showcamera"></span>
+        <div id="showlocation"></div>
+      </div>
+      <div class="modal-body" style="height:400px"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Estado ===== */
+var videoPlayer = null;
+let subzonasSeleccionadas = new Set();
+let nombresSubzonasSeleccionadas = new Set();
+
+/* ===== Util ===== */
+function log(){ try{ console.log.apply(console, arguments); }catch{} }
+if (!String.prototype.replaceAll) {
+  String.prototype.replaceAll = function(find, replace){ return this.split(find).join(replace); };
+}
+
+/* ===== Ventana 6h por defecto ===== */
+(function initDateTimeWindow(){
+  const now = new Date();
+  const start = new Date(now.getTime() - 6*60*60*1000);
+  const pad = n => String(n).padStart(2,'0');
+  const toLocalDT = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  $('#txtFechaIni').val(toLocalDT(start));
+  $('#txtFechaFin').val(toLocalDT(now));
+})();
+
+function validarVentanaSeisHoras(tsIni, tsFin){
+  if (!Number.isFinite(tsIni) || !Number.isFinite(tsFin)) return {ok:false,msg:'Fechas inválidas'};
+  if (tsFin < tsIni) return {ok:false,msg:'La fecha fin no puede ser menor a la fecha inicio'};
+  if (tsFin - tsIni > 6*60*60*1000) return {ok:false,msg:'La diferencia de fechas no debe ser mayor a 6 horas'};
+  return {ok:true,msg:''};
+}
+
+/* ===== Params para callAPI (respeta tu backend) ===== */
+function getvalues(){
+  const vIni = $('#txtFechaIni').val();
+  const vFin = $('#txtFechaFin').val();
+  const fechaIniMs = vIni ? new Date(vIni).getTime() : NaN;
+  const fechaFinMs = vFin ? new Date(vFin).getTime() : NaN;
+  const subzonasJson = JSON.stringify(Array.from(subzonasSeleccionadas));
+  return {
+    subzonas:      subzonasJson,
+    colorsuperior: $('#txtcolorsup').val().trim(),  // OBLIGATORIO
+    colorinferior: $('#txtcolorinf').val().trim(),  // secundarios
+    sexo:          $('#txtsexo').val().trim(),
+    edad:          $('#txtedad').val(),
+    precision:     null,
+    fechaini:      fechaIniMs,
+    fechafin:      fechaFinMs
+  };
+}
+
+/* ===== Habilitar secundarios con señal visual ===== */
+function enableSecondaryFilters(){
+  ['#txtcolorinf','#txtsexo','#txtedad'].forEach(sel=>{
+    const $wrap = $(sel).closest('.form-group');
+    $(sel).prop('disabled', false);
+    $wrap.removeClass('is-disabled').addClass('just-enabled');
+    setTimeout(()=> $wrap.removeClass('just-enabled'), 1200);
+  });
+}
+
+/* ===== Render de resultados (igual a tu versión previa) ===== */
+function showresultsearch(data){
+  $("#result-list").html("");
+  var tpl = $("#subpanelTemplate").html();
+  var cont = 1, itime = 1;
+  for (const x0 of data){
+    var x = Object.assign({}, x0);
+    var html = tpl;
+
+    var d = new Date(x.date_start);
+    const dateOptions = {year:'numeric',month:'2-digit',day:'2-digit'};
+    const formattedDate = new Intl.DateTimeFormat('es-PE', dateOptions).format(d);
+    const hh = String(d.getUTCHours()).padStart(2,'0');
+    const mm = String(d.getUTCMinutes()).padStart(2,'0');
+    const ss = String(d.getUTCSeconds()).padStart(2,'0');
+    x.date_start = `${formattedDate}, ${hh}:${mm}:${ss}`;
+
+    x.sexo = x.sexo || ""; 
+    x.val_edad = x.val_edad || ""; 
+    x.j = cont++;
+    itime += 5;
+
+    for (const k in x) html = html.replaceAll("@"+k, x[k]);
+    html = html.replaceAll("@time", itime);
+    const $panel = $(html);
+
+    const $crop = $panel.find(".face-crop");
+    const [xo1,yo1,xo2,yo2] = (x.coords_obj||"0,0,1,1").split(",").map(Number);
+    const w = xo2 - xo1, h = yo2 - yo1;
+    const CW=115, CH=140, foto=x.foto_frame;
+    const img = new Image();
+    img.src = foto;
+    img.onload = ()=>{
+      const scale = Math.min(CW/w, CH/h);
+      const bgW = img.naturalWidth * scale;
+      const bgH = img.naturalHeight * scale;
+      const bgX = (CW - w*scale)/2 - xo1*scale;
+      const bgY = (CH - h*scale)/2 - yo1*scale;
+      $crop.css({
+        width:`${CW}px`, height:`${CH}px`,
+        backgroundImage:`url(${foto})`,
+        backgroundSize:`${bgW}px ${bgH}px`,
+        backgroundPosition:`${bgX}px ${bgY}px`,
+        backgroundRepeat:"no-repeat"
+      });
+    };
+
+    $panel.find('button')
+      .attr("data", JSON.stringify(x))
+      .on('click', function(){ playVideo(JSON.parse($(this).attr("data"))); });
+
+    $("#result-list").append($panel);
+  }
+}
+
+function playVideo(row){
+  document.querySelector("#showcamera").innerHTML = row.cameraname;
+  document.querySelector("#showtime").innerHTML   = row.date_start;
+  document.querySelector("#showlocation").innerHTML= row.location;
+
+  callAPI({
+    method:'gestion/getframespersoncaract',
+    params:{ camara: row.camera_id, tracking_id: row.tracking_id, epoch_frame: row.epoch_frame },
+    ok:function(frames){
+      videoPlayer = new videoplay(document.querySelector("#showVideoModal .modal-body"));
+      setTimeout(()=>{
+        $('#showVideoModal').modal('show');
+        const grouped = Object.values(frames.reduce((acc,item)=>{
+          if(!item.coords_obj) return acc;
+          if(!acc[item.foto]) acc[item.foto]={foto:item.foto, coords_obj:[]};
+          acc[item.foto].coords_obj.push({
+            categoria:item.category,
+            accuracy_obj:item.accuracy_obj,
+            colorupper:item.color_name_upper,
+            colorlower:item.color_name_lower,
+            coords:(item.coords_obj||'').split(","),
+            coordsface:(item.coords_face||'').split(","),
+            plate:row.nombre
+          });
+          return acc;
+        },{})).sort((a,b)=>a.foto.localeCompare(b.foto));
+        videoPlayer.update(grouped,"foto","coords_obj");
+        setTimeout(()=>videoPlayer.play(),100);
+      },100);
+    }
+  });
+}
+
+/* ===== Eventos ===== */
+function validarCamposPrimarios(values){
+  // Color superior obligatorio (no 'all')
+  if (!values.colorsuperior || values.colorsuperior === 'all')
+    return {ok:false,msg:'Selecciona un Color Prenda Superior'};
+  // Ubicación: al menos una
+  if (!values.subzonas || values.subzonas === '[]')
+    return {ok:false,msg:'Selecciona al menos una Ubicación'};
+  // Ventana de 6 horas
+  const v = validarVentanaSeisHoras(values.fechaini, values.fechafin);
+  if (!v.ok) return v;
+  return {ok:true,msg:''};
+}
+
+$("#btnbuscar").off('click').on('click', ()=>{
+  const values = getvalues();
+  const v = validarCamposPrimarios(values);
+  if (!v.ok){ alert(v.msg); return; }
+
+  callAPI({
+    method:"gestion/getlistpersoncaract",
+    params:values,
+    ok:(data)=>{
+      $("#totaldetection").html(data.length);
+      showresultsearch(data);
+      // Habilitar secundarios tras primera búsqueda válida
+      enableSecondaryFilters();
+    }
+  });
+});
+
+$("#showVideoModal").on("hidden.bs.modal", function(){
+  if (videoPlayer && typeof videoPlayer.stop === 'function') videoPlayer.stop();
+});
+
+$('#checkAllUbicaciones').on('change', function(){
+  $('.chk-subzona').prop('checked', this.checked);
+});
+$('#btnAplicarSubzonas').on('click', function(){
+  subzonasSeleccionadas.clear();
+  nombresSubzonasSeleccionadas.clear();
+  $('#ubicacionSearchResults tr').each(function(){
+    const $cb = $(this).find('.chk-subzona');
+    if ($cb.prop('checked')){
+      subzonasSeleccionadas.add($cb.val());
+      nombresSubzonasSeleccionadas.add($(this).find('td:eq(1)').text());
+    }
+  });
+  $('#txtUbicacion').val([...nombresSubzonasSeleccionadas].join(', '));
+  $('#searchUbicacion').modal('hide');
+});
+$('#ubicacionSearchInput').on('input', function(){
+  const t = $(this).val().toLowerCase();
+  $('#ubicacionSearchResults tr').each(function(){
+    $(this).toggle($(this).text().toLowerCase().includes(t));
+  });
+});
+$('#ubicacionSearchResults').on('click','tr td:not(:first-child)', function(){
+  const $cb = $(this).closest('tr').find('.chk-subzona');
+  $cb.prop('checked', !$cb.prop('checked'));
+});
+
+/* Reconsulta al cambiar secundarios (solo si ya están habilitados) */
+function triggerRefetchIfEnabled(){
+  if ($('#txtcolorinf').prop('disabled')) return;
+  const values = getvalues();
+  const v = validarVentanaSeisHoras(values.fechaini, values.fechafin);
+  if (!v.ok){ alert(v.msg); return; }
+  callAPI({
+    method:"gestion/getlistpersoncaract",
+    params:values,
+    ok:(data)=>{ $("#totaldetection").html(data.length); showresultsearch(data); }
+  });
+}
+$('#txtcolorinf').off('change').on('change', triggerRefetchIfEnabled);
+$('#txtsexo').off('change').on('change', triggerRefetchIfEnabled);
+$('#txtedad').off('change').on('change', triggerRefetchIfEnabled);
+
+/* ===== Cargas iniciales ===== */
+$(document).ready(function(){
+  callAPI({
+    method:'gestion/jerarquia_territorial',
+    ok:function(data){
+      const tbody = $('#ubicacionSearchResults').empty();
+      data.forEach(item=>{
+        tbody.append(`
+          <tr>
+            <td><input type="checkbox" class="chk-subzona" value="${item.id_subzona}"></td>
+            <td>${item.ubicacion}</td>
+          </tr>
+        `);
+      });
+    }
+  });
+  callAPI({
+    method:'gestion/color',
+    ok:function(vals){
+      const $inf = $('#txtcolorinf');
+      const $sup = $('#txtcolorsup');
+      vals.forEach(o=> $inf.append(`<option value="${o.id}">${o.name}</option>`));
+      vals.forEach(o=> $sup.append(`<option value="${o.id}">${o.name}</option>`));
+    }
+  });
+});
+</script>
+
+</body>
+</html>

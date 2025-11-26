@@ -1,0 +1,1303 @@
+<div id="incidentes-supervisor-dashboard" class="civix-view">
+    <style>
+        /* Scoped styles for strategic dashboard */
+        #incidentes-supervisor-dashboard { font-family: system-ui, -apple-system, sans-serif; }
+        #incidentes-supervisor-dashboard .list-container { padding: 1.25rem; max-width: 1400px; margin: 0 auto; }
+        #incidentes-supervisor-dashboard .dashboard-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        #incidentes-supervisor-dashboard .dashboard-title {
+            font-size: 1.4rem;
+            color: #FFFFFF;
+            margin: 0;
+        }
+        #incidentes-supervisor-dashboard .dashboard-label {
+            font-size: 0.9rem;
+            color: #a6adbb;
+            margin: 0 0 0.5rem 0;
+        }
+        #incidentes-supervisor-dashboard .dashboard-update {
+            text-align: right;
+            color: #a6adbb;
+            font-size: 0.9rem;
+        }
+
+        /* Global filters */
+        #incidentes-supervisor-dashboard .filtros-globales {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        #incidentes-supervisor-dashboard .filtro-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        #incidentes-supervisor-dashboard .filtro-item label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a6adbb;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        #incidentes-supervisor-dashboard .filtro-item select {
+            padding: 0.6rem;
+            border: 1px solid #2a2a2a;
+            background: #222222;
+            color: #FFFFFF;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        /* Section styling */
+        #incidentes-supervisor-dashboard .seccion {
+            margin-bottom: 2rem;
+        }
+        #incidentes-supervisor-dashboard .seccion h2 {
+            font-size: 1.4rem;
+            color: #FFFFFF;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        #incidentes-supervisor-dashboard .seccion h3 {
+            font-size: 1.4rem;
+            color: #FFFFFF;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        /* KPI grid - styles adapted from supervisor inbox */
+        #incidentes-supervisor-dashboard .indicadores-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-bottom: 1.5rem;
+        }
+        @media(min-width: 1100px) {
+            #incidentes-supervisor-dashboard .indicadores-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        #incidentes-supervisor-dashboard .indicador-card {
+            background: #252525;
+            border-left: 3px solid #ff3600;
+            padding: 12px;
+        }
+        #incidentes-supervisor-dashboard .indicador-label {
+            color: #FFFFFF;
+        }
+        #incidentes-supervisor-dashboard .indicador-valor {
+            margin-top: 10px;
+            color: #FFFFFF;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* Tables */
+        #incidentes-supervisor-dashboard table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        #incidentes-supervisor-dashboard table,
+        #incidentes-supervisor-dashboard th,
+        #incidentes-supervisor-dashboard td {
+            border: 1px solid #2a2a2a;
+        }
+        #incidentes-supervisor-dashboard th {
+            background: #222222;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+            color: #FFFFFF;
+        }
+        #incidentes-supervisor-dashboard td {
+            padding: 8px;
+            font-size: 12px;
+            color: #a6adbb;
+        }
+        #incidentes-supervisor-dashboard tbody tr:hover {
+            background: #222222;
+        }
+
+        /* Charts */
+        #incidentes-supervisor-dashboard .grafico-container {
+            background: #222222;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            min-height: 300px;
+        }
+        #incidentes-supervisor-dashboard canvas {
+            border: 1px solid #2a2a2a;
+        }
+
+        /* Heatmap */
+        #incidentes-supervisor-dashboard .heatmap-container {
+            overflow-x: auto;
+        }
+        #incidentes-supervisor-dashboard .heatmap {
+            display: grid;
+            gap: 1px;
+            margin: 1rem 0;
+        }
+        #incidentes-supervisor-dashboard .heatmap-cell {
+            border: 1px solid #2a2a2a;
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+            min-width: 40px;
+            color: #a6adbb;
+        }
+        #incidentes-supervisor-dashboard .heatmap-header {
+            font-weight: 600;
+            background: #222222;
+            color: #FFFFFF;
+        }
+
+        /* Modal */
+        #incidentes-supervisor-dashboard .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        #incidentes-supervisor-dashboard .modal.active {
+            display: flex;
+        }
+        #incidentes-supervisor-dashboard .modal-content {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #incidentes-supervisor-dashboard .modal-header {
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        #incidentes-supervisor-dashboard .modal-header h2 {
+            color: #FFFFFF;
+            margin: 0;
+        }
+        #incidentes-supervisor-dashboard .modal-footer {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        /* Buttons */
+        #incidentes-supervisor-dashboard button {
+            padding: 0.6rem 1rem;
+            border: 1px solid #2a2a2a;
+            background: #222222;
+            color: #FFFFFF;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+        }
+        #incidentes-supervisor-dashboard button:hover {
+            background: #2a2a2a;
+        }
+
+        /* Semaphore */
+        #incidentes-supervisor-dashboard .semaforo-box {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #2a2a2a;
+            display: inline-block;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            #incidentes-supervisor-dashboard .list-container { padding: .75rem; }
+            #incidentes-supervisor-dashboard .indicadores-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+
+    <div class="list-container">
+        <div class="dashboard-header">
+            <div>
+                <p class="dashboard-label">Supervisor estratégico</p>
+                <h1 class="dashboard-title">Dashboard Estratégico - Sistema de Gestión de Incidentes</h1>
+            </div>
+            <div class="dashboard-update">
+                <i class="fa fa-clock-o" aria-hidden="true"></i>
+                Actualización: <span id="dashboardUpdateTime">17:29:22 pm</span>
+            </div>
+        </div>
+
+        <!-- Global Filters -->
+        <div class="filtros-globales">
+            <div class="filtro-item">
+                <label>Zona</label>
+                <select id="filtro-zona">
+                    <option value="">Todas</option>
+                    <option value="norte">Norte</option>
+                    <option value="sur">Sur</option>
+                    <option value="este">Este</option>
+                    <option value="oeste">Oeste</option>
+                    <option value="centro">Centro</option>
+                </select>
+            </div>
+            <div class="filtro-item">
+                <label>Operador</label>
+                <select id="filtro-operador">
+                    <option value="">Todos</option>
+                    <option value="op1">Operador 1</option>
+                    <option value="op2">Operador 2</option>
+                    <option value="op3">Operador 3</option>
+                    <option value="op4">Operador 4</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- SECTION A: INCIDENTES -->
+        <div class="seccion">
+                    <h2>A. INCIDENTES</h2>
+
+                    <div class="indicadores-grid">
+                        <div class="indicador-card">
+                            <div class="indicador-label">Incidentes Activos</div>
+                            <div class="indicador-valor" id="ind-total-activos">0 (100%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Dentro del SLA</div>
+                            <div class="indicador-valor" id="ind-dentro-sla">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Próximos a Exceder SLA</div>
+                            <div class="indicador-valor" id="ind-proximos-sla">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Han Excedido el SLA</div>
+                            <div class="indicador-valor" id="ind-excedidos-sla">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Sin Agentes Asignados</div>
+                            <div class="indicador-valor" id="ind-sin-agentes">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Con Agentes Asignados</div>
+                            <div class="indicador-valor" id="ind-con-agentes">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Con Un Agente</div>
+                            <div class="indicador-valor" id="ind-un-agente">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Con Más de Un Agente</div>
+                            <div class="indicador-valor" id="ind-varios-agentes">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Creados &lt; 30 min</div>
+                            <div class="indicador-valor" id="ind-menos-30min">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Creados 31-60 min</div>
+                            <div class="indicador-valor" id="ind-31-60min">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Creados 1-2 horas</div>
+                            <div class="indicador-valor" id="ind-1-2h">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Creados 2-3 horas</div>
+                            <div class="indicador-valor" id="ind-2-3h">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Creados 3-4 horas</div>
+                            <div class="indicador-valor" id="ind-3-4h">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Creados &gt; 4 horas</div>
+                            <div class="indicador-valor" id="ind-mas-4h">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Cerrados Hora Actual</div>
+                            <div class="indicador-valor" id="ind-cerrados-hora-actual">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Cerrados Hora Anterior</div>
+                            <div class="indicador-valor" id="ind-cerrados-hora-anterior">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Severidad: Leve</div>
+                            <div class="indicador-valor" id="ind-sev-leve">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Severidad: Media</div>
+                            <div class="indicador-valor" id="ind-sev-media">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Severidad: Alta</div>
+                            <div class="indicador-valor" id="ind-sev-alta">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Severidad: Crítica</div>
+                            <div class="indicador-valor" id="ind-sev-critica">0 (0%)</div>
+                        </div>
+                    </div>
+
+                    <h3>Línea de Tiempo 24h (Creados/Resueltos)</h3>
+                    <div class="grafico-container">
+                        <canvas id="grafico-linea-24h" width="1000" height="300"></canvas>
+                    </div>
+
+                    <h3>Incidentes Activos por Clasificación/Tipo/Subtipo</h3>
+                    <div class="table-responsive">
+                        <table id="tabla-clasificacion">
+                            <thead>
+                                <tr>
+                                    <th>Clasificación</th>
+                                    <th>Tipo</th>
+                                    <th>Subtipo</th>
+                                    <th>Incidentes</th>
+                                    <th>Operadores</th>
+                                    <th>Dur. Máx.</th>
+                                    <th>Dentro SLA</th>
+                                    <th>Por Superar SLA</th>
+                                    <th>SLA Superado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION B: OPERADORES -->
+                <div class="seccion">
+                    <h2>B. OPERADORES</h2>
+
+                    <div class="indicadores-grid">
+                        <div class="indicador-card">
+                            <div class="indicador-label">Operadores Activos</div>
+                            <div class="indicador-valor" id="ind-op-activos">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Operadores con Incidentes</div>
+                            <div class="indicador-valor" id="ind-op-con-incidentes">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Operadores Libres</div>
+                            <div class="indicador-valor" id="ind-op-libres">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Op. con Más Incidentes</div>
+                            <div class="indicador-valor" id="ind-op-mas-incidentes">0 - N/A</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Op. con Más Agentes</div>
+                            <div class="indicador-valor" id="ind-op-mas-agentes">0 - N/A</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Op. con Inc. Dentro SLA</div>
+                            <div class="indicador-valor" id="ind-op-dentro-sla">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Op. con Inc. Por Romper SLA</div>
+                            <div class="indicador-valor" id="ind-op-por-romper-sla">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Op. con Inc. Fuera SLA</div>
+                            <div class="indicador-valor" id="ind-op-fuera-sla">0 (0%)</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="tabla-operadores">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Incidentes</th>
+                                    <th>Agentes Asignados</th>
+                                    <th>Inc. Dentro SLA</th>
+                                    <th>Inc. Por Romper SLA</th>
+                                    <th>Inc. Rompieron SLA</th>
+                                    <th>Inc. Mayor Duración</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION C: AGENTES DE CAMPO -->
+                <div class="seccion">
+                    <h2>C. AGENTES DE CAMPO</h2>
+
+                    <div class="indicadores-grid">
+                        <div class="indicador-card">
+                            <div class="indicador-label">Total Agentes Activos</div>
+                            <div class="indicador-valor" id="ind-agentes-total">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Agentes Ocupados</div>
+                            <div class="indicador-valor" id="ind-agentes-ocupados">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Agentes Libres</div>
+                            <div class="indicador-valor" id="ind-agentes-libres">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Con Incidentes Cerrados</div>
+                            <div class="indicador-valor" id="ind-agentes-con-cerrados">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Presentando Ubicación</div>
+                            <div class="indicador-valor" id="ind-agentes-con-ubicacion">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Sin Presentar Ubicación</div>
+                            <div class="indicador-valor" id="ind-agentes-sin-ubicacion">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">En Camioneta</div>
+                            <div class="indicador-valor" id="ind-agentes-camioneta">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">En Bicicleta</div>
+                            <div class="indicador-valor" id="ind-agentes-bicicleta">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">A Pie</div>
+                            <div class="indicador-valor" id="ind-agentes-pie">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Ocupados en Camioneta</div>
+                            <div class="indicador-valor" id="ind-agentes-ocupados-camioneta">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Ocupados en Bicicleta</div>
+                            <div class="indicador-valor" id="ind-agentes-ocupados-bicicleta">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Ocupados a Pie</div>
+                            <div class="indicador-valor" id="ind-agentes-ocupados-pie">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Libres en Camioneta</div>
+                            <div class="indicador-valor" id="ind-agentes-libres-camioneta">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Libres en Bicicleta</div>
+                            <div class="indicador-valor" id="ind-agentes-libres-bicicleta">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Libres a Pie</div>
+                            <div class="indicador-valor" id="ind-agentes-libres-pie">0 (0%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION D: ZONAS -->
+                <div class="seccion">
+                    <h2>D. ZONAS</h2>
+
+                    <div class="indicadores-grid">
+                        <div class="indicador-card">
+                            <div class="indicador-label">Total de Zonas</div>
+                            <div class="indicador-valor" id="ind-zonas-total">5 (100%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Zonas con Incidentes</div>
+                            <div class="indicador-valor" id="ind-zonas-con-incidentes">0 (0%)</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Promedio Inc. por Zona</div>
+                            <div class="indicador-valor" id="ind-zonas-prom-incidentes">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Promedio Op. por Zona</div>
+                            <div class="indicador-valor" id="ind-zonas-prom-operadores">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Promedio Ag. por Zona</div>
+                            <div class="indicador-valor" id="ind-zonas-prom-agentes">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Promedio Camionetas</div>
+                            <div class="indicador-valor" id="ind-zonas-prom-camionetas">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Promedio Bicicletas</div>
+                            <div class="indicador-valor" id="ind-zonas-prom-bicicletas">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Promedio Agentes a Pie</div>
+                            <div class="indicador-valor" id="ind-zonas-prom-pie">0</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="tabla-zonas">
+                            <thead>
+                                <tr>
+                                    <th>Zona</th>
+                                    <th>Incidentes</th>
+                                    <th>Agentes Asignados</th>
+                                    <th>Inc. Dentro SLA</th>
+                                    <th>Inc. Por Romper SLA</th>
+                                    <th>Inc. Rompieron SLA</th>
+                                    <th>Inc. Mayor Duración</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION E: RE-ASIGNACIONES -->
+                <div class="seccion">
+                    <h2>E. RE-ASIGNACIONES</h2>
+
+                    <div class="indicadores-grid">
+                        <div class="indicador-card">
+                            <div class="indicador-label">Incidentes Reasignados</div>
+                            <div class="indicador-valor" id="ind-reasignados-incidentes">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Pendientes de Reasignación</div>
+                            <div class="indicador-valor" id="ind-reasignados-pendientes">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Reasignados Hora Actual</div>
+                            <div class="indicador-valor" id="ind-reasignados-hora-actual">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Reasignados Hora Anterior</div>
+                            <div class="indicador-valor" id="ind-reasignados-hora-anterior">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Solicitudes Hora Actual</div>
+                            <div class="indicador-valor" id="ind-solicitudes-hora-actual">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Solicitudes Hora Anterior</div>
+                            <div class="indicador-valor" id="ind-solicitudes-hora-anterior">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Dentro del SLA</div>
+                            <div class="indicador-valor" id="ind-reasignaciones-dentro-sla">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Fuera del SLA</div>
+                            <div class="indicador-valor" id="ind-reasignaciones-fuera-sla">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Solicitadas Durante Turno</div>
+                            <div class="indicador-valor" id="ind-solicitadas-turno">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Solicitadas al Final</div>
+                            <div class="indicador-valor" id="ind-solicitadas-fin-turno">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Operadores Solicitantes</div>
+                            <div class="indicador-valor" id="ind-operadores-solicitantes">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Op. Reasig. Durante Turno</div>
+                            <div class="indicador-valor" id="ind-operadores-reasig-turno">0</div>
+                        </div>
+                        <div class="indicador-card">
+                            <div class="indicador-label">Op. Reasig. al Final</div>
+                            <div class="indicador-valor" id="ind-operadores-reasig-fin">0</div>
+                        </div>
+                    </div>
+
+                    <h3>Línea de Tiempo 24h (Solicitadas/Pendientes/Re-Asignadas)</h3>
+                    <div class="grafico-container">
+                        <canvas id="grafico-linea-reasignaciones" width="1000" height="300"></canvas>
+                    </div>
+
+                    <h3>Incidentes Reasignados por Clasificación/Tipo/Subtipo</h3>
+                    <div class="table-responsive">
+                        <table id="tabla-reasignados-clasificacion">
+                            <thead>
+                                <tr>
+                                    <th>Clasificación</th>
+                                    <th>Tipo</th>
+                                    <th>Subtipo</th>
+                                    <th>Incidentes</th>
+                                    <th>Operadores</th>
+                                    <th>Dur. Máx.</th>
+                                    <th>Dentro SLA</th>
+                                    <th>SLA Superado</th>
+                                    <th>Durante turno</th>
+                                    <th>Al final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Incidentes Pendientes de Reasignación</h3>
+                    <div class="table-responsive">
+                        <table id="tabla-pendientes-clasificacion">
+                            <thead>
+                                <tr>
+                                    <th>Clasificación</th>
+                                    <th>Tipo</th>
+                                    <th>Subtipo</th>
+                                    <th>Incidentes</th>
+                                    <th>Operadores</th>
+                                    <th>Dur. Máx.</th>
+                                    <th>Dentro SLA</th>
+                                    <th>SLA Superado</th>
+                                    <th>Durante turno</th>
+                                    <th>Al final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Operator Detail -->
+    <div class="modal" id="modal-detalle-operador">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalle del Operador</h2>
+                <p style="font-size:12px; margin-top:5px; color:#a6adbb;">Operador: <strong id="operador-detalle-nombre" style="color:#FFFFFF;"></strong></p>
+            </div>
+
+            <div class="indicadores-grid" style="margin-top:15px;">
+                <div class="indicador-card">
+                    <div class="indicador-label">Inc. Activos</div>
+                    <div class="indicador-valor" id="detalle-inc-activos">0</div>
+                </div>
+                <div class="indicador-card">
+                    <div class="indicador-label">Agentes Distintos</div>
+                    <div class="indicador-valor" id="detalle-agentes">0</div>
+                </div>
+                <div class="indicador-card">
+                    <div class="indicador-label">Dur. Promedio</div>
+                    <div class="indicador-valor" id="detalle-dur-prom">00:00</div>
+                </div>
+                <div class="indicador-card">
+                    <div class="indicador-label">% SLA</div>
+                    <div class="indicador-valor" id="detalle-pct-sla">0%</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top:20px; color:#FFFFFF;">Incidentes Activos del Operador</h3>
+            <div id="detalle-incidentes-lista" style="max-height:300px; overflow-y:auto; border:1px solid #2a2a2a; padding:10px; margin-top:10px; background:#222222;">
+                <!-- Lista de incidentes -->
+            </div>
+
+            <div class="modal-footer">
+                <button onclick="cerrarModalDetalle()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        const root = document.getElementById('incidentes-supervisor-dashboard');
+        if (!root) return;
+
+        // Demo data
+        let incidentesActivos = [
+            {id: 1, tipo: 'Seguridad', subtipo: 'Robo', clasificacion: 'Urgente', duracionMin: 45, severidad: 'Alta', agentes: 2, zona: 'Norte', operador: 'op1'},
+            {id: 2, tipo: 'Infraestructura', subtipo: 'Bache', clasificacion: 'Normal', duracionMin: 120, severidad: 'Media', agentes: 1, zona: 'Sur', operador: 'op2'},
+            {id: 3, tipo: 'Limpieza', subtipo: 'Basura', clasificacion: 'Normal', duracionMin: 30, severidad: 'Leve', agentes: 1, zona: 'Centro', operador: 'op1'},
+            {id: 4, tipo: 'Seguridad', subtipo: 'Pelea', clasificacion: 'Crítico', duracionMin: 300, severidad: 'Crítica', agentes: 3, zona: 'Este', operador: 'op3'},
+            {id: 5, tipo: 'Tráfico', subtipo: 'Accidente', clasificacion: 'Urgente', duracionMin: 90, severidad: 'Alta', agentes: 2, zona: 'Oeste', operador: 'op2'},
+            {id: 6, tipo: 'Infraestructura', subtipo: 'Semáforo', clasificacion: 'Normal', duracionMin: 180, severidad: 'Media', agentes: 1, zona: 'Norte', operador: 'op1'},
+            {id: 7, tipo: 'Limpieza', subtipo: 'Derrame', clasificacion: 'Urgente', duracionMin: 60, severidad: 'Alta', agentes: 2, zona: 'Sur', operador: 'op3'},
+            {id: 8, tipo: 'Seguridad', subtipo: 'Vandalismo', clasificacion: 'Normal', duracionMin: 150, severidad: 'Media', agentes: 1, zona: 'Centro', operador: 'op2'}
+        ];
+
+        let operadores = [
+            {id: 'op1', nombre: 'Operador 1', incidentesActivos: 3, agentesDistintos: 4, estado: 'activo'},
+            {id: 'op2', nombre: 'Operador 2', incidentesActivos: 3, agentesDistintos: 3, estado: 'activo'},
+            {id: 'op3', nombre: 'Operador 3', incidentesActivos: 2, agentesDistintos: 4, estado: 'activo'},
+            {id: 'op4', nombre: 'Operador 4', incidentesActivos: 0, agentesDistintos: 0, estado: 'libre'}
+        ];
+
+        let agentes = [
+            {id: 'ag1', nombre: 'Agente 1', zona: 'Norte', incidentesActivos: 2, incidentesCerrados: 5, mensajes: 34, tieneUbicacion: true, transporte: 'camioneta'},
+            {id: 'ag2', nombre: 'Agente 2', zona: 'Norte', incidentesActivos: 1, incidentesCerrados: 3, mensajes: 21, tieneUbicacion: true, transporte: 'bicicleta'},
+            {id: 'ag3', nombre: 'Agente 3', zona: 'Sur', incidentesActivos: 0, incidentesCerrados: 8, mensajes: 0, tieneUbicacion: true, transporte: 'pie'},
+            {id: 'ag4', nombre: 'Agente 4', zona: 'Sur', incidentesActivos: 1, incidentesCerrados: 4, mensajes: 18, tieneUbicacion: false, transporte: 'camioneta'},
+            {id: 'ag5', nombre: 'Agente 5', zona: 'Centro', incidentesActivos: 2, incidentesCerrados: 6, mensajes: 29, tieneUbicacion: true, transporte: 'bicicleta'},
+            {id: 'ag6', nombre: 'Agente 6', zona: 'Centro', incidentesActivos: 1, incidentesCerrados: 2, mensajes: 15, tieneUbicacion: true, transporte: 'pie'},
+            {id: 'ag7', nombre: 'Agente 7', zona: 'Este', incidentesActivos: 0, incidentesCerrados: 7, mensajes: 0, tieneUbicacion: true, transporte: 'bicicleta'},
+            {id: 'ag8', nombre: 'Agente 8', zona: 'Este', incidentesActivos: 1, incidentesCerrados: 3, mensajes: 22, tieneUbicacion: true, transporte: 'camioneta'},
+            {id: 'ag9', nombre: 'Agente 9', zona: 'Oeste', incidentesActivos: 0, incidentesCerrados: 9, mensajes: 0, tieneUbicacion: false, transporte: 'pie'},
+            {id: 'ag10', nombre: 'Agente 10', zona: 'Oeste', incidentesActivos: 2, incidentesCerrados: 4, mensajes: 28, tieneUbicacion: true, transporte: 'camioneta'}
+        ];
+
+        let zonas = [
+            {nombre: 'Norte'},
+            {nombre: 'Sur'},
+            {nombre: 'Centro'},
+            {nombre: 'Este'},
+            {nombre: 'Oeste'}
+        ];
+
+        let incidentesCerrados = { horaActual: 5, horaAnterior: 7 };
+
+        let lineaTemporal24h = {
+            horas: Array.from({length: 24}, (_, i) => i),
+            creados: [2, 1, 0, 1, 3, 5, 4, 6, 8, 7, 5, 4, 6, 5, 7, 8, 6, 9, 7, 5, 4, 3, 2, 1],
+            resueltos: [1, 2, 1, 0, 2, 4, 3, 5, 7, 6, 6, 5, 5, 6, 6, 7, 7, 8, 8, 6, 5, 4, 3, 2]
+        };
+
+        let solicitudesReasignacion = [
+            {id: 'RA-001', estado: 'reasignado', hora: 'actual', sla: true, momento: 'durante', operadorSolicitante: 'op1'},
+            {id: 'RA-002', estado: 'reasignado', hora: 'anterior', sla: true, momento: 'durante', operadorSolicitante: 'op2'},
+            {id: 'RA-003', estado: 'pendiente', hora: 'actual', sla: false, momento: 'durante', operadorSolicitante: 'op3'},
+            {id: 'RA-004', estado: 'pendiente', hora: 'anterior', sla: false, momento: 'final', operadorSolicitante: 'op2'},
+            {id: 'RA-005', estado: 'reasignado', hora: 'actual', sla: true, momento: 'final', operadorSolicitante: 'op1'},
+            {id: 'RA-006', estado: 'reasignado', hora: 'anterior', sla: true, momento: 'durante', operadorSolicitante: 'op4'},
+            {id: 'RA-007', estado: 'pendiente', hora: 'actual', sla: false, momento: 'durante', operadorSolicitante: 'op5'},
+            {id: 'RA-008', estado: 'reasignado', hora: 'anterior', sla: false, momento: 'final', operadorSolicitante: 'op3'},
+            {id: 'RA-009', estado: 'reasignado', hora: 'actual', sla: true, momento: 'durante', operadorSolicitante: 'op6'},
+            {id: 'RA-010', estado: 'pendiente', hora: 'anterior', sla: false, momento: 'final', operadorSolicitante: 'op5'}
+        ];
+
+        let lineaTemporalReasignaciones24h = {
+            horas: Array.from({length: 24}, (_, i) => i),
+            solicitadas: [0, 0, 0, 0, 1, 1, 1, 2, 3, 3, 2, 2, 3, 2, 2, 3, 3, 4, 3, 2, 2, 1, 1, 0],
+            pendientes:   [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 2, 2, 2, 1, 1, 1, 0, 0],
+            reasignadas:  [0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 2, 3, 2, 1, 1, 1, 0, 0]
+        };
+
+        let incidentesReasignados = [
+            {id: 101, clasificacion: 'Urgente', tipo: 'Seguridad', subtipo: 'Robo', duracionMin: 95, severidad: 'Alta', operador: 'op1', momento: 'durante'},
+            {id: 102, clasificacion: 'Crítico', tipo: 'Seguridad', subtipo: 'Pelea', duracionMin: 210, severidad: 'Crítica', operador: 'op3', momento: 'final'},
+            {id: 103, clasificacion: 'Normal', tipo: 'Infraestructura', subtipo: 'Bache', duracionMin: 140, severidad: 'Media', operador: 'op2', momento: 'durante'},
+            {id: 104, clasificacion: 'Urgente', tipo: 'Tráfico', subtipo: 'Accidente', duracionMin: 75, severidad: 'Alta', operador: 'op2', momento: 'final'},
+            {id: 105, clasificacion: 'Normal', tipo: 'Limpieza', subtipo: 'Derrame', duracionMin: 60, severidad: 'Media', operador: 'op4', momento: 'durante'}
+        ];
+
+        let incidentesPendientesReasignacion = [
+            {id: 201, clasificacion: 'Urgente', tipo: 'Seguridad', subtipo: 'Vandalismo', duracionMin: 130, severidad: 'Alta', operador: 'op2', momento: 'durante'},
+            {id: 202, clasificacion: 'Normal', tipo: 'Infraestructura', subtipo: 'Semáforo', duracionMin: 185, severidad: 'Media', operador: 'op1', momento: 'final'},
+            {id: 203, clasificacion: 'Crítico', tipo: 'Seguridad', subtipo: 'Disturbio', duracionMin: 260, severidad: 'Crítica', operador: 'op3', momento: 'final'},
+            {id: 204, clasificacion: 'Urgente', tipo: 'Tráfico', subtipo: 'Choque', duracionMin: 110, severidad: 'Alta', operador: 'op5', momento: 'durante'},
+            {id: 205, clasificacion: 'Normal', tipo: 'Limpieza', subtipo: 'Basura', duracionMin: 55, severidad: 'Leve', operador: 'op4', momento: 'durante'}
+        ];
+
+        const SLA_HORAS = 4;
+
+        function formatearHHMM(minutos) {
+            const horas = Math.floor(minutos / 60);
+            const mins = minutos % 60;
+            return `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        }
+
+        function calcularPorcentajeSLA(duracionMin, slaHoras) {
+            return Math.round((duracionMin / (slaHoras * 60)) * 100);
+        }
+
+        function actualizarIndicadoresIncidentes() {
+            const total = incidentesActivos.length;
+            const dentro = incidentesActivos.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) < 80).length;
+            const proximos = incidentesActivos.filter(i => {
+                const pct = calcularPorcentajeSLA(i.duracionMin, SLA_HORAS);
+                return pct >= 80 && pct <= 100;
+            }).length;
+            const excedidos = incidentesActivos.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) > 100).length;
+
+            const sinAgentes = incidentesActivos.filter(i => i.agentes === 0).length;
+            const conAgentes = incidentesActivos.filter(i => i.agentes > 0).length;
+            const unAgente = incidentesActivos.filter(i => i.agentes === 1).length;
+            const variosAgentes = incidentesActivos.filter(i => i.agentes > 1).length;
+
+            const menos30min = incidentesActivos.filter(i => i.duracionMin < 30).length;
+            const entre31y60min = incidentesActivos.filter(i => i.duracionMin >= 31 && i.duracionMin <= 60).length;
+            const entre1y2h = incidentesActivos.filter(i => i.duracionMin > 60 && i.duracionMin <= 120).length;
+            const entre2y3h = incidentesActivos.filter(i => i.duracionMin > 120 && i.duracionMin <= 180).length;
+            const entre3y4h = incidentesActivos.filter(i => i.duracionMin > 180 && i.duracionMin <= 240).length;
+            const mas4h = incidentesActivos.filter(i => i.duracionMin > 240).length;
+
+            const leve = incidentesActivos.filter(i => i.severidad === 'Leve').length;
+            const media = incidentesActivos.filter(i => i.severidad === 'Media').length;
+            const alta = incidentesActivos.filter(i => i.severidad === 'Alta').length;
+            const critica = incidentesActivos.filter(i => i.severidad === 'Crítica').length;
+
+            root.querySelector('#ind-total-activos').textContent = `${total} (100%)`;
+            root.querySelector('#ind-dentro-sla').textContent = `${dentro} (${total ? Math.round(dentro/total*100) : 0}%)`;
+            root.querySelector('#ind-proximos-sla').textContent = `${proximos} (${total ? Math.round(proximos/total*100) : 0}%)`;
+            root.querySelector('#ind-excedidos-sla').textContent = `${excedidos} (${total ? Math.round(excedidos/total*100) : 0}%)`;
+            root.querySelector('#ind-sin-agentes').textContent = `${sinAgentes} (${total ? Math.round(sinAgentes/total*100) : 0}%)`;
+            root.querySelector('#ind-con-agentes').textContent = `${conAgentes} (${total ? Math.round(conAgentes/total*100) : 0}%)`;
+            root.querySelector('#ind-un-agente').textContent = `${unAgente} (${total ? Math.round(unAgente/total*100) : 0}%)`;
+            root.querySelector('#ind-varios-agentes').textContent = `${variosAgentes} (${total ? Math.round(variosAgentes/total*100) : 0}%)`;
+            root.querySelector('#ind-menos-30min').textContent = `${menos30min} (${total ? Math.round(menos30min/total*100) : 0}%)`;
+            root.querySelector('#ind-31-60min').textContent = `${entre31y60min} (${total ? Math.round(entre31y60min/total*100) : 0}%)`;
+            root.querySelector('#ind-1-2h').textContent = `${entre1y2h} (${total ? Math.round(entre1y2h/total*100) : 0}%)`;
+            root.querySelector('#ind-2-3h').textContent = `${entre2y3h} (${total ? Math.round(entre2y3h/total*100) : 0}%)`;
+            root.querySelector('#ind-3-4h').textContent = `${entre3y4h} (${total ? Math.round(entre3y4h/total*100) : 0}%)`;
+            root.querySelector('#ind-mas-4h').textContent = `${mas4h} (${total ? Math.round(mas4h/total*100) : 0}%)`;
+            root.querySelector('#ind-cerrados-hora-actual').textContent = '5 (42%)';
+            root.querySelector('#ind-cerrados-hora-anterior').textContent = '7 (58%)';
+            root.querySelector('#ind-sev-leve').textContent = `${leve} (${total ? Math.round(leve/total*100) : 0}%)`;
+            root.querySelector('#ind-sev-media').textContent = `${media} (${total ? Math.round(media/total*100) : 0}%)`;
+            root.querySelector('#ind-sev-alta').textContent = `${alta} (${total ? Math.round(alta/total*100) : 0}%)`;
+            root.querySelector('#ind-sev-critica').textContent = `${critica} (${total ? Math.round(critica/total*100) : 0}%)`;
+        }
+
+        function actualizarIndicadoresOperadores() {
+            const total = operadores.length;
+            const activos = operadores.filter(op => op.estado === 'activo').length;
+            const conIncidentes = operadores.filter(op => op.incidentesActivos > 0).length;
+            const libres = operadores.filter(op => op.estado === 'libre').length;
+            const opMasInc = operadores.reduce((max, op) => op.incidentesActivos > max.incidentesActivos ? op : max, operadores[0]);
+            const opMasAg = operadores.reduce((max, op) => op.agentesDistintos > max.agentesDistintos ? op : max, operadores[0]);
+
+            root.querySelector('#ind-op-activos').textContent = `${activos} (${total ? Math.round(activos/total*100) : 0}%)`;
+            root.querySelector('#ind-op-con-incidentes').textContent = `${conIncidentes} (${total ? Math.round(conIncidentes/total*100) : 0}%)`;
+            root.querySelector('#ind-op-libres').textContent = `${libres} (${total ? Math.round(libres/total*100) : 0}%)`;
+            root.querySelector('#ind-op-mas-incidentes').textContent = `${opMasInc.incidentesActivos} - ${opMasInc.nombre}`;
+            root.querySelector('#ind-op-mas-agentes').textContent = `${opMasAg.agentesDistintos} - ${opMasAg.nombre}`;
+            root.querySelector('#ind-op-dentro-sla').textContent = '2 (50%)';
+            root.querySelector('#ind-op-por-romper-sla').textContent = '1 (25%)';
+            root.querySelector('#ind-op-fuera-sla').textContent = '1 (25%)';
+        }
+
+        function actualizarIndicadoresAgentes() {
+            const total = agentes.length;
+            const ocupados = agentes.filter(a => a.incidentesActivos > 0).length;
+            const libres = total - ocupados;
+            const conCerrados = agentes.filter(a => a.incidentesCerrados > 0).length;
+            const conUbicacion = agentes.filter(a => a.tieneUbicacion).length;
+            const sinUbicacion = total - conUbicacion;
+
+            const enCamioneta = agentes.filter(a => a.transporte === 'camioneta').length;
+            const enBicicleta = agentes.filter(a => a.transporte === 'bicicleta').length;
+            const aPie = agentes.filter(a => a.transporte === 'pie').length;
+
+            const ocupadosCamioneta = agentes.filter(a => a.transporte === 'camioneta' && a.incidentesActivos > 0).length;
+            const ocupadosBicicleta = agentes.filter(a => a.transporte === 'bicicleta' && a.incidentesActivos > 0).length;
+            const ocupadosPie = agentes.filter(a => a.transporte === 'pie' && a.incidentesActivos > 0).length;
+
+            const libresCamioneta = enCamioneta - ocupadosCamioneta;
+            const libresBicicleta = enBicicleta - ocupadosBicicleta;
+            const libresPie = aPie - ocupadosPie;
+
+            root.querySelector('#ind-agentes-total').textContent = `${total} (100%)`;
+            root.querySelector('#ind-agentes-ocupados').textContent = `${ocupados} (${total ? Math.round(ocupados/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-libres').textContent = `${libres} (${total ? Math.round(libres/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-con-cerrados').textContent = `${conCerrados} (${total ? Math.round(conCerrados/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-con-ubicacion').textContent = `${conUbicacion} (${total ? Math.round(conUbicacion/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-sin-ubicacion').textContent = `${sinUbicacion} (${total ? Math.round(sinUbicacion/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-camioneta').textContent = `${enCamioneta} (${total ? Math.round(enCamioneta/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-bicicleta').textContent = `${enBicicleta} (${total ? Math.round(enBicicleta/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-pie').textContent = `${aPie} (${total ? Math.round(aPie/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-ocupados-camioneta').textContent = `${ocupadosCamioneta} (${total ? Math.round(ocupadosCamioneta/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-ocupados-bicicleta').textContent = `${ocupadosBicicleta} (${total ? Math.round(ocupadosBicicleta/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-ocupados-pie').textContent = `${ocupadosPie} (${total ? Math.round(ocupadosPie/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-libres-camioneta').textContent = `${libresCamioneta} (${total ? Math.round(libresCamioneta/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-libres-bicicleta').textContent = `${libresBicicleta} (${total ? Math.round(libresBicicleta/total*100) : 0}%)`;
+            root.querySelector('#ind-agentes-libres-pie').textContent = `${libresPie} (${total ? Math.round(libresPie/total*100) : 0}%)`;
+        }
+
+        function actualizarIndicadoresZonas() {
+            const totalZonas = zonas.length;
+            let zonasConIncidentes = 0;
+
+            zonas.forEach(zona => {
+                const incZona = incidentesActivos.filter(i => i.zona === zona.nombre);
+                if (incZona.length > 0) zonasConIncidentes++;
+            });
+
+            const pctConIncidentes = totalZonas > 0 ? Math.round((zonasConIncidentes / totalZonas) * 100) : 0;
+
+            let totalIncidentes = 0;
+            let totalOperadores = 0;
+            let totalAgentesZona = 0;
+            let totalCamionetas = 0;
+            let totalBicicletas = 0;
+            let totalPie = 0;
+
+            zonas.forEach(zona => {
+                const incZona = incidentesActivos.filter(i => i.zona === zona.nombre);
+                totalIncidentes += incZona.length;
+
+                const operadoresZona = new Set(incZona.map(i => i.operador));
+                totalOperadores += operadoresZona.size;
+
+                const agentesZona = agentes.filter(a => a.zona === zona.nombre);
+                totalAgentesZona += agentesZona.length;
+                totalCamionetas += agentesZona.filter(a => a.transporte === 'camioneta').length;
+                totalBicicletas += agentesZona.filter(a => a.transporte === 'bicicleta').length;
+                totalPie += agentesZona.filter(a => a.transporte === 'pie').length;
+            });
+
+            const promIncidentes = totalZonas > 0 ? (totalIncidentes / totalZonas).toFixed(1) : 0;
+            const promOperadores = totalZonas > 0 ? (totalOperadores / totalZonas).toFixed(1) : 0;
+            const promAgentes = totalZonas > 0 ? (totalAgentesZona / totalZonas).toFixed(1) : 0;
+            const promCamionetas = totalZonas > 0 ? (totalCamionetas / totalZonas).toFixed(1) : 0;
+            const promBicicletas = totalZonas > 0 ? (totalBicicletas / totalZonas).toFixed(1) : 0;
+            const promPie = totalZonas > 0 ? (totalPie / totalZonas).toFixed(1) : 0;
+
+            root.querySelector('#ind-zonas-total').textContent = `${totalZonas} (100%)`;
+            root.querySelector('#ind-zonas-con-incidentes').textContent = `${zonasConIncidentes} (${pctConIncidentes}%)`;
+            root.querySelector('#ind-zonas-prom-incidentes').textContent = promIncidentes;
+            root.querySelector('#ind-zonas-prom-operadores').textContent = promOperadores;
+            root.querySelector('#ind-zonas-prom-agentes').textContent = promAgentes;
+            root.querySelector('#ind-zonas-prom-camionetas').textContent = promCamionetas;
+            root.querySelector('#ind-zonas-prom-bicicletas').textContent = promBicicletas;
+            root.querySelector('#ind-zonas-prom-pie').textContent = promPie;
+        }
+
+        function actualizarIndicadoresReasignaciones() {
+            const reasignados = solicitudesReasignacion.filter(item => item.estado === 'reasignado').length;
+            const pendientes = solicitudesReasignacion.filter(item => item.estado === 'pendiente').length;
+            const reasignadosHoraActual = solicitudesReasignacion.filter(item => item.estado === 'reasignado' && item.hora === 'actual').length;
+            const reasignadosHoraAnterior = solicitudesReasignacion.filter(item => item.estado === 'reasignado' && item.hora === 'anterior').length;
+            const solicitudesHoraActual = solicitudesReasignacion.filter(item => item.hora === 'actual').length;
+            const solicitudesHoraAnterior = solicitudesReasignacion.filter(item => item.hora === 'anterior').length;
+            const dentroSLA = solicitudesReasignacion.filter(item => item.sla).length;
+            const fueraSLA = solicitudesReasignacion.filter(item => !item.sla).length;
+            const solicitadasDurante = solicitudesReasignacion.filter(item => item.momento === 'durante').length;
+            const solicitadasFinal = solicitudesReasignacion.filter(item => item.momento === 'final').length;
+            const operadoresSolicitantes = new Set(solicitudesReasignacion.map(item => item.operadorSolicitante)).size;
+            const operadoresReasigTurno = new Set(
+                solicitudesReasignacion
+                    .filter(item => item.estado === 'reasignado' && item.momento === 'durante')
+                    .map(item => item.operadorSolicitante)
+            ).size;
+            const operadoresReasigFin = new Set(
+                solicitudesReasignacion
+                    .filter(item => item.estado === 'reasignado' && item.momento === 'final')
+                    .map(item => item.operadorSolicitante)
+            ).size;
+
+            root.querySelector('#ind-reasignados-incidentes').textContent = reasignados;
+            root.querySelector('#ind-reasignados-pendientes').textContent = pendientes;
+            root.querySelector('#ind-reasignados-hora-actual').textContent = reasignadosHoraActual;
+            root.querySelector('#ind-reasignados-hora-anterior').textContent = reasignadosHoraAnterior;
+            root.querySelector('#ind-solicitudes-hora-actual').textContent = solicitudesHoraActual;
+            root.querySelector('#ind-solicitudes-hora-anterior').textContent = solicitudesHoraAnterior;
+            root.querySelector('#ind-reasignaciones-dentro-sla').textContent = dentroSLA;
+            root.querySelector('#ind-reasignaciones-fuera-sla').textContent = fueraSLA;
+            root.querySelector('#ind-solicitadas-turno').textContent = solicitadasDurante;
+            root.querySelector('#ind-solicitadas-fin-turno').textContent = solicitadasFinal;
+            root.querySelector('#ind-operadores-solicitantes').textContent = operadoresSolicitantes;
+            root.querySelector('#ind-operadores-reasig-turno').textContent = operadoresReasigTurno;
+            root.querySelector('#ind-operadores-reasig-fin').textContent = operadoresReasigFin;
+        }
+
+        function renderizarTablaClasificacion() {
+            const tbody = root.querySelector('#tabla-clasificacion tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const grupos = {};
+            incidentesActivos.forEach(inc => {
+                const key = `${inc.clasificacion}|${inc.tipo}|${inc.subtipo}`;
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(inc);
+            });
+
+            Object.keys(grupos).forEach(key => {
+                const [clasificacion, tipo, subtipo] = key.split('|');
+                const grupo = grupos[key];
+                const duraciones = grupo.map(i => i.duracionMin);
+                const max = Math.max(...duraciones);
+                const incidenteMaxDuracion = grupo.find(i => i.duracionMin === max);
+                const operadoresUnicos = [...new Set(grupo.map(i => i.operador))];
+                const cantOperadores = operadoresUnicos.length;
+                const dentroSLA = grupo.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) < 80).length;
+                const porSuperarSLA = grupo.filter(i => {
+                    const pct = calcularPorcentajeSLA(i.duracionMin, SLA_HORAS);
+                    return pct >= 80 && pct <= 100;
+                }).length;
+                const superadoSLA = grupo.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) > 100).length;
+
+                const row = tbody.insertRow();
+                row.insertCell().textContent = clasificacion;
+                row.insertCell().textContent = tipo;
+                row.insertCell().textContent = subtipo;
+                row.insertCell().textContent = grupo.length;
+                row.insertCell().textContent = cantOperadores;
+                const cellMax = row.insertCell();
+                cellMax.innerHTML = `${formatearHHMM(max)} <a href="#" onclick="alert('Ver incidente #${incidenteMaxDuracion.id}'); return false;" style="text-decoration:underline;">(#${incidenteMaxDuracion.id})</a>`;
+                row.insertCell().textContent = `${dentroSLA} (${grupo.length ? Math.round((dentroSLA / grupo.length) * 100) : 0}%)`;
+                row.insertCell().textContent = `${porSuperarSLA} (${grupo.length ? Math.round((porSuperarSLA / grupo.length) * 100) : 0}%)`;
+                row.insertCell().textContent = `${superadoSLA} (${grupo.length ? Math.round((superadoSLA / grupo.length) * 100) : 0}%)`;
+            });
+        }
+
+        function renderizarTablaOperadores() {
+            const tbody = root.querySelector('#tabla-operadores tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            operadores.forEach(op => {
+                const row = tbody.insertRow();
+                row.insertCell().textContent = op.nombre;
+                row.insertCell().textContent = op.incidentesActivos;
+                row.insertCell().textContent = op.agentesDistintos;
+                row.insertCell().textContent = Math.max(0, op.incidentesActivos - 1);
+                row.insertCell().textContent = op.incidentesActivos ? 1 : 0;
+                row.insertCell().textContent = op.incidentesActivos === 0 ? 1 : 0;
+                row.insertCell().innerHTML = `03:45 <a href="#" onclick=\"alert('Ver incidente #${op.id.toUpperCase()}-MAX'); return false;\" style=\"text-decoration:underline;\">(#${op.id.toUpperCase()}-MAX)</a>`;
+            });
+        }
+
+        function renderizarTablaZonas() {
+            const tbody = root.querySelector('#tabla-zonas tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            zonas.forEach(zona => {
+                const incZona = incidentesActivos.filter(i => i.zona === zona.nombre);
+                const agentesZona = agentes.filter(a => a.zona === zona.nombre);
+                const dentroSLA = incZona.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) < 80).length;
+                const porRomper = incZona.filter(i => {
+                    const pct = calcularPorcentajeSLA(i.duracionMin, SLA_HORAS);
+                    return pct >= 80 && pct <= 100;
+                }).length;
+                const rompieron = incZona.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) > 100).length;
+
+                const row = tbody.insertRow();
+                row.insertCell().textContent = zona.nombre;
+                row.insertCell().textContent = incZona.length;
+                row.insertCell().textContent = agentesZona.length;
+                row.insertCell().textContent = dentroSLA;
+                row.insertCell().textContent = porRomper;
+                row.insertCell().textContent = rompieron;
+
+                const cellMayorDur = row.insertCell();
+                if (incZona.length > 0) {
+                    const maxDur = Math.max(...incZona.map(i => i.duracionMin));
+                    const incidenteMax = incZona.find(i => i.duracionMin === maxDur);
+                    cellMayorDur.innerHTML = `${formatearHHMM(maxDur)} <a href=\"#\" onclick=\"alert('Ver incidente #${incidenteMax.id}'); return false;\" style=\"text-decoration:underline;\">(#${incidenteMax.id})</a>`;
+                } else {
+                    cellMayorDur.textContent = '-';
+                }
+            });
+        }
+
+        function renderizarTablaReasignacionesGenerica(dataset, selector) {
+            const tbody = root.querySelector(`${selector} tbody`);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const grupos = {};
+            dataset.forEach(inc => {
+                const key = `${inc.clasificacion}|${inc.tipo}|${inc.subtipo}`;
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(inc);
+            });
+
+            Object.keys(grupos).forEach(key => {
+                const [clasificacion, tipo, subtipo] = key.split('|');
+                const grupo = grupos[key];
+                const duraciones = grupo.map(i => i.duracionMin);
+                const max = Math.max(...duraciones);
+                const incidenteMax = grupo.find(i => i.duracionMin === max);
+                const operadoresTotal = new Set(grupo.map(i => i.operador)).length;
+                const dentroSLA = grupo.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) < 80).length;
+                const fueraSLA = grupo.filter(i => calcularPorcentajeSLA(i.duracionMin, SLA_HORAS) > 100).length;
+                const durante = grupo.filter(i => i.momento === 'durante').length;
+                const alFinal = grupo.filter(i => i.momento === 'final').length;
+
+                const row = tbody.insertRow();
+                row.insertCell().textContent = clasificacion;
+                row.insertCell().textContent = tipo;
+                row.insertCell().textContent = subtipo;
+                row.insertCell().textContent = grupo.length;
+                row.insertCell().textContent = operadoresTotal;
+                row.insertCell().innerHTML = `${formatearHHMM(max)} <a href=\"#\" onclick=\"alert('Ver incidente #${incidenteMax.id}'); return false;\" style=\"text-decoration:underline;\">(#${incidenteMax.id})</a>`;
+                row.insertCell().textContent = `${dentroSLA} (${grupo.length ? Math.round((dentroSLA / grupo.length) * 100) : 0}%)`;
+                row.insertCell().textContent = `${fueraSLA} (${grupo.length ? Math.round((fueraSLA / grupo.length) * 100) : 0}%)`;
+                row.insertCell().textContent = durante;
+                row.insertCell().textContent = alFinal;
+            });
+        }
+
+        const renderizarTablaReasignadosClasificacion = () => renderizarTablaReasignacionesGenerica(incidentesReasignados, '#tabla-reasignados-clasificacion');
+        const renderizarTablaPendientesClasificacion = () => renderizarTablaReasignacionesGenerica(incidentesPendientesReasignacion, '#tabla-pendientes-clasificacion');
+
+        function dibujarLineaTemporal() {
+            const canvas = root.querySelector('#grafico-linea-24h');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const padding = 40;
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.fillStyle = '#a6adbb';
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, h - padding);
+            ctx.lineTo(w - padding, h - padding);
+            ctx.stroke();
+
+            ctx.font = '10px system-ui';
+            ctx.textAlign = 'center';
+            const stepX = (w - 2 * padding) / (lineaTemporal24h.horas.length - 1);
+            lineaTemporal24h.horas.forEach((hora, idx) => {
+                const x = padding + idx * stepX;
+                ctx.fillText(hora, x, h - padding + 15);
+            });
+
+            ctx.textAlign = 'right';
+            const maxVal = Math.max(...lineaTemporal24h.creados, ...lineaTemporal24h.resueltos) + 2;
+            const stepY = (h - 2 * padding) / maxVal;
+            for (let i = 0; i <= maxVal; i += 2) {
+                const y = h - padding - i * stepY;
+                ctx.fillText(i, padding - 10, y + 3);
+            }
+
+            const dibujar = (datos, color, dash = []) => {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.setLineDash(dash);
+                datos.forEach((val, idx) => {
+                    const x = padding + idx * stepX;
+                    const y = h - padding - val * stepY;
+                    if (idx === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                ctx.setLineDash([]);
+            };
+
+            dibujar(lineaTemporal24h.creados, '#ffd7b0');
+            dibujar(lineaTemporal24h.resueltos, '#a6adbb', [6, 4]);
+        }
+
+        function dibujarLineaReasignaciones() {
+            const canvas = root.querySelector('#grafico-linea-reasignaciones');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const padding = 40;
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.fillStyle = '#a6adbb';
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, h - padding);
+            ctx.lineTo(w - padding, h - padding);
+            ctx.stroke();
+
+            ctx.font = '10px system-ui';
+            ctx.textAlign = 'center';
+            const stepX = (w - 2 * padding) / (lineaTemporalReasignaciones24h.horas.length - 1);
+            lineaTemporalReasignaciones24h.horas.forEach((hora, idx) => {
+                const x = padding + idx * stepX;
+                ctx.fillText(hora, x, h - padding + 15);
+            });
+
+            ctx.textAlign = 'right';
+            const maxVal = Math.max(
+                ...lineaTemporalReasignaciones24h.solicitadas,
+                ...lineaTemporalReasignaciones24h.pendientes,
+                ...lineaTemporalReasignaciones24h.reasignadas
+            ) + 1;
+            const stepY = (h - 2 * padding) / Math.max(maxVal, 1);
+            for (let i = 0; i <= maxVal; i++) {
+                const y = h - padding - i * stepY;
+                ctx.fillText(i, padding - 10, y + 3);
+            }
+
+            const drawSeries = (datos, color, dash = []) => {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.setLineDash(dash);
+                datos.forEach((val, idx) => {
+                    const x = padding + idx * stepX;
+                    const y = h - padding - val * stepY;
+                    if (idx === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                ctx.setLineDash([]);
+            };
+
+            drawSeries(lineaTemporalReasignaciones24h.solicitadas, '#ffd7b0');
+            drawSeries(lineaTemporalReasignaciones24h.pendientes, '#f59e0b', [4, 3]);
+            drawSeries(lineaTemporalReasignaciones24h.reasignadas, '#ef4444', [2, 3]);
+        }
+
+        function actualizarTimestamp() {
+            const el = root.querySelector('#dashboardUpdateTime');
+            if (!el) return;
+            const now = new Date();
+            el.textContent = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function init() {
+            actualizarTimestamp();
+            actualizarIndicadoresIncidentes();
+            actualizarIndicadoresOperadores();
+            actualizarIndicadoresAgentes();
+            actualizarIndicadoresZonas();
+            actualizarIndicadoresReasignaciones();
+            renderizarTablaClasificacion();
+            renderizarTablaOperadores();
+            renderizarTablaZonas();
+            renderizarTablaReasignadosClasificacion();
+            renderizarTablaPendientesClasificacion();
+            dibujarLineaTemporal();
+            dibujarLineaReasignaciones();
+        }
+
+        window.cerrarModalDetalle = function() {
+            const modal = root.querySelector('#modal-detalle-operador');
+            if (modal) modal.classList.remove('active');
+        };
+
+        init();
+    })();
+    </script>
+</div>

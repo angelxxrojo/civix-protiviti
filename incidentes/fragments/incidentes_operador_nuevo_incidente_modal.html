@@ -1,0 +1,838 @@
+<!-- Nuevo Incidente (Operador) - Modal grande Bootstrap/Luna -->
+<div id="modalIncidenteNuevo" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalIncidenteNuevoLabel" aria-hidden="true" style="display:none;">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="modalIncidenteNuevoLabel">Nuevo Incidente</h4>
+      </div>
+
+      <div class="modal-body">
+        <!-- Minimal styles: rely on Luna theme, keep only what the theme doesn't provide -->
+        <style>
+          /* Ensure modals are hidden until explicitly shown (defensive if Bootstrap CSS not present) */
+          /* moved to inline style on root modal to avoid FOUC */
+          /* Inline map stub */
+          #incidente-nuevo .inline-map { position:relative; width:100%; height:300px; border:1px solid #2a3140; border-radius:8px; cursor:crosshair; }
+          #incidente-nuevo .map-instructions { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); padding:12px; border:1px solid #262b36; border-radius:8px; text-align:center; pointer-events:none; }
+          #incidente-nuevo .map-marker { position:absolute; width:20px; height:20px; background:#ff3600; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.25); }
+          #incidente-nuevo .marker-label { position:absolute; transform:translate(-50%, -120%); border:1px solid #262b36; border-radius:6px; padding:2px 6px; font-size:11px; font-weight:700; white-space:nowrap; }
+          /* (no classification modal/overlay at this time) */
+          /* Badges for clasificación values */
+          #incidente-nuevo .badges { display:flex; gap:6px; flex-wrap:wrap; }
+          #incidente-nuevo .badge-pill { display:inline-flex; align-items:center; gap:8px; border:1px dashed #2a3140; border-radius:9999px; padding:6px 10px; font-size:12px; color:#a6adbb; background:transparent; font-weight:700; }
+          #incidente-nuevo .badge-pill .badge-label { opacity:.9; }
+          #incidente-nuevo .badge-pill .badge-value { padding-left:8px; margin-left:4px; border-left:1px solid #2a3140; color:#cfd4de; }
+          /* Selected state: orange border + divider using Luna accent (#ff3600) */
+          #incidente-nuevo .badge-pill.selected { background:#151922; border-color:#ff3600; color:#e5e7eb; }
+          #incidente-nuevo .badge-pill.selected .badge-value { border-left-color:#ff3600; }
+          #incidente-nuevo .badge-pill.selected .badge-label { color:#ff3600; opacity:1; }
+          /* Personas involucradas table: match form controls look */
+          #incidente-nuevo #incn-personas { border:1px solid #2b3038; border-radius:8px; overflow:hidden; background:transparent; }
+          #incidente-nuevo #incn-personas thead th { background:#1e2228; color:#cfd4de; border-color:#2b3038; }
+          #incidente-nuevo #incn-personas tbody td, #incidente-nuevo #incn-personas thead th { border-color:#2b3038; }
+          #incidente-nuevo #incn-personas.table-striped > tbody > tr:nth-of-type(odd) { background:#1a1d22; }
+          #incidente-nuevo #incn-personas.table-striped > tbody > tr:nth-of-type(even) { background:#1e2229; }
+          #incidente-nuevo #incn-personas.table-hover tbody tr:hover { background:#242830; }
+          #incidente-nuevo #incn-personas td { vertical-align:middle; }
+          #incidente-nuevo #incn-personas input.form-control,
+          #incidente-nuevo #incn-personas select.form-control { width:100%; min-width:0; }
+          #incidente-nuevo #incn-personas td.actions-row { white-space:nowrap; }
+          #incidente-nuevo .civix-alerts-panel { margin-top:10px; border:1px solid #2a3140; }
+          #incidente-nuevo .civix-alerts-panel .panel-heading { color:#ffffff; }
+          #incidente-nuevo .civix-alerts-search { margin-bottom:12px; }
+          #incidente-nuevo .civix-alerts-search input { width:100%; padding:0.6rem; border-radius:8px; border:1px solid #2a3140; background:#141821; color:#f3f4f6; }
+          #incidente-nuevo .civix-alerts-content { display:flex; gap:1rem; flex-wrap:wrap; }
+          #incidente-nuevo .civix-alerts-table { flex:2; min-width:260px; }
+          #incidente-nuevo .civix-alerts-preview { flex:1; min-width:220px; background:#11151d; border:1px dashed #2a3140; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#9ca3af; text-align:center; padding:1rem; }
+          #incidente-nuevo .civix-preview-frame { width:100%; height:220px; border-radius:12px; background-size:cover; background-position:center; box-shadow:0 15px 35px rgba(0,0,0,0.4); border:1px solid #1f242f; }
+        </style>
+
+        <div id="incidente-nuevo">
+          <form id="incn-form">
+            <!-- Denunciante -->
+            <section class="form-section panel panel-filled">
+              <div class="panel-heading">Denunciante</div>
+              <div class="panel-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="incn-nombre">Nombre</label>
+                  <input id="incn-nombre" class="form-input form-control" type="text" placeholder="Nombre">
+                  <div class="form-error" data-error="nombre"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="incn-tipo-doc">Tipo de documento</label>
+                  <select id="incn-tipo-doc" class="form-select form-control">
+                    <option value="">Seleccionar</option>
+                    <option>DNI</option>
+                    <option>CE</option>
+                    <option>PASAPORTE</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="incn-num-doc">Número de documento</label>
+                  <input id="incn-num-doc" class="form-input form-control" type="text" placeholder="Número de documento">
+                  <div class="form-error" data-error="numeroDocumento"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="incn-telefono">Teléfono</label>
+                  <input id="incn-telefono" class="form-input form-control" type="tel" placeholder="+51 999 999 999">
+                  <div class="form-error" data-error="telefono"></div>
+                </div>
+              </div>
+              </div>
+            </section>
+
+            <!-- Descripción y Ubicación -->
+            <section class="form-section panel panel-filled">
+              <div class="panel-heading">Descripción y Ubicación</div>
+              <div class="panel-body">
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <label class="form-label" for="incn-descripcion" style="margin-bottom:0;">Descripción</label>
+                    <span class="slight" style="color:#a6adbb; font-size:12px;">2000 caracteres como máximo</span>
+                  </div>
+                  <textarea id="incn-descripcion" class="form-textarea form-control" rows="5" placeholder="Describir detalladamente el incidente..." maxlength="2000"></textarea>
+                  <div id="incn-desc-count" class="slight" style="margin-top:4px; color:#a6adbb; font-size:12px; text-align:right;">Contador de caracteres: 0/2000</div>
+                  <div class="form-error" data-error="descripcion"></div>
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label" for="incn-direccion">Dirección</label>
+                  <input id="incn-direccion" class="form-input form-control" type="text" placeholder="Ej. Av. Primavera 123, Santiago de Surco">
+                  <div class="form-error" data-error="direccion"></div>
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label">Ubicación en el mapa</label>
+                  <div class="inline-map" id="incn-inline-map">
+                    <div class="map-instructions" id="incn-map-hint">
+                      <strong>Haga clic en el mapa para seleccionar la ubicación</strong><br>
+                      Coordenadas se llenarán automáticamente
+                    </div>
+                  </div>
+                  <div class="form-error" data-error="coordenadas"></div>
+                </div>
+
+                <div class="form-group full-width">
+                  <div style="display:flex; gap:12px; flex-wrap:nowrap;">
+                    <div class="form-group" style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+                      <label class="form-label" for="incn-lat" style="margin:0; white-space:nowrap;">Latitud</label>
+                      <input id="incn-lat" class="form-input form-control" placeholder="Latitud" style="flex:1; min-width:0;">
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+                      <label class="form-label" for="incn-lng" style="margin:0; white-space:nowrap;">Longitud</label>
+                      <input id="incn-lng" class="form-input form-control" placeholder="Longitud" style="flex:1; min-width:0;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </section>
+
+            <!-- Información Básica -->
+            <section class="form-section panel panel-filled">
+              <div class="panel-heading">Información Básica</div>
+              <div class="panel-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="incn-origen">Origen</label>
+                  <select id="incn-origen" class="form-select form-control">
+                    <option value="" selected>Seleccionar origen</option>
+                    <option value="civix">CIVIX</option>
+                    <option>Llamada 105</option>
+                    <option>Web</option>
+                    <option>App móvil</option>
+                    <option>Radio</option>
+                    <option>Presencial</option>
+                  </select>
+                  <section id="incn-civix-alerts" class="form-section panel panel-filled civix-alerts-panel" style="display:none;" aria-hidden="true">
+                    <div class="panel-heading">Alertas de CIVIX</div>
+                    <div class="panel-body">
+                      <div class="civix-alerts-search">
+                        <input type="search" id="incn-civix-search" placeholder="Buscar por ID, tipo, documento o placa" aria-label="Buscar alerta de CIVIX">
+                      </div>
+                      <div class="civix-alerts-content">
+                        <div class="table-responsive civix-alerts-table">
+                          <table class="table table-striped table-hover" id="incn-civix-table">
+                            <thead>
+                              <tr>
+                                <th>ID</th>
+                                <th>Alerta</th>
+                                <th>Cámara</th>
+                                <th>Ubicación</th>
+                                <th>Fecha y hora</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>CX-0921</td>
+                                <td>Vehículo detenido</td>
+                                <td>CAM-014</td>
+                                <td>Primavera x Central</td>
+                                <td>12/01/2025 10:18</td>
+                              </tr>
+                              <tr>
+                                <td>CX-0876</td>
+                                <td>Persona en riesgo</td>
+                                <td>CAM-021</td>
+                                <td>Velasco x Monte Rosa</td>
+                                <td>12/01/2025 09:58</td>
+                              </tr>
+                              <tr>
+                                <td>CX-0812</td>
+                                <td>Congestión vehicular</td>
+                                <td>CAM-010</td>
+                                <td>Av. Benavides 450</td>
+                                <td>12/01/2025 09:40</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <div class="civix-alerts-preview" id="incn-civix-preview">
+                          Selecciona una alerta para ver la previsualización de la cámara.
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="incn-severidad">Severidad</label>
+                  <select id="incn-severidad" class="form-select form-control">
+                    <option>Baja</option>
+                    <option selected>Media</option>
+                    <option>Alta</option>
+                    <option>Crítica</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="incn-accion">Acción requerida</label>
+                  <select id="incn-accion" class="form-select form-control">
+                    <option value="">Seleccionar acción</option>
+                    <option>Acercarse al punto</option>
+                    <option>Brindar asistencia médica</option>
+                    <option>Coordinar con serenazgo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top:10px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <div class="badges">
+                    <span id="incn-badge-clasif" class="badge-pill">Clasificación: —</span>
+                    <span id="incn-badge-tipo" class="badge-pill">Tipo: —</span>
+                    <span id="incn-badge-subtipo" class="badge-pill">Subtipo: —</span>
+                  </div>
+                  <button type="button" class="btn btn-default btn-sm" id="incn-clf-toggle">Clasificar</button>
+                  <button type="button" class="btn btn-default btn-sm" id="incn-clf-clear">Limpiar</button>
+                </div>
+                <div id="incn-clf-desc" class="slight" aria-live="polite" style="margin-top:6px; margin-left:10px; font-size:12px; color:#a6adbb;">
+                  Seleccione una clasificación para ver la descripción.
+                </div>
+                <div class="form-error" data-error="clasificacion"></div>
+              </div>
+
+              <!-- Clasificación (panel colapsable) -->
+              <section id="incn-clasif-panel" class="form-section panel panel-filled" style="display:none;">
+                <div class="panel-heading">
+                  Clasificar Incidente
+                  <span class="slight" style="font-size:12px; margin-left:8px;">Buscar y seleccionar una fila</span>
+                </div>
+                <div class="panel-body">
+                  <div class="form-grid" style="grid-template-columns:1fr; margin-bottom:8px;">
+                    <input type="text" id="incn-clf-search" class="form-control" placeholder="Buscar clasificación, tipo o subtipo..." />
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="incn-clf-table">
+                      <thead>
+                        <tr>
+                          <th data-col="clasificacion">Clasificación</th>
+                          <th data-col="tipo">Tipo</th>
+                          <th data-col="subtipo">Subtipo</th>
+                          <th>Descripción</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody id="incn-clf-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="panel-footer" style="display:flex; justify-content:flex-end; gap:8px;">
+                  <button type="button" class="btn btn-default" id="incn-clf-hide">Ocultar</button>
+                  <button type="button" class="btn btn-default" id="incn-clf-clear2">Limpiar selección</button>
+                </div>
+              </section>
+              </div>
+            </section>
+
+            <!-- Datos adicionales (condicional) -->
+            <section id="incn-extra-section" class="form-section panel panel-filled" style="display:none;">
+              <div class="panel-heading">Datos adicionales</div>
+              <div class="panel-body">
+                <div id="incn-extra-persona" style="display:none;">
+                  <div class="section-label slight" style="margin-bottom:0.5rem;">Información de persona</div>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label" for="incn-extra-doc-type">Tipo de documento</label>
+                      <select id="incn-extra-doc-type" class="form-select form-control">
+                        <option value="">Seleccionar</option>
+                        <option>DNI</option>
+                        <option>CE</option>
+                        <option>PASAPORTE</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="incn-extra-doc-num">Número de documento</label>
+                      <input id="incn-extra-doc-num" class="form-input form-control" type="text" placeholder="Número de documento">
+                    </div>
+                    <div class="form-group full-width">
+                      <label class="form-label" for="incn-extra-foto">Subir foto</label>
+                      <input id="incn-extra-foto" class="form-control" type="file" accept="image/*">
+                      <div class="slight" style="color:#a6adbb; font-size:12px; margin-top:4px;">Formatos permitidos: JPG, PNG. Tamaño máximo recomendado 5MB.</div>
+                    </div>
+                  </div>
+                </div>
+                <div id="incn-extra-vehiculo" style="display:none; margin-top:1rem;">
+                  <div class="section-label slight" style="margin-bottom:0.5rem;">Información de vehículo</div>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label" for="incn-extra-placa">Placa</label>
+                      <input id="incn-extra-placa" class="form-input form-control" type="text" placeholder="ABC-123">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="incn-extra-vehiculo-tipo">Tipo de vehículo</label>
+                      <select id="incn-extra-vehiculo-tipo" class="form-select form-control">
+                        <option value="">Seleccionar</option>
+                        <option>Auto</option>
+                        <option>Motocicleta</option>
+                        <option>Bus</option>
+                        <option>Camión</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="incn-extra-vehiculo-color">Color</label>
+                      <input id="incn-extra-vehiculo-color" class="form-input form-control" type="text" placeholder="Ej. Rojo, Azul">
+                    </div>
+                    <div class="form-group full-width">
+                      <label class="form-label" for="incn-extra-vehiculo-desc">Descripción</label>
+                      <textarea id="incn-extra-vehiculo-desc" class="form-textarea form-control" rows="3" placeholder="Detalles adicionales del vehículo"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Personas involucradas -->
+            <section class="form-section panel panel-filled">
+              <div class="panel-heading">Personas Involucradas</div>
+              <div class="panel-body">
+              <table class="dynamic-table table table-striped table-hover" id="incn-personas">
+                
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Género</th>
+                    <th>Tipo doc</th>
+                    <th>N° doc</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <button type="button" class="btn btn-default btn-sm" id="incn-persona-add" style="margin-top:10px;">+ Agregar persona involucrada</button>
+              </div>
+            </section>
+          </form>
+
+          <!-- Clasificación dialog removed for now -->
+        </div>
+
+        <script>
+          (function () {
+            var modal = document.getElementById('modalIncidenteNuevo');
+            var root; // set on show
+
+            function addPersonaRow() {
+              var tbody = root.querySelector('#incn-personas tbody');
+              var tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td><input class="form-input form-control" placeholder="Nombre"></td>
+                <td><select class="form-select form-control"><option></option><option>F</option><option>M</option></select></td>
+                <td><select class="form-select form-control"><option></option><option>DNI</option><option>CE</option><option>PAS</option></select></td>
+                <td><input class="form-input form-control" placeholder="N°"></td>
+                <td><input class="form-input form-control" placeholder="Rol"></td>
+                <td class="actions-row"><button type="button" class="btn btn-default btn-xs" data-action="del-row">Eliminar</button></td>`;
+              tbody.appendChild(tr);
+            }
+
+            function initInlineMap() {
+              var mapEl = root.querySelector('#incn-inline-map');
+              var hint = root.querySelector('#incn-map-hint');
+              var latInput = root.querySelector('#incn-lat');
+              var lngInput = root.querySelector('#incn-lng');
+              if (!mapEl) return;
+
+              if (typeof L === 'undefined') {
+                // Leaflet not loaded; leave stub behavior
+                return;
+              }
+              if (mapEl.dataset.leaflet === '1') {
+                // Already initialized
+                if (mapEl._leafletMap) setTimeout(function(){ mapEl._leafletMap.invalidateSize(); }, 50);
+                return;
+              }
+
+              // Initialize Leaflet map
+              var map = L.map(mapEl, { zoomControl: true, attributionControl: true });
+              // Match operator chat defaults (Av. Primavera area)
+              var center = [-12.1175, -76.9990];
+              map.setView(center, 14);
+
+              L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 20,
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+              }).addTo(map);
+
+              var marker;
+              function placeMarker(latlng) {
+                if (marker) {
+                  marker.setLatLng(latlng);
+                } else {
+                  marker = L.marker(latlng).addTo(map);
+                }
+                if (latInput) latInput.value = latlng.lat.toFixed(6);
+                if (lngInput) lngInput.value = latlng.lng.toFixed(6);
+                if (hint) hint.style.display = 'none';
+              }
+
+              // Hide hint on first hover
+              mapEl.addEventListener('mouseenter', function(){ if (hint) hint.style.display = 'none'; }, { once: true });
+              map.on('click', function(e){ placeMarker(e.latlng); });
+
+              // Default marker similar to chat view
+              var defaultLatLng = L.latLng(center[0], center[1]);
+              marker = L.marker(defaultLatLng).addTo(map).bindPopup('<b>Incidente</b><br>Av. Primavera 123').openPopup();
+              if (latInput) latInput.value = defaultLatLng.lat.toFixed(6);
+              if (lngInput) lngInput.value = defaultLatLng.lng.toFixed(6);
+
+              setTimeout(function(){ map.invalidateSize(); }, 50);
+              mapEl.dataset.leaflet = '1';
+              mapEl._leafletMap = map;
+            }
+
+            // Clasificación dialog removed; badges remain static for now
+
+            // Save payload builder
+            function collectData() {
+              var personas = Array.from(root.querySelectorAll('#incn-personas tbody tr')).map(function(tr){
+                var tds = tr.querySelectorAll('td');
+                return {
+                  nombre: tds[0].querySelector('input').value,
+                  genero: tds[1].querySelector('select').value,
+                  tipoDoc: tds[2].querySelector('select').value,
+                  numDoc: tds[3].querySelector('input').value,
+                  rol: tds[4].querySelector('input').value
+                };
+              });
+              return {
+                origen: root.querySelector('#incn-origen').value,
+                severidad: root.querySelector('#incn-severidad').value,
+                accion: root.querySelector('#incn-accion').value,
+                clasificacion: root.querySelector('#incn-badge-clasif').textContent.replace('Clasificación: ','') || '',
+                tipo: root.querySelector('#incn-badge-tipo').textContent.replace('Tipo: ','') || '',
+                subtipo: root.querySelector('#incn-badge-subtipo').textContent.replace('Subtipo: ','') || '',
+                descripcion: root.querySelector('#incn-descripcion').value,
+                direccion: (root.querySelector('#incn-direccion')||{}).value || '',
+                lat: root.querySelector('#incn-lat').value,
+                lng: root.querySelector('#incn-lng').value,
+                denunciante: {
+                  nombre: root.querySelector('#incn-nombre').value,
+                  tipoDoc: root.querySelector('#incn-tipo-doc').value,
+                  numDoc: root.querySelector('#incn-num-doc').value,
+                  telefono: root.querySelector('#incn-telefono').value
+                },
+                datosAdicionales: (function(){
+                  var extraSection = root.querySelector('#incn-extra-section');
+                  if (!extraSection || extraSection.style.display === 'none') return null;
+                  var personaVisible = root.querySelector('#incn-extra-persona') && root.querySelector('#incn-extra-persona').style.display !== 'none';
+                  var vehiculoVisible = root.querySelector('#incn-extra-vehiculo') && root.querySelector('#incn-extra-vehiculo').style.display !== 'none';
+                  var personaData = null;
+                  var vehiculoData = null;
+                  if (personaVisible){
+                    var fileInput = root.querySelector('#incn-extra-foto');
+                    personaData = {
+                      tipoDoc: root.querySelector('#incn-extra-doc-type').value,
+                      numDoc: root.querySelector('#incn-extra-doc-num').value,
+                      fotoNombre: fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : ''
+                    };
+                  }
+                  if (vehiculoVisible){
+                    vehiculoData = {
+                      placa: root.querySelector('#incn-extra-placa').value,
+                      tipoVehiculo: root.querySelector('#incn-extra-vehiculo-tipo').value,
+                      color: root.querySelector('#incn-extra-vehiculo-color').value,
+                      descripcion: root.querySelector('#incn-extra-vehiculo-desc').value
+                    };
+                  }
+                  return personaData || vehiculoData ? { persona: personaData, vehiculo: vehiculoData } : null;
+                })(),
+                personas: personas
+              };
+            }
+
+            function onShow() {
+              root = modal.querySelector('#incidente-nuevo');
+              var origenSelect = root ? root.querySelector('#incn-origen') : null;
+              var civixPanel = root ? root.querySelector('#incn-civix-alerts') : null;
+              function toggleCivixPanel(){
+                if (!civixPanel) return;
+                var isCivix = origenSelect && origenSelect.value === 'civix';
+                civixPanel.style.display = isCivix ? 'block' : 'none';
+                civixPanel.setAttribute('aria-hidden', isCivix ? 'false' : 'true');
+              }
+              if (origenSelect) {
+                origenSelect.addEventListener('change', toggleCivixPanel);
+                toggleCivixPanel();
+              }
+              // Wire events
+              // Clasificación (panel colapsable)
+              (function initClasificacion(){
+                // Idempotent wiring: ensure listeners are registered only once per modal lifecycle
+                if (root && root.dataset && root.dataset.clfWired === '1') {
+                  var descExisting = root.querySelector('#incn-clf-desc');
+                  if (descExisting && !descExisting.textContent) {
+                    descExisting.textContent = 'Seleccione una clasificación para ver la descripción.';
+                  }
+                  return;
+                }
+                if (root && root.dataset) root.dataset.clfWired = '1';
+                var current = { clasificacion:'', tipo:'', subtipo:'', descripcion:'' };
+                var data = [
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Robo', subtipo: 'Arrebato', descripcion: 'Robo en vía pública' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Robo', subtipo: 'Hurto', descripcion: 'Sustracción clandestina' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Robo', subtipo: 'Asalto', descripcion: 'Robo con violencia' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Robo', subtipo: 'Auto', descripcion: 'Hurto o robo de vehículo' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Actividad sospechosa', subtipo: 'Persona', descripcion: 'Persona con comportamiento inusual' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Actividad sospechosa', subtipo: 'Auto', descripcion: 'Vehículo realizando maniobras sospechosas' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Desapariciones', subtipo: 'Persona', descripcion: 'Reporte de persona desaparecida' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Requisitorias', subtipo: 'Persona', descripcion: 'Persona con requisitoria pendiente' },
+                  { clasificacion: 'Tránsito', tipo: 'Accidente de tránsito', subtipo: 'Choque', descripcion: 'Colisión de vehículos' },
+                  { clasificacion: 'Tránsito', tipo: 'Accidente de tránsito', subtipo: 'Atropello', descripcion: 'Vehículo atropella a peatón' },
+                  { clasificacion: 'Orden público', tipo: 'Disturbio', subtipo: 'Manifestación', descripcion: 'Concentración de protesta' },
+                  { clasificacion: 'Orden público', tipo: 'Disturbio', subtipo: 'Riña', descripcion: 'Pelea entre personas' },
+                  { clasificacion: 'Emergencia médica', tipo: 'Accidente', subtipo: 'Lesiones', descripcion: 'Heridas o golpes' },
+                  { clasificacion: 'Emergencia médica', tipo: 'Malestar', subtipo: 'Desmayo', descripcion: 'Pérdida de conciencia' },
+                  { clasificacion: 'Seguridad ciudadana', tipo: 'Vandalismo', subtipo: 'Destrucción', descripcion: 'Daño a propiedad pública' }
+                ];
+                var panel = root.querySelector('#incn-clasif-panel');
+                var tbody = root.querySelector('#incn-clf-tbody');
+                var search = root.querySelector('#incn-clf-search');
+                var btnToggle = root.querySelector('#incn-clf-toggle');
+                var btnHide = root.querySelector('#incn-clf-hide');
+                var btnClear = root.querySelector('#incn-clf-clear');
+                var btnClear2 = root.querySelector('#incn-clf-clear2');
+                var badgeC = root.querySelector('#incn-badge-clasif');
+                var badgeT = root.querySelector('#incn-badge-tipo');
+                var badgeS = root.querySelector('#incn-badge-subtipo');
+                var descEl = root.querySelector('#incn-clf-desc');
+                var extraSection = root.querySelector('#incn-extra-section');
+                var extraPersonaBlock = root.querySelector('#incn-extra-persona');
+                var extraVehiculoBlock = root.querySelector('#incn-extra-vehiculo');
+                var extraDocType = root.querySelector('#incn-extra-doc-type');
+                var extraDocNum = root.querySelector('#incn-extra-doc-num');
+                var extraFoto = root.querySelector('#incn-extra-foto');
+                var extraPlaca = root.querySelector('#incn-extra-placa');
+                var extraVehiculoTipo = root.querySelector('#incn-extra-vehiculo-tipo');
+                var extraColor = root.querySelector('#incn-extra-vehiculo-color');
+                var extraVehDesc = root.querySelector('#incn-extra-vehiculo-desc');
+
+                var personaTargets = [
+                  'actividad sospechosa|persona',
+                  'desapariciones|persona',
+                  'requisitorias|persona'
+                ];
+                var vehiculoTargets = [
+                  'robo|auto',
+                  'actividad sospechosa|auto'
+                ];
+
+                function comboKey(){
+                  if (!current.tipo || !current.subtipo) return '';
+                  return (current.tipo || '').toLowerCase() + '|' + (current.subtipo || '').toLowerCase();
+                }
+
+                function shouldShowPersona(){
+                  if (!current.clasificacion || current.clasificacion.toLowerCase() !== 'seguridad ciudadana') return false;
+                  return personaTargets.indexOf(comboKey()) !== -1;
+                }
+
+                function shouldShowVehiculo(){
+                  if (!current.clasificacion || current.clasificacion.toLowerCase() !== 'seguridad ciudadana') return false;
+                  return vehiculoTargets.indexOf(comboKey()) !== -1;
+                }
+
+                function clearPersonaFields(){
+                  if (extraDocType) extraDocType.value = '';
+                  if (extraDocNum) extraDocNum.value = '';
+                  if (extraFoto) extraFoto.value = '';
+                }
+                function clearVehiculoFields(){
+                  if (extraPlaca) extraPlaca.value = '';
+                  if (extraVehiculoTipo) extraVehiculoTipo.value = '';
+                  if (extraColor) extraColor.value = '';
+                  if (extraVehDesc) extraVehDesc.value = '';
+                }
+
+                function toggleExtraSection(){
+                  if (!extraSection) return;
+                  var showPersona = shouldShowPersona();
+                  var showVehiculo = shouldShowVehiculo();
+                  var shouldShowWrapper = showPersona || showVehiculo;
+                  extraSection.style.display = shouldShowWrapper ? '' : 'none';
+                  if (extraPersonaBlock){
+                    extraPersonaBlock.style.display = showPersona ? '' : 'none';
+                    if (!showPersona) clearPersonaFields();
+                  }
+                  if (extraVehiculoBlock){
+                    extraVehiculoBlock.style.display = showVehiculo ? '' : 'none';
+                    if (!showVehiculo) clearVehiculoFields();
+                  }
+                  if (!shouldShowWrapper){
+                    clearPersonaFields();
+                    clearVehiculoFields();
+                  }
+                }
+
+                function onEsc(e){ if (e.key === 'Escape' && panel && panel.style.display === 'block'){ hidePanel(); } }
+                function openPanel(){ if (!panel) return; panel.style.display = 'block'; if (search) search.value=''; render(data); setTimeout(()=> search && search.focus(), 10); document.addEventListener('keydown', onEsc); }
+                function hidePanel(){ if (!panel) return; panel.style.display = 'none'; document.removeEventListener('keydown', onEsc); }
+
+                function updateBadges(){
+                  var hasC = !!current.clasificacion; var hasT = !!current.tipo; var hasS = !!current.subtipo;
+                  if (badgeC) badgeC.innerHTML = '<span class="badge-label">Clasificación</span><span class="badge-value">' + (hasC ? current.clasificacion : '—') + '</span>';
+                  if (badgeT) badgeT.innerHTML = '<span class="badge-label">Tipo</span><span class="badge-value">' + (hasT ? current.tipo : '—') + '</span>';
+                  if (badgeS) badgeS.innerHTML = '<span class="badge-label">Subtipo</span><span class="badge-value">' + (hasS ? current.subtipo : '—') + '</span>';
+                  if (badgeC) badgeC.classList.toggle('selected', hasC);
+                  if (badgeT) badgeT.classList.toggle('selected', hasT);
+                  if (badgeS) badgeS.classList.toggle('selected', hasS);
+                  if (descEl) descEl.textContent = current.descripcion ? current.descripcion : 'Seleccione una clasificación para ver la descripción.';
+                  toggleExtraSection();
+                }
+                function render(list){
+                  if (!tbody) return;
+                  tbody.innerHTML = list.map((it, idx)=>`
+                    <tr data-idx="${idx}" data-clasif="${(it.clasificacion||'')}" data-tipo="${(it.tipo||'')}" data-subtipo="${(it.subtipo||'')}" data-desc="${(it.descripcion||'').replace(/"/g,'&quot;')}">
+                      <td>${it.clasificacion}</td>
+                      <td>${it.tipo}</td>
+                      <td>${it.subtipo}</td>
+                      <td>${it.descripcion || '-'}</td>
+                      <td><button type="button" class="btn btn-default btn-xs" data-action="pick">Seleccionar</button></td>
+                    </tr>
+                  `).join('');
+                }
+                function filtered(){
+                  var q = (search.value||'').toLowerCase();
+                  if (!q) return data;
+                  return data.filter(it=>
+                    it.clasificacion.toLowerCase().includes(q) ||
+                    it.tipo.toLowerCase().includes(q) ||
+                    it.subtipo.toLowerCase().includes(q) ||
+                    (it.descripcion||'').toLowerCase().includes(q)
+                  );
+                }
+                function sortBy(col){
+                  var list = filtered().slice().sort((a,b)=> (a[col]||'').localeCompare(b[col]||''));
+                  render(list);
+                }
+
+                // events
+                btnToggle && btnToggle.addEventListener('click', ()=>{ (panel.style.display==='none' || !panel.style.display) ? openPanel() : hidePanel(); });
+                btnHide && btnHide.addEventListener('click', hidePanel);
+                function doClear(){ current = {clasificacion:'',tipo:'',subtipo:'', descripcion:''}; updateBadges(); tbody.querySelectorAll('tr.selected').forEach(tr=> tr.classList.remove('selected')); }
+                btnClear && btnClear.addEventListener('click', doClear);
+                btnClear2 && btnClear2.addEventListener('click', doClear);
+                search && search.addEventListener('input', ()=> render(filtered()));
+                var thead = root.querySelector('#incn-clf-table thead');
+                thead && thead.addEventListener('click', (e)=>{ var th = e.target.closest('th[data-col]'); if (!th) return; sortBy(th.dataset.col); });
+                tbody && tbody.addEventListener('click', (e)=>{
+                  var tr = e.target.closest('tr'); if (!tr || !tbody.contains(tr)) return;
+                  // Treat any row click as selection
+                  tbody.querySelectorAll('tr').forEach(r=> r.classList.remove('selected')); tr.classList.add('selected');
+                  var item = {
+                    clasificacion: tr.getAttribute('data-clasif') || tr.children[0].textContent,
+                    tipo: tr.getAttribute('data-tipo') || tr.children[1].textContent,
+                    subtipo: tr.getAttribute('data-subtipo') || tr.children[2].textContent,
+                    descripcion: tr.getAttribute('data-desc') || tr.children[3].textContent
+                  };
+                  current = { clasificacion: item.clasificacion, tipo: item.tipo, subtipo: item.subtipo, descripcion: item.descripcion };
+                  updateBadges();
+                  hidePanel();
+                  // Return focus to the classification section
+                  if (btnToggle) { try { btnToggle.focus(); btnToggle.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch(_){} }
+                });
+
+                // Clean up on modal hidden (ensure ESC listener removed)
+                if (window.$ && typeof $(modal).on === 'function') {
+                  $(modal).on('hidden.bs.modal', function(){ document.removeEventListener('keydown', onEsc); });
+                }
+                // initial badges
+                updateBadges();
+              })();
+              // Descripción: contador de caracteres
+              (function initDescripcionCounter(){
+                var desc = root.querySelector('#incn-descripcion');
+                var counter = root.querySelector('#incn-desc-count');
+                var MAX = 2000;
+                function update(){ if (!desc) return; var n = desc.value.length; if (counter) counter.textContent = 'Contador de caracteres: ' + n + '/' + MAX; }
+                if (desc) { desc.addEventListener('input', update); update(); }
+              })();
+              root.querySelector('#incn-persona-add').addEventListener('click', addPersonaRow);
+              root.addEventListener('click', function(e){ if(e.target && e.target.matches('[data-action="del-row"]')) e.target.closest('tr').remove(); });
+              initInlineMap();
+              // Ensure table has at least one row
+              if (!root.querySelector('#incn-personas tbody tr')) addPersonaRow();
+              // no nested modal wiring
+            }
+
+            // Expose save/cancel actions to footer buttons
+            window.__IncidenteNuevo__ = {
+              save: function(mode){
+                var data = collectData();
+                // Dispatch a CustomEvent so host views can listen
+                var ev = new CustomEvent('incidenteNuevo:save', { detail: { mode: mode || 'save', data: data } });
+                document.dispatchEvent(ev);
+                // Close modal via Bootstrap if available
+                if (window.$) { $('#modalIncidenteNuevo').modal('hide'); }
+              },
+              cancel: function(){ if (window.$) { $('#modalIncidenteNuevo').modal('hide'); } }
+            };
+
+            // Bootstrap events and robust fallback
+            if (window.$ && typeof $('#modalIncidenteNuevo').on === 'function') {
+              $('#modalIncidenteNuevo').on('shown.bs.modal', onShow);
+            } else {
+              // Fallback: observe attribute changes to detect visibility
+              try {
+                var shownOnce = false;
+                var observer = new MutationObserver(function(){
+                  var visible = modal && modal.offsetParent !== null || (getComputedStyle(modal).display !== 'none');
+                  if (visible && !shownOnce) { shownOnce = true; onShow(); observer.disconnect(); }
+                });
+                observer.observe(modal, { attributes: true, attributeFilter: ['style','class'] });
+                // Also do a delayed check in case styles apply without mutations
+                setTimeout(function(){ if (!shownOnce) { var vis = modal && (modal.offsetParent !== null || getComputedStyle(modal).display !== 'none'); if (vis) { shownOnce = true; onShow(); observer.disconnect(); } } }, 150);
+              } catch(_) {
+                // As a last resort, attempt init after a delay
+                setTimeout(onShow, 200);
+              }
+            }
+          })();
+        </script>
+        <script>
+          (function(){
+            var civixAlertsData = [
+              { id:'CX-0921', alerta:'Vehículo detenido', camara:'CAM-014', ubicacion:'Primavera x Central', fecha:'12/01/2025 10:18', preview:'https://placehold.co/600x360?text=CAM-014' },
+              { id:'CX-0876', alerta:'Persona en riesgo', camara:'CAM-021', ubicacion:'Velasco x Monte Rosa', fecha:'12/01/2025 09:58', preview:'https://placehold.co/600x360?text=CAM-021' },
+              { id:'CX-0812', alerta:'Congestión vehicular', camara:'CAM-010', ubicacion:'Av. Benavides 450', fecha:'12/01/2025 09:40', preview:'https://placehold.co/600x360?text=CAM-010' }
+            ];
+
+            function initCivixSearch(){
+              var searchInput = document.getElementById('incn-civix-search');
+              var tableBody = document.querySelector('#incn-civix-table tbody');
+              var previewBox = document.getElementById('incn-civix-preview');
+              if (!searchInput || !tableBody) return;
+
+              function setPreview(alerta){
+                if (!previewBox) return;
+                if (!alerta) {
+                  previewBox.innerHTML = 'Selecciona una alerta para ver la previsualización de la cámara.';
+                  return;
+                }
+                var url = alerta.preview || 'https://placehold.co/600x360?text=CAM';
+                previewBox.innerHTML = '<div class="civix-preview-frame" role="img" aria-label="Vista previa de la cámara ' + alerta.camara + '" style="background-image:url(\'' + url + '\');"></div>';
+              }
+
+              function renderRows(rows){
+                if (!rows.length){
+                  tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; font-style:italic; color:#9ca3af;">Ingresa un criterio para buscar en CIVIX.</td></tr>';
+                  setPreview(null);
+                  return;
+                }
+                tableBody.innerHTML = rows.map(function(alerta){
+                  return '<tr data-alerta-id="' + alerta.id + '">'
+                    + '<td>' + alerta.id + '</td>'
+                    + '<td>' + alerta.alerta + '</td>'
+                    + '<td>' + alerta.camara + '</td>'
+                    + '<td>' + alerta.ubicacion + '</td>'
+                    + '<td>' + alerta.fecha + '</td>'
+                    + '</tr>';
+                }).join('');
+                setPreview(rows[0]);
+              }
+
+              function performSearch(){
+                var term = (searchInput.value || '').trim().toLowerCase();
+                if (!term){
+                  renderRows([]);
+                  return;
+                }
+                var results = civixAlertsData.filter(function(alerta){
+                  return [alerta.id, alerta.alerta, alerta.camara, alerta.ubicacion]
+                    .some(function(field){ return field.toLowerCase().includes(term); });
+                });
+                if (!results.length){
+                  tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; font-style:italic; color:#ef4444;">No se encontraron alertas para "' + term + '".</td></tr>';
+                  setPreview(null);
+                } else {
+                  renderRows(results);
+                }
+              }
+
+              var debounce;
+              searchInput.addEventListener('input', function(){
+                clearTimeout(debounce);
+                debounce = setTimeout(performSearch, 280);
+              });
+              searchInput.addEventListener('keydown', function(evt){
+                if (evt.key === 'Enter'){
+                  evt.preventDefault();
+                  performSearch();
+                }
+              });
+              tableBody.addEventListener('click', function(evt){
+                var row = evt.target.closest('tr[data-alerta-id]');
+                if (!row) return;
+                var alerta = civixAlertsData.find(function(item){ return item.id === row.getAttribute('data-alerta-id'); });
+                if (alerta){
+                  setPreview(alerta);
+                  Array.prototype.forEach.call(tableBody.querySelectorAll('tr'), function(tr){ tr.classList.remove('selected'); });
+                  row.classList.add('selected');
+                }
+              });
+
+              renderRows([]);
+            }
+
+            if (document.readyState === 'loading'){
+              document.addEventListener('DOMContentLoaded', initCivixSearch);
+            } else {
+              initCivixSearch();
+            }
+          })();
+        </script>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-accent" onclick="__IncidenteNuevo__.save('save')">Guardar</button>
+        <button type="button" class="btn btn-default" onclick="__IncidenteNuevo__.save('save-open-chat')">Guardar y abrir chat</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="__IncidenteNuevo__.cancel()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->

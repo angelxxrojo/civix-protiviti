@@ -1,0 +1,297 @@
+
+<style>
+/* Métricas */
+    .metric-container {
+        padding: 10px 0;
+    }
+    
+    .metric-list {
+        margin-top: 5px;
+    }
+    
+    .metric-list-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        padding: 3px 0;
+        border-bottom: 1px solid rgba(34, 230, 217, 0.1);
+    }
+    
+    .metric-list-label {
+        font-size: 11px;
+        color: var(--ink);
+        overflow: hidden;
+        max-width: 70%;
+    }
+    
+    .metric-list-value {
+        font-size: 12px;
+        font-weight: bold;
+        color: var(--teal);
+    }
+    
+    .system-metric {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .system-metric-label {
+        font-size: 11px;
+        color: var(--ink);
+        margin-bottom: 3px;
+    }
+    
+    .system-metric-value {
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--teal);
+    }
+    
+    .no-data {
+        text-align: center;
+        color: var(--ink);
+        font-size: 11px;
+        padding: 10px 0;
+    }
+    
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .kpi-header{
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .bar-chart-container {
+        padding: 10px 0;
+    }
+    
+    .bar-label {
+        font-size: 11px;
+        color: var(--ink);
+        width: 40%;
+        overflow: hidden;
+    }
+    
+    .bar-chart {
+        flex-grow: 1;
+        margin-left: 10px;
+        background: rgba(34, 230, 217, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    
+    .bar-fill {
+        height: 15px;
+        background: var(--teal);
+        border-radius: 2px;
+        transition: width 0.5s ease;
+    }
+    
+    .bar-value {
+        font-size: 11px;
+        color: var(--teal);
+        margin-left: 8px;
+        font-weight: bold;
+        min-width: 30px;
+        text-align: right;
+    }
+        /* Nuevos estilos para el gráfico de tipos de alerta */
+    .alert-type-item, .bar-item, .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+    .alert-type-item:hover, .bar-item:hover, .legend-item:hover {
+      background: rgba(34, 230, 217, 0.1);
+    }
+    
+    .alert-type-label {
+      font-size: 11px;
+      color: var(--ink);
+      width: 40%;
+    }
+    
+    .alert-type-chart {
+      flex-grow: 1;
+      margin-left: 10px;
+      background: rgba(34, 230, 217, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .alert-type-fill {
+      height: 15px;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    
+    .alert-type-value {
+      font-size: 11px;
+      margin-left: 8px;
+      font-weight: bold;
+      min-width: 30px;
+      text-align: right;
+    }
+    
+      /* Estilos para el botón de limpiar filtros */
+  .clear-filters-btn {
+        background: var(--orange);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-bottom: 15px;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(-10px);
+        height: 0;
+        padding: 0;
+        overflow: hidden;
+        display: none;
+    }
+    
+    .clear-filters-btn.visible {
+        display: block;
+        animation: filterBtnPopup 0.5s ease forwards;
+        height: auto;
+        padding: 10px 15px;
+    }
+    
+    @keyframes filterBtnPopup {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        70% {
+            transform: translateY(5px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .clear-filters-btn:hover {
+        background: #e66625;
+    }
+    
+    .clear-filters-btn:disabled {
+        background: #84a9b3;
+        cursor: not-allowed;
+    }
+    
+    /* Estilos para el gráfico de tendencia */
+    .trend-chart {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        height: 100% !important;
+        margin-top: 5px;
+    }
+    
+    .trend-bar-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        position: relative;
+    }
+    
+    .trend-bar {
+        width: 12px;
+        background-color: var(--teal);
+        border-radius: 3px 3px 0 0;
+        margin-bottom: 5px;
+        transition: height 0.5s ease;
+    }
+    
+    .trend-label {
+        font-size: 9px;
+        color: var(--ink);
+        text-align: center;
+    }
+    
+    .trend-value {
+        font-size: 10px;
+        color: var(--teal);
+        font-weight: bold;
+        margin-bottom: 2px;
+    }
+    
+    .trend-icon {
+        font-size: 14px;
+        font-weight: bold;
+        margin-top: 2px;
+    }
+    
+    .trend-title {
+        font-weight: bold;
+        border-bottom: 1px solid rgba(34, 230, 217, 0.3);
+        padding-bottom: 4px;
+    }
+    
+    h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: var(--teal);
+}
+
+.tabs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tabs-header {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid rgba(34,230,217,0.2);
+  margin-bottom: 8px;
+}
+
+.tab-button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button.active {
+  color: var(--teal);
+  border-bottom: 2px solid var(--teal);
+}
+
+.tab-button:hover {
+  background: rgba(34,230,217,0.1);
+}
+
+.tabs-content {
+  flex: 1;
+  overflow-y: auto;
+  
+}
+
+.tab-pane {
+  display: none;
+  height: 100%;
+}
+
+.tab-pane.active {
+  display: block;
+}
+</style>

@@ -1,0 +1,667 @@
+
+<!-- ====== FRAGMENTO AISLADO: CIVIX NEO (colores teal + naranja) ====== -->
+<div id="civix-neo">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>    
+  <style>
+    /* Paleta local (solo dentro de #civix-neo) */
+    #civix-neo{
+      --bg:#061922;                 /* fondo principal */
+      --panel:#0b1f2a;              /* paneles */
+      --ink:#b5d6df;                /* texto secundario */
+      --ink-strong:#e8fbff;         /* texto principal */
+      --teal:#22e6d9;               /* cian/teal brillante */
+      --orange:#ff7a2f;             /* acento naranja */
+      --grid:#0e2a36;
+    }
+    #civix-neo body{background:var(--bg);} /* por si se monta como página suelta */
+
+    #civix-neo .splash{
+      height:70vh; display:flex; flex-direction:column; gap:12px;
+      align-items:center; justify-content:center; color:var(--ink-strong);
+    }
+    #civix-neo .btn.btn-accent{ /* usa tu clase; no defino colores globales */
+      /* opcional: si tu tema no pinta, descomenta:
+      background:var(--teal); color:#002a2d; */
+    }
+
+    #civix-neo #dashboard{display:none; height:100vh; width:100vw;}
+    #civix-neo .grid{
+      display:grid; grid-template-columns:320px 1fr 360px; gap:12px;
+      height:100%; padding:12px;
+    }
+    #civix-neo .panel{
+      background:var(--panel); border-radius:12px; padding:12px; overflow:auto;
+      color:var(--ink);
+      box-shadow:0 0 0 1px rgba(34,230,217,.06) inset;
+      margin-bottom:0px;
+    }
+    #civix-neo h3{ margin:0 0 10px; font-size:16px; color:var(--teal); }
+
+    /* Timeline */
+    #civix-neo .timeline{list-style:none; margin:0; padding:0;}
+    #civix-neo .timeline li{
+      cursor:pointer; margin:12px 0; padding-left:14px; position:relative;
+      border-left:2px solid rgba(34,230,217,.2);
+    }
+    #civix-neo .timeline li::before{
+      content:""; position:absolute; left:-7px; top:6px; width:10px; height:10px;
+      border-radius:50%; background:var(--teal); box-shadow:0 0 10px var(--teal);
+    }
+    #civix-neo .timeline li[data-type*="accidente"]::before,
+    #civix-neo .timeline li[data-type*="restringida"]::before{
+      background:var(--orange); box-shadow:0 0 12px var(--orange);
+    }
+    #civix-neo .timeline strong{ color:var(--ink-strong); }
+    #civix-neo .timeline time{ display:block; color:#84a9b3; font-size:12px; }
+
+    /* Mapa oscuro + tinte teal */
+    #civix-neo #boardCanvas{width:100%;border-radius:12px;}
+    /* Tinte sobre los tiles para acercarnos al look de la imagen */
+    /*
+    #civix-neo #boardCanvas .leaflet-tile{
+      filter: hue-rotate(168deg) saturate(1.25) brightness(.75) contrast(1.05);
+    }
+    */
+    /* Controles */
+    #civix-neo .top-right{position:fixed; top:12px; right:12px; display:none; gap:8px; z-index:1000;}
+
+    /* Modal superpuesto (estilo panel) */
+    #civix-neo .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.75); z-index:10000;}
+    #civix-neo .modal{
+      width:min(920px,95vw); max-height:85vh; overflow:auto; background:var(--panel); border-radius:12px; padding:16px;
+      color:var(--ink); box-shadow:0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+    }
+    #civix-neo .modal h4{margin:0 0 8px; color:var(--orange);}
+    #civix-neo .modal .hdr{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #143241; padding-bottom:8px; margin-bottom:10px;}
+    #civix-neo .modal .x{cursor:pointer; color:var(--ink-strong); font-size:20px;}
+  </style>
+
+  <!-- Splash -->
+  <div class="splash" id="splash">
+    <h2 style="color:var(--ink-strong)">Módulo de Alertas</h2>
+    <button id="enter" class="btn btn-accent">Ingresar al Dashboard</button>
+  </div>
+
+  <!-- Controles en fullscreen -->
+  <div class="top-right" id="controls">
+    <button id="exit" class="btn btn-accent">Salir de pantalla completa</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <div class="grid">
+      <!-- Izq: Timeline -->
+      <div class="panel">
+        <h3>Alertas en tiempo real</h3>
+        
+            
+            <select id="selectPiso" class="form-select">
+                <option value="ALL">Todos los pisos</option>
+                <option value="S1">Sótano 1</option>
+                <option value="S2">Sótano 2</option>
+                <option value="S3">Sótano 3</option>
+                <option value="1">Piso 1</option>
+                <option value="2">Piso 2</option>
+                <option value="3">Piso 3</option>
+                <option value="4">Piso 4</option>
+                <option value="5">Piso 5</option>
+            </select>
+            <button id="btnAutoRotate" class="btn btn-accent mb-2">Rotación automática: OFF</button>
+
+        
+      </div>
+
+      <!-- Centro: Mapa -->
+      <div class="panel" style="overflow-y:hidden">
+           <canvas id="boardCanvas"  width="900" height="600"  style="border:1px solid #333; width:100%; height:95vh; cursor: grab;"></canvas>
+
+      </div>
+
+      <!-- Derecha: Métricas -->
+      <div class="panel">
+        <h3>KPIs</h3>
+        <div id="rpanel" ></div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal/panel -->
+  <div class="overlay" id="ovl" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="hdr">
+        <h4 id="mtitle">Detalle de alerta</h4>
+        <span class="x" id="mclose">&times;</span>
+      </div>
+      <div id="mbody">...</div>
+    </div>
+  </div>
+
+</div>
+
+
+  <!-- Libs mapa y charts -->
+  
+<script>
+// --- Fullscreen flow
+const enterBtn = document.querySelector('#civix-neo #enter');
+const exitBtn = document.querySelector('#civix-neo #exit');
+
+const appRoot = document.getElementById('civix-neo');
+
+enterBtn.addEventListener('click', async () => {
+  try{
+      if(!document.fullscreenElement) await appRoot.requestFullscreen({navigationUI:'hide'});}catch(_){}
+  splash.style.display='none'; 
+  dashboard.style.display='block'; 
+  controls.style.display='flex';
+  setTimeout(()=> {
+      offsetX = canvas.width/2;
+      offsetY = canvas.height/2;
+      render();
+      animate();
+      document.getElementById("btnAutoRotate").click()
+  }, 500);
+});
+
+exitBtn.addEventListener('click', () => {
+  if(document.fullscreenElement) document.exitFullscreen();
+  hideDash();
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape' && document.fullscreenElement){ document.exitFullscreen(); hideDash(); }
+});
+
+document.addEventListener('fullscreenchange', () => { if(!document.fullscreenElement) hideDash(); });
+function hideDash(){ dashboard.style.display='none'; controls.style.display='none'; splash.style.display='flex'; closeModal(); }
+
+
+
+// Timeline → centra y abre modal
+
+</script>
+
+
+<script>
+// ==========================
+// Configuración del tablero
+// ==========================
+const configTablero = {
+  grid: true,
+  gridSize: 20,
+  colorFondo: "#061922",
+  colorLineas: "#ff7a2f88",
+  zoomInicial: 1.5,
+  pitchInicial: -20
+};
+
+// ==========================
+// JSON del edificio
+// ==========================
+const edificio = {
+  "pisos": [
+    // --- Sótanos ---
+    {
+      "nombre": "Sótano 1",
+      "altura": -40,
+      "ambientes": [
+        { "nombre": "Estacionamientos S1", "color": "#aaaaaa",
+          "vertices": [[-100,-40,-60],[100,-40,-60],[100,-40,60],[-100,-40,60]] },
+        { "nombre": "Bombas de agua", "color": "#8888ff",
+          "vertices": [[-40,-40,20],[-20,-40,20],[-20,-40,40],[-40,-40,40]] }
+      ]
+    },
+    {
+      "nombre": "Sótano 2",
+      "altura": -80,
+      "ambientes": [
+        { "nombre": "Estacionamientos S2", "color": "#999999",
+          "vertices": [[-100,-80,-60],[100,-80,-60],[100,-80,60],[-100,-80,60]] },
+        { "nombre": "Cuarto eléctrico", "color": "#ffcc00",
+          "vertices": [[-40,-80,-40],[-20,-80,-40],[-20,-80,-20],[-40,-80,-20]] }
+      ]
+    },
+    {
+      "nombre": "Sótano 3",
+      "altura": -120,
+      "ambientes": [
+        { "nombre": "Estacionamientos S3", "color": "#888888",
+          "vertices": [[-100,-120,-60],[100,-120,-60],[100,-120,60],[-100,-120,60]] },
+        { "nombre": "Servidores / Generadores", "color": "#cc0000",
+          "vertices": [[20,-120,20],[60,-120,20],[60,-120,60],[20,-120,60]] }
+      ]
+    },
+    // --- Piso 1 ---
+    {
+      "nombre": "Piso 1",
+      "altura": 0,
+      "ambientes": [
+        { "nombre": "Recepción", "color": "#66aaff",
+          "vertices": [[60,0,-60],[90,0,-60],[90,0,-30],[60,0,-30]] },
+        { "nombre": "Sala de espera", "color": "#99ccff",
+          "vertices": [[90,0,-60],[120,0,-60],[120,0,-30],[90,0,-30]] },
+        { "nombre": "Jardín frontal", "color": "#77dd77",
+          "vertices": [[-100,0,-80],[120,0,-80],[120,0,-60],[-100,0,-60]] },
+        { "nombre": "Estacionamientos", "color": "#aaaaaa",
+          "vertices": [[-100,0,0],[120,0,0],[120,0,40],[-100,0,40]] },
+        { "nombre": "Baños Piso 1", "color": "#66ccff",
+          "vertices": [[-60,0,0],[-40,0,0],[-40,0,20],[-60,0,20]] },
+        { "nombre": "Salida Emergencia P1", "color": "#ff3333",
+          "vertices": [[-100,0,20],[-90,0,20],[-90,0,40],[-100,0,40]] }
+      ]
+    },
+    // --- Pisos 2, 3 y 4 ---
+    ...[40,80,120].map((altura,i)=>({
+      "nombre": "Piso "+(i+2),
+      "altura": altura,
+      "ambientes": [
+        { "nombre": "Recepción", "color": "#66aaff",
+          "vertices": [[60,altura,-60],[90,altura,-60],[90,altura,-30],[60,altura,-30]] },
+        { "nombre": "Sala de espera", "color": "#99ccff",
+          "vertices": [[90,altura,-60],[120,altura,-60],[120,altura,-30],[90,altura,-30]] },
+        { "nombre": "Oficina del Presidente", "color": "#cc9966",
+          "vertices": [[-90,altura,0],[-60,altura,0],[-60,altura,30],[-90,altura,30]] },
+        { "nombre": "Oficina de Contabilidad", "color": "#ffcc66",
+          "vertices": [[-60,altura,-30],[-30,altura,-30],[-30,altura,0],[-60,altura,0]] },
+        { "nombre": "Sala de Reuniones", "color": "#ff9966",
+          "vertices": [[-90,altura,-60],[-30,altura,-60],[-30,altura,-30],[-90,altura,-30]] },
+        { "nombre": "Jefe de Marketing", "color": "#cc6699",
+          "vertices": [[30,altura,0],[60,altura,0],[60,altura,30],[30,altura,30]] },
+        { "nombre": "Jefe de Personal", "color": "#993366",
+          "vertices": [[60,altura,0],[90,altura,0],[90,altura,30],[60,altura,30]] },
+        { "nombre": "Baños", "color": "#66ccff",
+          "vertices": [[-90,altura,30],[-60,altura,30],[-60,altura,60],[-90,altura,60]] },
+        { "nombre": "Salida Emergencia", "color": "#ff3333",
+          "vertices": [[-100,altura,20],[-90,altura,20],[-90,altura,40],[-100,altura,40]] }
+      ]
+    })),
+    // --- Piso 5 ---
+    {
+      "nombre": "Piso 5",
+      "altura": 160,
+      "ambientes": [
+        { "nombre": "Oficinas ejecutivas", "color": "#cc6699",
+          "vertices": [[-80,160,-40],[0,160,-40],[0,160,40],[-80,160,40]] },
+        { "nombre": "Sala de directorio", "color": "#993366",
+          "vertices": [[0,160,-40],[80,160,-40],[80,160,0],[0,160,0]] },
+        { "nombre": "Terraza", "color": "#77dd77",
+          "vertices": [[0,160,0],[80,160,0],[80,160,40],[0,160,40]] },
+        { "nombre": "Baños Piso 5", "color": "#66ccff",
+          "vertices": [[-90,160,0],[-70,160,0],[-70,160,20],[-90,160,20]] },
+        { "nombre": "Salida Emergencia P5", "color": "#ff3333",
+          "vertices": [[-100,160,20],[-90,160,20],[-90,160,40],[-100,160,40]] }
+      ]
+    }
+  ]
+};
+
+// ==========================
+// Parámetros de cámara
+// ==========================
+const canvas = document.getElementById("boardCanvas");
+const ctx = canvas.getContext("2d");
+
+let yaw = 0 * Math.PI/180;
+let pitch = configTablero.pitchInicial * Math.PI/180;
+let zoom = configTablero.zoomInicial;
+let offsetX = 0;//canvas.width/2;
+let offsetY = 0;//canvas.height/2;
+
+let autoRotate = false;
+let rotateSpeed = 0.01;
+
+let screenPolygons=[];
+let pisoActivo="ALL";
+let highlightedAmbiente = null;
+
+// ==========================
+// Funciones utilitarias
+// ==========================
+function rotateY([x,y,z], a){ const c=Math.cos(a),s=Math.sin(a); return [x*c+z*s,y,-x*s+z*c]; }
+function rotateX([x,y,z], a){ const c=Math.cos(a),s=Math.sin(a); return [x,y*c-z*s,y*s+z*c]; }
+function project([x,y,z]){
+  [x,y,z] = rotateY([x,y,z], yaw);
+  [x,y,z] = rotateX([x,y,z], pitch);
+  const d=600;
+  const scale=(d*zoom)/(d+z);
+  return [x*scale+offsetX, -y*scale+offsetY];
+}
+function hexToRgba(hex, alpha=0.5){
+  const bigint=parseInt(hex.replace("#",""),16);
+  const r=(bigint>>16)&255, g=(bigint>>8)&255, b=bigint&255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ==========================
+// Dibujo del edificio
+// ==========================
+function drawEdificio(){
+  screenPolygons=[];
+  for (const piso of edificio.pisos){
+    if(pisoActivo!=="ALL" && !piso.nombre.includes("Piso "+pisoActivo)) continue;
+
+    for (const amb of piso.ambientes){
+      const poly2D = amb.vertices.map(v=>project(v));
+
+      // Polígono resaltado o normal
+      ctx.beginPath();
+      poly2D.forEach(([px,py],i)=>{ if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); });
+      ctx.closePath();
+      if (highlightedAmbiente === amb) {
+        ctx.fillStyle = hexToRgba(amb.color,0.8);
+        ctx.fill();
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = hexToRgba(amb.color,0.5);
+        ctx.fill();
+        ctx.strokeStyle = amb.color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      screenPolygons.push({amb, poly2D, piso});
+
+      // Centroide en 3D
+      let cx=0,cy=0,cz=0;
+      for(const v of amb.vertices){ cx+=v[0]; cy+=v[1]; cz+=v[2]; }
+      cx/=amb.vertices.length; cy/=amb.vertices.length; cz/=amb.vertices.length;
+      const [tx,ty]=project([cx,cy,cz]);
+
+      // Bounding box en 3D
+      const xs3D = amb.vertices.map(v=>v[0]);
+      const zs3D = amb.vertices.map(v=>v[2]);
+      const width3D = Math.max(...xs3D) - Math.min(...xs3D);
+      const height3D = Math.max(...zs3D) - Math.min(...zs3D);
+      const size3D = Math.min(width3D, height3D);
+
+      // Escala del texto
+      const fontSize = Math.min(40, Math.max(8, size3D * zoom * 0.15));
+
+      // Ángulo del texto
+      const [x1,y1]=poly2D[0]; const [x2,y2]=poly2D[1];
+      const angle=Math.atan2(y2-y1,x2-x1);
+
+      // Texto
+      ctx.save();
+      ctx.translate(tx,ty);
+      ctx.rotate(angle);
+      let alpha = (pisoActivo==="ALL" ? 0.15 : 0.3);
+      ctx.font=`bold ${fontSize}px Arial`;
+      ctx.fillStyle=`rgba(0,0,0,${alpha})`;
+      ctx.textAlign="center";
+      ctx.textBaseline="middle";
+      ctx.fillText(amb.nombre,0,0);
+      ctx.restore();
+    }
+  }
+}
+function render(){
+  ctx.fillStyle=configTablero.colorFondo;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  drawGrid();
+  drawEdificio();
+}
+function drawGrid(){
+  if (!configTablero.grid) return;
+  const size=configTablero.gridSize, half=200;
+  ctx.strokeStyle=configTablero.colorLineas; ctx.lineWidth=1;
+  for(let x=-half;x<=half;x+=size){
+    const p1=project([x,0,-half]), p2=project([x,0,half]);
+    ctx.beginPath(); ctx.moveTo(...p1); ctx.lineTo(...p2); ctx.stroke();
+  }
+  for(let z=-half;z<=half;z+=size){
+    const p1=project([-half,0,z]), p2=project([half,0,z]);
+    ctx.beginPath(); ctx.moveTo(...p1); ctx.lineTo(...p2); ctx.stroke();
+  }
+}
+
+// ==========================
+// Detección de clic mejorada
+// ==========================
+function pointInPolygon(x,y,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const xi=poly[i][0], yi=poly[i][1];
+    const xj=poly[j][0], yj=poly[j][1];
+    const intersect=((yi>y)!=(yj>y)) && (x<(xj-xi)*(y-yi)/(yj-yi)+xi);
+    if(intersect) inside=!inside;
+  }
+  return inside;
+}
+
+function polygonArea2D(poly) {
+  // área del polígono proyectado (shoelace formula)
+  let area = 0;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    area += (poly[j][0] + poly[i][0]) * (poly[j][1] - poly[i][1]);
+  }
+  return Math.abs(area / 2);
+}
+
+function pickPolygon(mx, my) {
+  let insideCandidates = [];
+  let nearCandidates = [];
+
+  for (let {amb, poly2D, piso} of screenPolygons) {
+    // Centroide en 3D → proyectado
+    let cx = 0, cy = 0, cz = 0;
+    for (const v of amb.vertices) {
+      cx += v[0]; cy += v[1]; cz += v[2];
+    }
+    cx /= amb.vertices.length;
+    cy /= amb.vertices.length;
+    cz /= amb.vertices.length;
+    const [tx, ty] = project([cx, cy, cz]);
+
+    if (pointInPolygon(mx, my, poly2D)) {
+      insideCandidates.push({
+        amb, piso,
+        area: polygonArea2D(poly2D),
+        cz
+      });
+    } else {
+      // fallback: distancia al centroide
+      const dist = Math.hypot(mx - tx, my - ty);
+      if (dist < 30) {
+        nearCandidates.push({amb, piso, dist, cz});
+      }
+    }
+  }
+
+  if (insideCandidates.length > 0) {
+    // 🔹 elegir el polígono MÁS PEQUEÑO por área
+    insideCandidates.sort((a, b) => a.area - b.area || a.cz - b.cz);
+    return insideCandidates[0];
+  }
+
+  if (nearCandidates.length > 0) {
+    // 🔹 elegir el centroide más cercano, y si empatan, el más cercano en Z
+    nearCandidates.sort((a, b) => a.dist - b.dist || a.cz - b.cz);
+    return nearCandidates[0];
+  }
+
+  return null;
+}
+
+canvas.addEventListener("click", e=>{
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  const picked = pickPolygon(mx, my);
+  if (!picked) return;
+
+  const {amb, piso} = picked;
+  highlightedAmbiente = amb;
+  render();
+
+  // Zoom automático al centroide
+  let cx=0,cy=0,cz=0;
+  for(const v of amb.vertices){ cx+=v[0]; cy+=v[1]; cz+=v[2]; }
+  cx/=amb.vertices.length; cy/=amb.vertices.length; cz/=amb.vertices.length;
+  const [tx,ty] = project([cx,cy,cz]);
+
+  render();
+
+  // SweetAlert tras 0.5s
+  setTimeout(()=>{
+    document.querySelector("#rpanel").innerHTML=  `<b>Piso:</b> ${piso.nombre}<br><b>Piso:</b> ${amb.nombre}<br><b>Color:</b> ${amb.color}`
+    /*
+    Swal.fire({
+      title: amb.nombre,
+      html: `<b>Piso:</b> ${piso.nombre}<br><b>Color:</b> ${amb.color}`,
+      icon: "info",
+      confirmButtonText: "OK",
+      confirmButtonColor: amb.color
+    });
+    */
+    highlightedAmbiente = null;
+    render();
+  },500);
+});
+
+// ==========================
+// Animación automática
+// ==========================
+function animate(){
+  if(autoRotate){ yaw += rotateSpeed; }
+  render();
+  requestAnimationFrame(animate);
+}
+
+// ==========================
+// Interacción mouse
+// ==========================
+let dragging=false,lastX=0,lastY=0;
+let dragMode=null;
+
+canvas.addEventListener("mousedown", e=>{
+  dragging=true;
+  lastX=e.clientX; lastY=e.clientY;
+  dragMode=(e.button===2?"pan":"rotate");
+  canvas.style.cursor=(dragMode==="pan"?"move":"grabbing");
+});
+["mouseup","mouseleave"].forEach(ev=>canvas.addEventListener(ev,()=>{
+  dragging=false; dragMode=null; canvas.style.cursor="grab";
+}));
+canvas.addEventListener("mousemove", e=>{
+  if(!dragging) return;
+  const dx=e.clientX-lastX, dy=e.clientY-lastY;
+  if(dragMode==="pan"){ offsetX+=dx; offsetY+=dy; }
+  else if(dragMode==="rotate"){
+    yaw -= dx*0.01;
+    pitch -= dy*0.01;
+    const limit=Math.PI/2-0.1;
+    if(pitch>limit) pitch=limit;
+    if(pitch<-limit) pitch=-limit;
+  }
+  lastX=e.clientX; lastY=e.clientY;
+  render();
+});
+canvas.addEventListener("contextmenu", e=>e.preventDefault());
+
+// ==========================
+// Zoom
+// ==========================
+canvas.addEventListener("wheel", e=>{
+  e.preventDefault();
+  const prev=zoom;
+  zoom*=(e.deltaY>0?0.9:1.1);
+  zoom=Math.max(0.25,Math.min(5.0,zoom));
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  offsetX=mx-(mx-offsetX)*(zoom/prev);
+  offsetY=my-(my-offsetY)*(zoom/prev);
+  render();
+},{passive:false});
+
+// ==========================
+// Botones y filtros
+// ==========================
+/*
+document.getElementById("btnFullscreen").addEventListener("click",()=>{
+  if(!document.fullscreenElement) canvas.requestFullscreen(); else document.exitFullscreen();
+});
+*/
+document.getElementById("btnAutoRotate").addEventListener("click",()=>{
+  autoRotate=!autoRotate;
+  document.getElementById("btnAutoRotate").textContent="Rotación automática: "+(autoRotate?"ON":"OFF");
+});
+
+document.getElementById("selectPiso").addEventListener("change", e=>{
+  pisoActivo=e.target.value;
+  if(pisoActivo==="ALL"){ zoom=configTablero.zoomInicial; offsetX=canvas.width/2; offsetY=canvas.height/2; }
+  else{
+    const piso=edificio.pisos.find(p=>p.nombre.includes("Piso "+pisoActivo));
+    if(piso){
+      zoom=1.2;
+      offsetX=canvas.width/2;
+      offsetY=canvas.height/2 - piso.altura*zoom*0.5;
+    }
+  }
+  render();
+});
+
+// ==========================
+// Llamada inicial para evitar fallo en primer clic
+// ==========================
+
+// ===========
+// Llamada a servicios API
+// ===========
+
+function getAlertas() {
+    
+    callAPI({
+        method: 'gestion/getalerts',
+        params: {},
+        ok: function (vals) {
+            log(vals)
+            /*
+            const newAlerts = identificarNuevasAlertas(vals);
+            lastAlertIds = new Set(vals.map(alert => alert.id));
+            listaAlertas = vals;
+            
+            const uniqueAlertTypes = [...new Set(vals.map(alert => alert.type_event_name))];
+            buildLegend(uniqueAlertTypes);
+            
+            renderAllContent();
+            updateAllMetrics();
+            
+            if (newAlerts.length > 0) {
+                destacarNuevasAlertas(newAlerts);
+            }
+            */
+        },
+        error: function (error) {
+            console.error("Error al obtener las alertas:", error);
+            timelineList.innerHTML = '<div class="loading">Error al cargar alertas</div>';
+        }
+    });
+}
+
+function getCamaras (){
+    callAPI({
+        method: 'gestion/camarabytype',
+        params: {},
+        ok: function (vals) {
+            log("Cameras", vals)
+        },
+        error: function (error) {
+            console.error("Error al obtener las alertas:", error);
+            timelineList.innerHTML = '<div class="loading">Error al cargar alertas</div>';
+        }
+    });
+}
+    
+$(document).ready(function() {
+  getAlertas();
+  getCamaras();
+});
+</script>
+
+  

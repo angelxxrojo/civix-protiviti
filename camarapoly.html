@@ -1,0 +1,115 @@
+<!-- Botón para abrir el modal -->
+<button class="btn btn-primary" onclick="abrirModalConCanvas(1)">Abrir Dibujo</button>
+
+<!-- Modal -->
+<div class="modal fade" id="modalcamerapoly" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Dibujo sobre Imagen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="canvas-container" style="border:1px solid #ccc;">
+          <canvas id="myCanvas" width="800" height="600"></canvas>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success" id="btnSave">Guardar</button>
+        <button class="btn btn-danger" id="btnClear">Limpiar</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let canvas, ctx, bgImage, polygons = [], currentPolygon = [];
+
+function abrirModalConCanvas(id_camera) {
+    $('#modalcamerapoly').modal('show');
+
+    callAPI({
+        method: "camaras/getcamaraframe",
+        params: { id: id_camera },
+        ok: (data) => {
+            if (Array.isArray(data) && data.length > 0 && data[0]['foto']) {
+                cargarImagenCanvas(data[0]['foto']);
+            } else {
+                $('#canvas-container').html('<p>No se encontró la imagen.</p>');
+            }
+        },
+        error: (err) => {
+            console.log("Error al obtener la imagen:", err);
+            $('#canvas-container').html('<p>Error al cargar la imagen.</p>');
+        }
+    });
+}
+
+function cargarImagenCanvas(url) {
+    $('#canvas-container').html('<canvas id="myCanvas" width="800" height="600"></canvas>');
+    canvas = document.getElementById('myCanvas');
+    ctx = canvas.getContext('2d');
+    bgImage = new Image();
+    bgImage.src = url;
+    bgImage.onload = function() {
+        polygons = JSON.parse(localStorage.getItem('polygons') || '[]');
+        currentPolygon = [];
+        drawBackground();
+        redrawPolygons();
+    };
+    canvas.addEventListener('click', onCanvasClick);
+    canvas.addEventListener('dblclick', onCanvasDoubleClick);
+}
+
+function drawBackground() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+}
+
+function redrawPolygons() {
+    drawBackground();
+    polygons.forEach(poly => drawPolygon(poly));
+    drawPolygon(currentPolygon, true);
+}
+
+function drawPolygon(points, isCurrent = false) {
+    if (points.length === 0) return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    points.forEach(p => ctx.lineTo(p.x, p.y));
+    if (!isCurrent) ctx.closePath();
+    ctx.strokeStyle = isCurrent ? 'red' : 'blue';
+    ctx.lineWidth = isCurrent ? 2 : 3;
+    ctx.stroke();
+    ctx.fillStyle = isCurrent ? 'rgba(255,0,0,0.3)' : 'rgba(0,0,255,0.2)';
+    ctx.fill();
+}
+
+function onCanvasClick(e) {
+    const rect = canvas.getBoundingClientRect();
+    currentPolygon.push({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    redrawPolygons();
+}
+
+function onCanvasDoubleClick() {
+    if (currentPolygon.length > 2) {
+        polygons.push([...currentPolygon]);
+        currentPolygon = [];
+        redrawPolygons();
+    } else {
+        alert("Dibuja al menos 3 puntos.");
+    }
+}
+
+$('#btnSave').click(() => {
+    localStorage.setItem('polygons', JSON.stringify(polygons));
+    alert('Polígonos guardados.');
+});
+
+$('#btnClear').click(() => {
+    polygons = [];
+    currentPolygon = [];
+    redrawPolygons();
+});
+</script>

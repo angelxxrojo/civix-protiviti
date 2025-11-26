@@ -1,0 +1,303 @@
+<div class="row">
+    <div class="col-md-10">
+        <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">
+                Filtros
+            </div>
+            <div class="panel-body">
+
+                <div class="row">
+                    <div class="col-lg-3">
+                        <div class=form-group>
+                            <input id="txcamera" type="text" class="form-control" placeholder="Cámara">
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class=form-group>
+                            <button id="btnbuscar" type="button" href="#" class="btn btn-w-md btn-primary  btn-rounded">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>    
+    <div class="col-md-2">
+        <div class="panel panel-filled  panel-c-accent">
+            <div class="panel-heading text-center">
+                Total Cámaras Activas
+            </div>
+            <div class="panel-body text-center">
+                <h2 class="m-b-none " id="totalcamaras"></h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row" id="result-list"></div>
+
+<div id="panelTemplate" class="d-none" style="display:none">
+    <div class="col-md-2">
+        <div class="panel panel-c-accent">
+            <div class="panel-body">
+                <div style="font-size:80%;height:120px">
+                    
+                    <div><span class="c-white" style="float:right">@id</span>ID Camara:</div>
+                    <div><span class="c-white" style="float:right">@camera_id</span>Camara:</div>
+                    <div><span class="c-white" style="float:right">@nombre_zona</span>Zona:</div>
+                    <div><span class="c-white" style="float:right">@nombre_subzona</span>Subzona:</div>
+                    <div><span class="c-white" style="float:right">@nombre_objetivo</span>Objetivo:</div>                    
+                    <small >@location</small>                    
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button style="width:100%;font-size:0.8rem;" class="btn btn-w-md btn-success btn-rounded">Ver Video</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="showVideoModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            
+            <div class="modal-header text-left">
+                
+                <span class="c-white" style="float:right" id="showtime"></span>
+                Cámara : <span class="c-white" id="showcamera"></span>
+                <div id="showlocation"></div>
+            </div>
+            
+            <div class="modal-body" style="height:400px">                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+var videoPlayer=null;
+
+function imageprocess(obj,time){
+    var btn=obj.parentElement.parentElement.parentElement.querySelector('button')
+    btn.setAttribute('disabled',1);
+    btn.className="btn btn-w-md btn-secondary btn-rounded"
+    //obj.setAttribute('errorload',1);
+    setTimeout(
+        ()=>{
+            obj.src='/images/logowin.png'
+            obj.style.filter='grayscale(100%)'
+            obj.style.opacity='0.1'
+        },
+        time
+    );
+}    
+
+function showresultsearch(data){
+    log(data)//coords_obj
+    $("#result-list").html("")
+    var paneltemplate=$("#panelTemplate").html();
+    var itime=1
+    $("#totalcamaras").html(data.length)
+    for(x of data){        
+        var panel=paneltemplate;
+        var d  = new Date(x.date_start);        
+        itime+5;
+        x.nombre_zona = x.nombre_zona || "";
+        x.nombre_subzona = x.nombre_subzona || "";
+        x.nombre_objetivo = x.nombre_objetivo || "";
+        for( y in x){panel=panel.replaceAll("@"+y,x[y])}
+
+        
+        panel=panel.replaceAll("@time",itime)
+        panel=$(panel)   
+
+        var anchor=$(panel).find('button')
+        
+        
+        anchor.attr("data",JSON.stringify(x));        
+        anchor.on('click', function(){            
+            playVideo(JSON.parse($(this).attr("data")))            
+        });
+
+/*
+        var oldimg=$(panel).find('img').parentElement;
+        var coords=x.coords_obj.split(",")
+        const sx = coords[0], sy = coords[1];          // origen en la imagen HD
+        const sw = coords[2], sh = coords[3];         // tamaño del fragmento a recortar
+        const dw = sw, dh = sh;           // tamaño final en el canvas
+        const img = new Image();
+        img.style="width:100%;height:100%;border-radius: 5px;";
+        img.src = x.foto_frame;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = dw;
+            canvas.height = dh;
+            const ctx = canvas.getContext('2d');
+
+            // 2) DrawImage con recorte: drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+            log(ctx)
+
+            // 3) Inyecta el canvas donde quieras
+            //document.getElementById('cropContainer').
+            oldimg.append(canvas);
+        };
+
+        img.onerror = () => {
+            
+            this.src='/images/logowin.png'
+            this.style.filter='grayscale(100%)'
+            this.style.opacity='0.1'
+        }
+
+*/
+
+        $("#result-list").append(panel)        
+    }
+}
+
+function getEmotionName(emotionCode) {
+  let emotionText = "";
+
+  switch (emotionCode) {
+    case "1":
+      emotionText = "Enojo";
+      break;
+    case "2":
+      emotionText = "Disgusto";
+      break;
+    case "3":
+      emotionText = "Miedo";
+      break;
+    case "4":
+      emotionText = "Felicidad";
+      break;
+    case "5":
+      emotionText = "Tristeza";
+      break;
+    case "6":
+      emotionText = "Sorpresa";
+      break;
+    case "7":
+      emotionText = "Neutral";
+      break;
+  }
+
+  return emotionText;
+}
+
+function playVideo(row){
+    "#showcamera".qs().innerHTML=row.camera_id
+    //"#showtime".qs().innerHTML=row.date_start
+    "#showlocation".qs().innerHTML=row.location
+    log(row)
+    
+    callAPI({
+            method: 'gestion/getframesnow',
+            params: { 
+                cameraid: row.id ,
+            },                                                                        
+            ok: function(data) {     
+                log("finaldata",data)                        
+                videoPlayer=new videoplay("#showVideoModal .modal-body".qs());
+                
+                setTimeout(()=>{
+                    log(data);
+                    $('#showVideoModal').modal('show');   
+                    const grouped = Object.values(
+                    data.reduce((acc, item) => {
+                        let plate=null;
+                        log("persona",item);
+                        log("emocion", item.emotion);
+                        if((item.status_face=="2" || item.status_face=="1")&& item.emotion){
+                            plate=getEmotionName(item.emotion);
+                        }else{
+                            plate=item.plate;
+                        }
+                        log("placa",plate);
+                        if (!acc[item.foto]) {
+                        acc[item.foto] = { 
+                            foto: item.foto, 
+                            coords_obj: [] 
+                        };
+                        }
+                        acc[item.foto].coords_obj.push({
+                        categoria: item.category,
+                        accuracy_obj: item.accuracy_obj,
+                        colorupper: item.color_name_upper,
+                        colorlower: item.color_name_lower,
+                        plate: plate,
+                        coords: item.coords_obj?item.coords_obj.split(","):null,
+                        coordsplate: (item.coords_plate?(item.coords_plate||'').split(","):null)
+                        });
+                        return acc;
+                    }, {})
+                    );
+                    //log("grouped")     
+                    //log(grouped)                 
+                    videoPlayer.update(grouped,"foto","coords_obj"/*,[
+                        {
+                            points: [
+                                [200,200],[450,200],[370,360],[320,400]
+                             
+                            ]
+                            , // pentágono
+                            lineColor: "blue",
+                            fillColor: "rgba(0,0,255,0.3)",
+                            lineWidth: 3
+                        }]*/
+                    );
+                    setTimeout(()=>{videoPlayer.play()},100)
+                },100)
+            }
+    });
+
+}
+
+$(document).ready(function () {
+
+    callAPI({
+        method:"gestion/getcamaras",            
+        params:{camera:$("#txtcamera").val()},
+        ok:(data)=>{
+            showresultsearch(data)
+        }
+    });
+
+    
+    $("#txcamera").keyup( function (ev) {
+        //videoPlayer.stop();  
+        //log(ev)
+        var value=$("#txcamera").val().toLowerCase();
+        var list=$("#result-list")[0].childNodes
+        for(x of list){
+            x.style.display="";
+            var data=x.innerHTML.toLowerCase()
+            if(data.indexOf(value)==-1){
+                log("encnotrado")
+                x.style.display="none";
+            }
+        }
+        
+        log(list)
+
+
+
+    });
+
+    
+    $("#showVideoModal").on("hidden.bs.modal", function () {
+        videoPlayer.stop();  
+    });
+
+});
+
+
+</script>

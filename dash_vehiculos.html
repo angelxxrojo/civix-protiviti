@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <meta charset="utf-8" />
+  <title>Mapa de Calor - Miraflores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+  
+  #main-chart {
+      width: 100%;
+      height: 400px;
+      
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map, #map1 {
+      position: relative;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      min-height: 300px;
+    }
+    
+    .legend-box {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    #lineChart {
+      width: 100%;
+      min-height: 300px;
+      position: relative; /* necesario para posicionar las etiquetas absolutas */
+    }
+    .data-point-label {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<div>
+    <h2>
+        Visión General
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            
+                    <div class="panel panel-filled">
+                        <div class="panel-heading">
+                            Periodo
+                        </div>
+                        <div class="panel-body">
+                            <h1 class="m-b-none">
+                                08/2025 
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="panel panel-filled" style="background: red;">
+                        <div class="panel-heading">
+                            Total de detecciones
+                        </div>
+                        <div class="panel-body" >
+                            <h2 class="m-b-none">
+                                1746
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="panel panel-filled">
+                        <div class="panel-heading">
+                            Promedio Mensual de detecciones
+                        </div>
+                        <div class="panel-body">
+                            <h3 class="m-b-none">
+                                145
+                            </h3>
+                        </div>
+                    </div>
+        </div>          
+    </div>
+    
+    <div class="col-md-8">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Cantidad de Alertas Histórico
+            </div>
+            <div class="panel-body">
+                <div class="flot-chart">
+                    <div class="flot-chart-content" id="flotExample3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h2>
+        Distribución y segmentación
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Top de Alertas
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="flotExample2"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="sparkline-legend">
+                            <div>
+                            <span class="legend-box" style="background-color: #f6a821;"></span> First Category
+                            </div>
+                            <div>
+                                <span class="legend-box" style="background-color: #ffffff; border: 1px solid #ccc;"></span> Second Category
+                            </div>
+                            <div>
+                                <span class="legend-box" style="background-color: red;"></span> Third Category
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel">
+                <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Top de Detecciones por Zona
+            </div>
+            <div class="panel-body">
+                <div class="flot-chart">
+                    <div class="flot-chart-content" id="flotExample1" style="padding: 0px; position: relative;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-md-4">
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Mapa de Calor
+            </div>
+            <div class="panel-body">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h2>
+        Detecciones por cámara
+    </h2>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    
+                </div>
+                Bar type chart
+            </div>
+            <div class="panel-body">
+                <div class="flot-chart">
+                    <div class="flot-chart-content" id="flotExample4" style="padding: 0px; position: relative;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Mapa de Calor
+            </div>
+            <div class="panel-body">
+                <div id="map1"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Comportamientos
+            </div>
+            <div class="panel-body">
+                <div id="lineChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div id="main-chart"></div>
+    </div>
+</div>
+
+<script>
+    
+    $(document).ready(function () {
+    const data = [
+        
+        [1, 15],
+        [2, 20],
+        [3, 12],
+        [4, 25],
+        [5, 18],
+        [6, 30]
+    ];
+
+    const options = {
+        series: {
+            lines: { show: true },
+            points: { show: true }
+        },
+        grid: {
+            hoverable: true,
+            clickable: true,
+            borderWidth: 1
+        },
+        xaxis: {
+            // Añade padding al inicio y al final del eje X
+            min: -0.5,
+            max: 6.5,
+            ticks: [
+                [1, "Valor 1"],
+                [2, "Valor 2"],
+                [3, "Valor 3"],
+                [4, "Valor 4"],
+                [5, "Valor 5"],
+                [6, "Valor 6"]
+            ]
+        }
+    };
+
+    const placeholder = $("#lineChart");
+    const plot = $.plot(placeholder, [{ data }], options);
+
+    // Iteramos sobre los datos para añadir las etiquetas
+    plot.getData()[0].data.forEach(function (el, i) {
+            const x = el[0], y = el[1];
+            const o = plot.pointOffset({ x: x, y: y });
+            $('<div class="data-point-label">' + y + '</div>')
+                .css({ left: o.left + 5, top: o.top - 20 })
+                .appendTo(placeholder);
+    });
+});
+    
+    $(document).ready(function() {
+        const data1 = [
+            [1, 15], [2, 20], [3, 12], [4, 25], [5, 18], [6, 30],
+            [7, 22], [8, 17], [9, 28], [10, 19], [11, 24], [12, 16],
+            [13, 21], [14, 26], [15, 14], [16, 23], [17, 27], [18, 13]
+        ];
+    
+        const options = {
+            series: {
+                bars: {
+                    show: true,
+                    barWidth: 1,
+                    align: "center",
+                    fill: true,
+                    fillColor: 'rgba(0, 0, 0, 0)' // Fondo transparente
+                }
+            },
+            xaxis: {
+                ticks: [
+                    [1, "Ene"], [2, "Feb"], [3, "Mar"], [4, "Abr"], [5, "May"],
+                    [6, "Jun"], [7, "Jul"], [8, "Ago"], [9, "Sep"], [10, "Oct"],
+                    [11, "Nov"], [12, "Dic"], [13, "Ene"], [14, "Feb"], [15, "Mar"],
+                    [16, "Abr"], [17, "May"], [18, "Jun"]
+                ]
+            },
+            grid: {
+                hoverable: true,
+                borderWidth: 0
+            },
+            tooltip: true,
+            tooltipOpts: {
+                content: "X: %x, Y: %y"
+            },
+            hooks: {
+                drawSeries: [
+                    function(plot, ctx, series) {
+                        if (series.bars.show) {
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillStyle = '#000'; // Color del texto
+    
+                            series.data.forEach(function(point) {
+                                const x = point[0];
+                                const y = point[1];
+                                const offset = plot.pointOffset({ x: x, y: y });
+                                ctx.fillText(y, offset.left, offset.top - 5); // Ajusta la posición según sea necesario
+                            });
+                        }
+                    }
+                ]
+            }
+        };
+    
+        $.plot($("#flotExample3"), [{
+            data: data1
+        }], options);
+    });
+
+    
+    $(document).ready(function() {
+      const data = [
+        [15, "Valor 1"],
+        [20, "Valor 2"],
+        [12, "Valor 3"],
+        [25, "Valor 4"],
+        [18, "Valor 5"],
+        [30, "Valor 6"]
+      ];
+    
+      const ticks = data.map((d, i) => [i + 1, d[1]]);
+      const numericData = data.map((d, i) => [d[0], i + 1]);
+    
+      const options = {
+        series: {
+          bars: {
+            show: true,
+            barWidth: 0.6,
+            align: "center",
+            horizontal: true
+          }
+        },
+        xaxis: {
+          show: false
+        },
+        yaxis: {
+          show: true,
+          ticks: ticks,
+          tickLength: 0
+        },
+        grid: {
+          borderWidth: 0,
+          hoverable: true
+        },
+        tooltip: true,
+        tooltipOpts: {
+          content: "%y.1: %x"
+        },
+        bars: {
+            fill: true,
+            fillColor: 'rgba(0, 0, 0, 0)' // Transparent interior
+        }
+      };
+    
+      // Plot the chart first to get a plot instance
+      const plot = $.plot($("#flotExample1"), [{
+        data: numericData,
+        bars: {
+          show: true
+        }
+      }], options);
+    
+      // Add a hook to draw the number after the series is drawn
+      plot.hooks.drawSeries.push(function(plot, canvascontext, series) {
+        if (series.bars.show && series.bars.horizontal) {
+          const ctx = plot.getCanvas().getContext("2d");
+          
+          ctx.fillStyle = 'white';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          
+          series.data.forEach(item => {
+            // Convert the data point's x and y values to pixel coordinates on the canvas.
+            const pixelCoords = plot.p2c({ x: item[0], y: item[1] });
+            
+            // The 'x' value is the length of the bar. 'pixelCoords.left' is the pixel position of the end of the bar.
+            const text_x = pixelCoords.left + 20; // Add an offset (e.g., 5 pixels) to move the text to the right.
+            const text_y = pixelCoords.top+10; // This aligns the text vertically with the bar.
+            
+            const text = item[0].toString();
+            
+            ctx.fillText(text, text_x, text_y);
+          });
+        }
+      });
+    
+      // Re-draw the plot to apply the hook
+      plot.draw();
+    });
+    
+    $(document).ready(function() {
+      const data = [
+        [15, "Valor 1"],
+        [20, "Valor 2"],
+        [12, "Valor 3"],
+        [25, "Valor 4"],
+        [18, "Valor 5"],
+        [30, "Valor 6"]
+      ];
+    
+      const ticks = data.map((d, i) => [i + 1, d[1]]);
+      const numericData = data.map((d, i) => [d[0], i + 1]);
+    
+      const options = {
+        series: {
+          bars: {
+            show: true,
+            barWidth: 0.6,
+            align: "center",
+            horizontal: true
+          }
+        },
+        xaxis: {
+          show: false
+        },
+        yaxis: {
+          show: true,
+          ticks: ticks,
+          tickLength: 0
+        },
+        grid: {
+          borderWidth: 0,
+          hoverable: true
+        },
+        tooltip: true,
+        tooltipOpts: {
+          content: "%y.1: %x"
+        },
+        bars: {
+                fill: true,
+                fillColor: 'rgba(0, 0, 0, 0)' // Transparent interior
+            }
+      };
+    
+      // Plot the chart first to get a plot instance
+      const plot = $.plot($("#flotExample4"), [{
+        data: numericData,
+        bars: {
+          show: true
+        }
+      }], options);
+    
+      // Add a hook to draw the number after the series is drawn
+      plot.hooks.drawSeries.push(function(plot, canvascontext, series) {
+        if (series.bars.show && series.bars.horizontal) {
+          const ctx = plot.getCanvas().getContext("2d");
+          
+          ctx.fillStyle = 'white';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          
+          series.data.forEach(item => {
+            // Convert the data point's x and y values to pixel coordinates on the canvas.
+            const pixelCoords = plot.p2c({ x: item[0], y: item[1] });
+            
+            // The 'x' value is the length of the bar. 'pixelCoords.left' is the pixel position of the end of the bar.
+            const text_x = pixelCoords.left + 20; // Add an offset (e.g., 5 pixels) to move the text to the right.
+            const text_y = pixelCoords.top+10; // This aligns the text vertically with the bar.
+            
+            const text = item[0].toString();
+            
+            ctx.fillText(text, text_x, text_y);
+          });
+        }
+      });
+    
+      // Re-draw the plot to apply the hook
+      plot.draw();
+    });
+
+    $("#flotExample2").sparkline([10, 2, 4], {
+      type: 'pie',
+      sliceColors: ['#f6a821', '#ffffff', 'red'],
+      width: '150',
+      height: '150'
+    });
+    
+    $(document).ready(function () {
+
+        // Sparkline charts
+        var sparklineCharts = function () {
+            $(".sparkline").sparkline([20, 34, 43, 43, 35, 44, 32, 44, 52, 45], {
+                type: 'line',
+                lineColor: '#FFFFFF',
+                lineWidth: 3,
+                fillColor: '#404652',
+                height: 47,
+                width: '100%'
+            });
+
+            $(".sparkline7").sparkline([10, 34, 13, 33, 35, 24, 32, 24, 52, 35], {
+                type: 'line',
+                lineColor: '#FFFFFF',
+                lineWidth: 3,
+                fillColor: '#f7af3e',
+                height: 75,
+                width: '100%'
+            });
+
+            $(".sparkline1").sparkline([0, 6, 8, 3, 2, 4, 3, 4, 9, 5, 3, 4, 4, 5, 1, 6, 7, 15, 6, 4, 0], {
+                type: 'line',
+                lineColor: '#2978BB',
+                lineWidth: 3,
+                fillColor: '#2978BB',
+                height: 170,
+                width: '100%'
+            });
+
+            $(".sparkline3").sparkline([-8, 2, 4, 3, 5, 4, 3, 5, 5, 6, 3, 9, 7, 3, 5, 6, 9, 5, 6, 7, 2, 3, 9, 6, 6, 7, 8, 10, 15, 16, 17, 15], {
+
+                type: 'line',
+                lineColor: '#fff',
+                lineWidth: 3,
+                fillColor: '#393D47',
+                height: 70,
+                width: '100%'
+            });
+
+            $(".sparkline5").sparkline([0, 6, 8, 3, 2, 4, 3, 4, 9, 5, 3, 4, 4, 5], {
+                type: 'line',
+                lineColor: '#f7af3e',
+                lineWidth: 2,
+                fillColor: '#2F323B',
+                height: 20,
+                width: '100%'
+            });
+            $(".sparkline6").sparkline([0, 1, 4, 2, 2, 4, 1, 4, 3, 2, 3, 4, 4, 2, 4, 2, 1, 3], {
+                type: 'bar',
+                barColor: '#f7af3e',
+                height: 20,
+                width: '100%'
+            });
+
+            $(".sparkline8").sparkline([4, 2], {
+                type: 'pie',
+                sliceColors: ['#f7af3e', '#404652']
+            });
+            $(".sparkline9").sparkline([3, 2], {
+                type: 'pie',
+                sliceColors: ['#f7af3e', '#404652']
+            });
+            $(".sparkline10").sparkline([4, 1], {
+                type: 'pie',
+                sliceColors: ['#f7af3e', '#404652']
+            });
+            $(".sparkline11").sparkline([1, 3], {
+                type: 'pie',
+                sliceColors: ['#f7af3e', '#404652']
+            });
+            $(".sparkline12").sparkline([3, 5], {
+                type: 'pie',
+                sliceColors: ['#f7af3e', '#404652']
+            });
+            $(".sparkline13").sparkline([6, 2], {
+                type: 'pie',
+                sliceColors: ['#f7af3e', '#404652']
+            });
+        };
+
+        var sparkResize;
+
+        // Resize sparkline charts on window resize
+        $(window).resize(function () {
+            clearTimeout(sparkResize);
+            sparkResize = setTimeout(sparklineCharts, 100);
+        });
+
+        // Run sparkline
+        sparklineCharts();
+
+
+        // Flot charts data and options
+        var data1 = [ [0, 16], [1, 24], [2, 11], [3, 7], [4, 10], [5, 15], [6, 24], [7, 30] ];
+        var data2 = [ [0, 26], [1, 44], [2, 31], [3, 27], [4, 36], [5, 46], [6, 56], [7, 66] ];
+
+        var chartUsersOptions = {
+            series: {
+                splines: {
+                    show: true,
+                    tension: 0.4,
+                    lineWidth: 1,
+                    fill: 1
+
+                }
+
+            },
+            grid: {
+                tickColor: "#404652",
+                borderWidth: 0,
+                borderColor: '#404652',
+                color: '#404652'
+            },
+            bars: {
+                fill: true,
+                fillColor: 'rgba(0, 0, 0, 0)' // Transparent interior
+            },
+        };
+
+        $.plot($("#flot-line-chart"), [data2, data1], chartUsersOptions);
+
+
+    });
+    
+    /* logica de mapa*/
+    document.addEventListener("DOMContentLoaded", function () {
+      // Inicializar el mapa en Miraflores
+      var map = L.map('map').setView([-12.1211, -77.0305], 14);
+
+      // Capa base (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Forzar a Leaflet a recalcular dimensiones al inicio
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+
+      // Recalcular también cuando la ventana cambie de tamaño
+      window.addEventListener("resize", () => {
+        map.invalidateSize();
+      });
+
+      // Datos de ejemplo (lat, lng, intensidad opcional)
+      var heatPoints = [
+        [-12.1211, -77.0305, 0.9],  // Parque Kennedy
+        [-12.1175, -77.0283, 0.8],  // Larcomar
+        [-12.1230, -77.0320, 0.7],  // Av. Pardo
+        [-12.1200, -77.0355, 0.6],  // Reducto
+        [-12.1150, -77.0300, 0.5]   // Malecón
+      ];
+
+      // Crear capa de calor (más grande por defecto)
+      L.heatLayer(heatPoints, {
+        radius: 40,   // 🔥 radio más grande
+        blur: 25,     // más difuminado
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+          0.4: 'blue',
+          0.6: 'lime',
+          0.8: 'orange',
+          1.0: 'red'
+        }
+      }).addTo(map);
+    });
+    
+    document.addEventListener("DOMContentLoaded", function () {
+      // Inicializar el mapa en Miraflores
+      var map = L.map('map1').setView([-12.1211, -77.0305], 14);
+
+      // Capa base (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Forzar a Leaflet a recalcular dimensiones al inicio
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+
+      // Recalcular también cuando la ventana cambie de tamaño
+      window.addEventListener("resize", () => {
+        map.invalidateSize();
+      });
+
+      // Datos de ejemplo (lat, lng, intensidad opcional)
+      var heatPoints = [
+        [-12.1211, -77.0305, 0.9],  // Parque Kennedy
+        [-12.1175, -77.0283, 0.8],  // Larcomar
+        [-12.1230, -77.0320, 0.7],  // Av. Pardo
+        [-12.1200, -77.0355, 0.6],  // Reducto
+        [-12.1150, -77.0300, 0.5]   // Malecón
+      ];
+
+      // Crear capa de calor (más grande por defecto)
+      L.heatLayer(heatPoints, {
+        radius: 40,   // 🔥 radio más grande
+        blur: 25,     // más difuminado
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+          0.4: 'blue',
+          0.6: 'lime',
+          0.8: 'orange',
+          1.0: 'red'
+        }
+      }).addTo(map);
+    });
+    
+    // Inicializa el gráfico en el contenedor con el ID 'main-chart'
+    const myChart = echarts.init(document.getElementById('main-chart'));
+
+    // Configuración y opciones del gráfico
+    const option = {
+      // Título opcional del gráfico
+      title: {
+        text: 'Valores por Mes'
+      },
+      // Configuración de la leyenda
+      tooltip: {},
+      xAxis: {
+        type: 'category',
+        data: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          name: 'Ventas',
+          type: 'bar',
+          data: [15, 20, 12, 25, 18, 30, 22, 17, 28, 19, 24, 16],
+          // Configuración de los colores
+          itemStyle: {
+            color: '#f67200',
+            borderColor: '#f67200',
+            borderWidth: 1
+          },
+          label: {
+            show: true,
+            position: 'top',
+            color: '#fff', // Color del texto del label: blanco
+            fontWeight: 'bold' // Opcional: para que el texto sea más legible
+          }
+        }
+      ]
+    };
+
+    // Aplica las opciones y renderiza el gráfico
+    myChart.setOption(option);
+    
+</script>
+
+<!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Plugin Leaflet Heat -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>

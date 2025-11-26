@@ -1,0 +1,1343 @@
+<style>
+        /* Variables globales */
+    #civix-neo {
+      --bg: #061922;
+      --panel: #0b1f2a;
+      --ink: #b5d6df;
+      --ink-strong: #e8fbff;
+      --teal: #22e6d9;
+      --red: red;
+      --orange: #ff7a2f;
+      --grid: #0e2a36;
+      --transition: all 0.3s ease;
+      --gold: #ffd700; /* o cualquier tono dorado que prefieras */
+    }
+    
+    /* Estilos base y comunes */
+    #civix-neo .panel, #civix-neo .modal {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--ink);
+      box-shadow: 0 0 0 1px rgba(34,230,217,.06) inset;
+    }
+    
+    /* Nueva leyenda de conteo de personas */
+    #civix-neo .person-count-legend {
+        display: none;
+      margin-top: 8px;
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(34, 230, 217, 0.2);
+      z-index: 800;
+      max-width: 200px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    #civix-neo .person-count-legend h4 {
+      color: var(--teal);
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      font-weight: bold;
+      border-bottom: 1px solid rgba(34, 230, 217, 0.3);
+      padding-bottom: 5px;
+    }
+    
+    #civix-neo .person-count-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--ink-strong);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(34, 230, 217, 0.1);
+    }
+    
+    #civix-neo .person-count-label {
+      flex: 1;
+    }
+    
+    #civix-neo .person-count-value {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 24px;
+      text-align: center;
+      font-weight: bold;
+      color: var(--teal);
+    }
+    
+    #civix-neo .total-count {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(34, 230, 217, 0.3);
+      font-weight: bold;
+    }
+    
+    #civix-neo .modal-content, #civix-neo .modal-video {
+        padding: 0px !important;
+        background: var(--panel);
+        border-radius: 12px;
+        color: var(--ink);
+        box-shadow: 0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+        border: none;
+    }
+    
+    #civix-neo .panel {
+      background: rgba(11, 31, 42, 0.9);
+      overflow: auto;
+      margin-bottom: 0px;
+    }
+    
+    #civix-neo .panel:last-child {
+      background: var(--panel);
+    }
+    
+    #civix-neo h3, #civix-neo h4 {
+      color: var(--teal);
+      margin: 0 0 10px;
+    }
+    
+    #civix-neo h3 {
+      font-size: 16px;
+    }
+    
+    #civix-neo h4 {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    /* Scrollbar personalizado */
+    *::-webkit-scrollbar, body::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+      background-color: transparent;
+    }
+    
+    *::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+    
+    *::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+      background-color: rgba(136, 136, 136, 0.5);
+      border-radius: 10px;
+    }
+    
+    *::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(136, 136, 136, 0.8);
+    }
+    
+    /* Layout principal */
+    #civix-neo .splash {
+      height: 70vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-strong);
+    }
+    
+    #civix-neo #dashboard {
+      display: none;
+      height: 100%;
+      width: 100%;
+    }
+    
+    #civix-neo .grid {
+      display: grid;
+      grid-template-columns: 340px 328px auto;
+      gap: 12px;
+      height: 100%;
+      padding: 12px;
+    }
+    
+    /* Timeline */
+    #civix-neo .timeline {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    #civix-neo .timeline li, #timelineList li {
+      cursor: pointer;
+      margin: 0;
+      padding: 12px 15px 12px 25px;
+      position: relative;
+      border-left: 2px solid rgba(34,230,217,.2);
+      background-color: transparent;
+      transition: background-color 0.2s ease !important;
+      will-change: background-color;
+    }
+    
+    #civix-neo .timeline li:hover, #timelineList li:hover {
+      background: rgba(34, 230, 217, 0.1);
+    }
+    
+    #civix-neo .timeline li::before {
+      content: "";
+      position: absolute;
+      left: -7px;
+      top: 16px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 10px var(--teal);
+    }
+    
+    /* Menos de 5 minutos - ROJO */
+    #civix-neo .timeline li.time-recent::before {
+      background: var(--red);
+      box-shadow: 0 0 12px var(--red);
+    }
+    
+    /* Entre 5 y 15 minutos - DORADO */
+    #civix-neo .timeline li.time-medium::before {
+      background: var(--gold);
+      box-shadow: 0 0 12px var(--gold);
+    }
+    
+    /* Más de 15 minutos - TEAL (color por defecto) */
+    #civix-neo .timeline li.time-old::before {
+      background: var(--teal);
+      box-shadow: 0 0 10px var(--teal);
+    }
+    
+    #civix-neo .timeline strong {
+      color: var(--ink-strong);
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    
+    #civix-neo .timeline time {
+      display: block;
+      color: #84a9b3;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    /* Alerta destacada */
+    #timelineList li.alerta-destacada {
+      background-color: rgba(34, 230, 217, 0.4);
+    }
+    
+    /* Mapa */
+    #civix-neo #boardCanvas {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #333;
+      height: 95vh;
+      cursor: grab;
+    }
+    
+    /* Controles */
+    #civix-neo .top-right {
+      position: fixed;
+      top: 2em;
+      right: 2em;
+      display: none;
+      gap: 8px;
+      z-index: 1000;
+    }
+    
+    /* Overlay y modales */
+    #civix-neo .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.75);
+      z-index: 10000;
+    }
+    
+    #civix-neo .modal, #civix-neo .modal-video {
+      width: min(920px,95vw);
+      max-height: 85vh;
+      overflow: auto;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 0 0 1px rgba(255,122,47,.15) inset, 0 0 24px rgba(34,230,217,.1);
+    }
+    
+    #civix-neo .modal h4 {
+      margin: 0 0 8px;
+      color: var(--orange);
+    }
+    
+    #civix-neo .modal .hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #143241;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    
+    #civix-neo .modal .x {
+      cursor: pointer;
+      color: var(--ink-strong);
+      font-size: 20px;
+    }
+    
+    /* Spinner de carga */
+    #civix-neo .spinner {
+      margin: 20px auto;
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(34, 230, 217, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--teal);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    #civix-neo .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Estilos de video */
+    #civix-neo .modal-header {
+      border-bottom: 1px solid rgba(181,214,223,0.2);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      background: unset !important;
+    }
+    
+    #civix-neo .modal-header h3,
+    #civix-neo .modal-header h5 {
+      color: var(--ink);
+      margin: 0 0 8px;
+    }
+    
+    #civix-neo .modal-header h3 span,
+    #civix-neo .modal-header h5 span {
+      color: var(--teal);
+      font-weight: bold;
+    }
+    
+    #civix-neo .modal-header .c-white {
+      color: var(--ink-strong) !important;
+    }
+    
+    #civix-neo .modal-body {
+      display: flex;
+      gap: 20px;
+      padding: 16px;
+      height: max-content;
+    }
+    
+    #civix-neo .modal-footer {
+      border-top: 1px solid rgba(181,214,223,0.2);
+      padding: 16px;
+      text-align: right;
+      background: unset !important;
+    }
+    
+    /* Botones */
+    .btn-default {
+      background: var(--teal);
+      color: var(--bg);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    #civix-neo .modal-footer .btn-default:hover {
+      background: #1cb5a9;
+    }
+    
+    .btn-link:focus {
+      outline: unset !important;
+    }
+    
+    /* Panel de detalles de alerta */
+    #civix-neo .alert-details-panel {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 800;
+      background: rgba(11, 31, 42, 0.95);
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(34, 230, 217, 0.2);
+      min-width: 460px;
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      color: var(--ink);
+    }
+    
+    #civix-neo .alert-details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(34, 230, 217, 0.2);
+    }
+    
+    #civix-neo .alert-details-header h4 {
+      margin: 0;
+    }
+    
+    #civix-neo .close-details {
+      background: none;
+      border: none;
+      color: var(--ink);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
+    #civix-neo .alert-details-content {
+      display: flex;
+      gap: 1em;
+    }
+    
+    #civix-neo .detail-item {
+      margin-bottom: 8px;
+      font-size: 13px;
+      flex: 1 1 300px;
+    }
+    
+    #civix-neo .detail-label {
+      color: var(--teal);
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    
+    #civix-neo .person-details-section {
+      padding-left: 15px;
+      border-left: 1px solid rgba(181, 214, 223, 0.2);
+      flex: 1 1 100%;
+    }
+    
+    #civix-neo .person-details-title {
+      color: var(--orange);
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    
+    /* Métricas */
+    .metric-container {
+      padding: 10px 0;
+    }
+    
+    .metric-list {
+      margin-top: 5px;
+    }
+    
+    .metric-list-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(34, 230, 217, 0.1);
+    }
+    
+    .metric-list-label {
+      font-size: 11px;
+      color: var(--ink);
+      overflow: hidden;
+      max-width: 70%;
+    }
+    
+    .metric-list-value {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--teal);
+    }
+    
+    .system-metric {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .system-metric-label {
+      font-size: 11px;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+    
+    .system-metric-value {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--teal);
+    }
+    
+    .no-data {
+      text-align: center;
+      color: var(--ink);
+      font-size: 11px;
+      padding: 10px 0;
+    }
+    
+    .kpi-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .bar-chart-container {
+      padding: 10px 0;
+    }
+    
+    .bar-label, .alert-type-label {
+      font-size: 11px;
+      color: var(--ink);
+      width: 40%;
+      overflow: hidden;
+    }
+    
+    .bar-chart, .alert-type-chart {
+      flex-grow: 1;
+      margin-left: 10px;
+      background: rgba(34, 230, 217, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .bar-fill, .alert-type-fill {
+        background: var(--teal);
+      height: 15px;
+      border-radius: 2px;
+      transition: width 0.5s ease !important;
+    }
+    
+    .bar-value, .alert-type-value {
+      font-size: 11px;
+      color: var(--teal);
+      margin-left: 8px;
+      font-weight: bold;
+      background: transparent !important;
+      min-width: 30px;
+      text-align: right;
+    }
+    
+    /* Colores para diferentes tipos de alertas */
+    .alert-type-fill.teal, .alert-type-value.teal {
+      background: var(--teal);
+      color: var(--teal);
+    }
+    
+    .alert-type-fill.orange, .alert-type-value.orange {
+      background: var(--orange);
+      color: var(--orange);
+    }
+    
+    .alert-type-fill.red, .alert-type-value.red {
+      background: var(--red);
+      color: var(--red);
+    }
+    
+    /* Botón de limpiar filtros */
+    .clear-filters-btn {
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      width: 100%;
+      margin-bottom: 15px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(-10px);
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+      display: none;
+    }
+    
+    .clear-filters-btn.visible {
+      display: block;
+      animation: filterBtnPopup 0.5s ease forwards;
+      height: auto;
+      padding: 10px 15px;
+    }
+    
+    @keyframes filterBtnPopup {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      70% {
+        transform: translateY(5px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .clear-filters-btn:hover {
+      background: #e66625;
+    }
+    
+    .clear-filters-btn:disabled {
+      background: #84a9b3;
+      cursor: not-allowed;
+    }
+    
+    /* Leyenda del mapa */
+    #civix-neo .map-legend, #civix-neo .map-filters, #civix-neo .camera-status-legend {
+    
+      background: rgba(11, 31, 42, 0.9);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(34, 230, 217, 0.2);
+      z-index: 800;
+      max-width: 244px;
+    }
+    
+    .status-item{
+        display: inline-block;
+    }
+    
+    #civix-neo .map-legend {
+        position: absolute;
+      bottom: 1.8em;
+      left: 1.5em;
+      max-width: 250px;
+    }
+    
+    #civix-neo .map-filters {
+      max-width: max-content;
+    }
+    
+    .top-left-segment{
+        position: absolute;
+        top: 20px;
+        left: 20px;
+    }
+    
+    #civix-neo .camera-status-legend {
+      margin-top: 8px;
+    }
+    
+    #civix-neo .map-legend.minimized .legend-body {
+      display: none;
+    }
+    
+    #civix-neo .legend-header, #civix-neo .selected-persons-map-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    
+    #civix-neo .legend-title, #civix-neo .selected-persons-map-title {
+      color: var(--teal);
+      font-weight: bold;
+      margin: 0;
+    }
+    
+    #civix-neo .legend-toggle, #civix-neo .selected-persons-map-toggle {
+      background: none;
+      border: none;
+      color: var(--ink);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .legend-item, .alert-type-item, .bar-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+    
+    .legend-item:hover, .alert-type-item:hover, .bar-item:hover, .interes-item:hover, .multi-select-item:hover, .selection-item:hover, .filter-item:hover, .config-option-item:hover {
+      background: rgba(34, 230, 217, 0.1);
+    }
+    
+    .legend-item.active {
+      background: rgba(34, 230, 217, 0.15);
+    }
+    
+    .legend-item-content {
+      display: flex;
+      align-items: center;
+      flex: 1;
+    }
+    
+    #civix-neo .legend-dot, #civix-neo .status-dot {
+      min-width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    #civix-neo .all-dot, #civix-neo .teal-dot {
+      background-color: var(--teal);
+      box-shadow: 0 0 5px var(--teal);
+    }
+    
+    #civix-neo .red-dot {
+      background-color: var(--red);
+      box-shadow: 0 0 5px var(--red);
+    }
+    
+    #civix-neo .orange-dot {
+      background-color: var(--orange);
+      box-shadow: 0 0 5px var(--orange);
+    }
+    
+    #civix-neo .legend-label, #civix-neo .status-label {
+      font-size: 12px;
+      color: var(--ink-strong);
+    }
+    
+    #civix-neo .legend-count, #civix-neo .status-count {
+      font-size: 12px;
+      color: var(--ink);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 24px;
+      text-align: center;
+    }
+    
+    /* Estado de cámaras */
+    #civix-neo .status-dot.alertCamera {
+        display: inline-block;
+      background: var(--red) ;
+      box-shadow: 0 0 8px var(--red);
+    }
+    
+    #civix-neo .status-dot.alertCamera15 {
+        display: inline-block;
+      background: var(--gold) ;
+      box-shadow: 0 0 8px var(--gold);
+    }
+    
+    #civix-neo .status-dot.normal {
+        display: inline-block;
+      background: var(--teal);
+      box-shadow: 0 0 5px var(--teal);
+    }
+    
+    #civix-neo .status-dot.vehicle {
+        display: inline-block;
+      background: var(--orange);
+    }
+    
+    /* Filtros del mapa */
+    #civix-neo .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    #civix-neo .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    
+    #civix-neo .filter-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--teal);
+    }
+    
+    #civix-neo .filter-item label {
+      font-size: 12px;
+      color: var(--ink-strong);
+      cursor: pointer;
+      margin: 0;
+    }
+    
+    /* Gráfico de tendencia */
+    .trend-chart {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      height: 100% !important;
+      margin-top: 5px;
+    }
+    
+    .trend-bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      position: relative;
+    }
+    
+    .trend-bar {
+      width: 12px;
+      background-color: var(--teal);
+      border-radius: 3px 3px 0 0;
+      margin-bottom: 5px;
+      transition: height 0.5s ease;
+    }
+    
+    .trend-label {
+      font-size: 9px;
+      color: var(--ink);
+      text-align: center;
+    }
+    
+    .trend-value {
+      font-size: 10px;
+      color: var(--teal);
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    
+    .trend-icon {
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+    
+    .trend-title {
+      font-weight: bold;
+      border-bottom: 1px solid rgba(34, 230, 217, 0.3);
+      padding-bottom: 4px;
+    }
+    
+    /* Sistema de pestañas */
+    #civix-neo .tabs-container {
+      width: 100%;
+    }
+    
+    #civix-neo .tabs-header {
+      display: flex;
+      border-bottom: 2px solid rgba(34, 230, 217, 0.3);
+      margin-bottom: 15px;
+    }
+    
+    #civix-neo .tab-button {
+      background: transparent;
+      border: none;
+      padding: 12px 20px;
+      color: var(--ink);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: var(--transition);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    #civix-neo .tab-button:hover {
+      background: rgba(34, 230, 217, 0.1);
+      color: var(--teal);
+    }
+    
+    #civix-neo .tab-button.active {
+      color: var(--teal);
+      border-bottom: 3px solid var(--teal);
+      background: rgba(34, 230, 217, 0.05);
+    }
+    
+    #civix-neo .tabs-content {
+      min-height: 400px;
+    }
+    
+    #civix-neo .tab-pane {
+      display: none;
+    }
+    
+    #civix-neo .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    /* Personas de interés */
+    #civix-neo #vehicleModalContent {
+      max-height: 600px;
+      overflow: hidden;
+    }
+    
+    #civix-neo .interes-item {
+      transition: var(--transition);
+    }
+    
+    #searchInteres:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(34, 230, 217, 0.2);
+    }
+    
+    #civix-neo th {
+      color: var(--teal);
+    }
+    
+    /* Panel de personas seleccionadas en el mapa */
+    #civix-neo .selected-persons-map-panel {
+      position: absolute;
+      top: 3em;
+      right: 0;
+      z-index: 800;
+      max-width: 200px;
+      transition: var(--transition);
+    }
+    
+    #civix-neo .selected-persons-map-body {
+      overflow: auto;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .box-interest {
+      position: relative;
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 4px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(34, 230, 217, 0.2);
+      z-index: 800;
+      width: max-content;
+      max-width: 200px;
+      transition: var(--transition);
+    }
+    
+    #civix-neo .selected-person-photo {
+      min-width: 58px;
+      max-height: 58px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid transparent;
+      transition: var(--transition);
+      cursor: pointer;
+      margin: auto;
+    }
+    
+    #civix-neo .selected-person-photo.active-alert {
+      border: 3px solid #FFD700 !important;
+      box-shadow: 0 0 12px #FFD700 !important;
+      animation: pulse-gold 1s infinite !important;
+      padding: 2px !important;
+      background-color: rgba(255, 215, 0, 0.1) !important;
+      transform: scale(1.05) !important;
+    }
+    
+    /* Añade la animación pulse-gold si no la tienes */
+    @keyframes pulse-gold {
+      0% {
+        box-shadow: 0 0 5px #FFD700;
+      }
+      50% {
+        box-shadow: 0 0 20px #FFD700, 0 0 30px #FFD700;
+      }
+      100% {
+        box-shadow: 0 0 5px #FFD700;
+      }
+    }
+    
+    /* Formularios */
+    #civix-neo select, #txtFechaIni, #txtFechaFin {
+      background: var(--panel);
+      border: 1px solid var(--teal);
+      color: var(--ink);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    #civix-neo #selectPiso:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 2px rgba(255, 122, 47, 0.2);
+    }
+    
+    #civix-neo #selectPiso option {
+      background: var(--panel);
+      color: var(--ink);
+    }
+    
+    /* Contenedor de personas seleccionadas */
+    #selected-persons-container {
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid rgba(34,230,217,0.2);
+      margin-top: 20px;
+    }
+    
+    #current-selections-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .selection-placeholder {
+      text-align: center;
+      color: var(--ink);
+      font-size: 14px;
+      padding: 20px;
+      font-style: italic;
+    }
+    
+    .selection-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid rgba(34,230,217,0.2);
+      transition: var(--transition);
+    }
+    
+    .selection-item-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+    
+    .selection-item-photo {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    
+    .selection-item-details {
+      flex: 1;
+    }
+    
+    .selection-item-name {
+      color: var(--ink-strong);
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .selection-item-document {
+      color: var(--ink);
+      font-size: 12px;
+    }
+    
+    .btn-remove-selection {
+      background: none;
+      border: none;
+      color: var(--orange);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+    
+    .btn-remove-selection:hover {
+      background-color: rgba(255, 122, 47, 0.1);
+    }
+    
+    /* Multi-select */
+    .multi-select-item {
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .multi-select-item td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(34,230,217,0.2);
+    }
+    
+    .multiSelectModalContent {
+      width: 100%;
+    }
+    
+    /* Personas de interés */
+    #civix-neo .person-info-panel {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid rgba(34,230,217,.1);
+      color: var(--ink);
+    }
+    
+    #civix-neo .person-info-panel h4 {
+      color: var(--orange);
+      margin-top: 0;
+      border-bottom: 1px solid rgba(181, 214, 223, 0.2);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    
+    #civix-neo .image-section {
+      margin-bottom: 15px;
+    }
+    
+    #civix-neo .image-container {
+      min-width: 90px;
+      margin: auto;
+      height: 100px;
+      border-radius: 6px;
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+    }
+    
+    #civix-neo .image-label {
+      font-size: 13px;
+      color: var(--ink-strong);
+      margin-bottom: 4px;
+    }
+    
+    #civix-neo .video-player-wrapper {
+      flex-grow: 1;
+      min-width: 500px;
+    }
+    
+    #civix-neo .person-details-images {
+      width: max-content;
+      margin: auto;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    #civix-neo .person-image-container {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bg);
+      border: 1px solid rgba(34, 230, 217, 0.1);
+      height: 120px;
+      width: 120px;
+    }
+    
+    #civix-neo .person-image-label {
+      font-size: 11px;
+      padding: 4px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+    }
+    
+    #civix-neo .person-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    #civix-neo .person-name {
+      font-weight: bold;
+      color: var(--teal);
+      margin-bottom: 10px;
+      padding: 12px;
+      background: rgba(34, 230, 217, 0.1);
+      border-radius: 4px;
+    }
+    
+    #civix-neo .alert-details-footer {
+      margin-top: 1em;
+      text-align: right;
+      flex: 1 1 100%;
+    }
+    
+    /* Configuración */
+    .config-option-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .config-option-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(34, 230, 217, 0.05);
+      border: 1px solid rgba(34, 230, 217, 0.2);
+      transition: var(--transition);
+    }
+    
+    .config-checkbox {
+      margin-right: 10px;
+      width: 16px;
+      height: 16px;
+      accent-color: var(--teal);
+    }
+    
+    .config-option-item label {
+      margin: 0px 0px 0px 8px !important;
+      cursor: pointer;
+      color: var(--ink);
+      font-size: 14px;
+      flex: 1;
+    }
+    
+    /* Elementos adicionales */
+    #photo-short {
+      display: none;
+      width: 100%;
+      justify-content: end;
+      gap: 1em;
+    }
+    
+    #selectedPersonBox {
+      transition: var(--transition);
+    }
+    
+    .table-hover-1 > tbody > tr:hover {
+      border-left: 5px solid var(--teal) !important;
+    }
+    
+    input[type="checkbox"] {
+      margin: 0 !important;
+    }
+    
+    /*para el mapa2d*/
+    
+    .camera-placeholder {
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, #2a3b4c 0%, #1a2b3c 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #22e6d9;
+        font-size: 14px;
+        border: 2px dashed rgba(34,230,217,0.3);
+    }
+    
+    .popover-modal{
+        background: #1a2b3c; 
+        border-radius: 12px; 
+        padding: 8px; 
+        color: white; 
+        max-width: 400px; 
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3); 
+        border: 2px solid #22e6d9;
+    }
+    
+    gmp-popover{
+        padding: unset !important;
+    }
+    
+    .route-marker {
+        animation: pulse-route 2s infinite;
+    }
+    
+    @keyframes pulse-route {
+        0% {
+            box-shadow: 0 0 0 0 rgba(34, 230, 217, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(34, 230, 217, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(34, 230, 217, 0);
+        }
+    }
+    
+    .vehicle-route-marker {
+        animation: pulse-route-vehicle 2s infinite;
+    }
+    
+    @keyframes pulse-route-vehicle {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+        }
+    }
+    
+    @keyframes pulse-final {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 0 8px rgba(34, 230, 217, 0.3);
+        }
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(34, 230, 217, 0.5), 0 0 0 12px rgba(34, 230, 217, 0.2);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 0 8px rgba(34, 230, 217, 0.3);
+        }
+    }
+    
+    @keyframes pulse-final-vehicle {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 0 8px rgba(255, 107, 107, 0.3);
+        }
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.5), 0 0 0 12px rgba(255, 107, 107, 0.2);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 0 8px rgba(255, 107, 107, 0.3);
+        }
+    }
+    
+    .final-marker {
+        animation: pulse-final 1.5s ease-in-out infinite;
+    }
+    
+    .final-marker[data-route-type="vehicle"] {
+        animation-name: pulse-final-vehicle;
+    }
+    
+    .route-marker {
+        transition: all 0.3s ease;
+    }
+    
+    .route-marker:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+    }
+    
+</style>

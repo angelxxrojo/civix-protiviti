@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CIVIX • Miraflores • 12 meses — Zonas & Cámaras (mock estático)</title>
+<script defer src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  /* ===== Envolvente aislada ===== */
+  .civix{
+    --bg:#0b0f16;--card:#131824;--edge:#222a36;--ink:#e8eef8;--muted:#9aa4ad;
+    --brand:#ff7a1a;--green:#22c55e;--amber:#f59e0b;--blue:#4da3ff;--hl:#ffc107;
+    isolation:isolate; color:var(--ink); background:var(--bg);
+    font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    line-height:1.35;
+  }
+  .civix, .civix *{ box-sizing:border-box; }
+
+  /* ancho pensado para desktop embebido */
+  .civix .cvx-container{ width:min(1900px,100%); margin:22px auto; padding:0 16px; }
+
+  .civix .cvx-title{font-weight:800;font-size:18px;margin:4px 0 10px;display:flex;gap:10px;align-items:center}
+  .civix .cvx-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px rgba(255,122,26,.18)}
+  .civix .cvx-pill{margin-left:auto;border:1px solid #334155;background:#0f141f;border-radius:999px;padding:6px 10px;font-size:12px}
+
+  /* Grid propio (evita conflicto con .row de Bootstrap) */
+  .civix .cvx-row{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  .civix .cvx-row > *{min-width:0}
+  .civix .c12{grid-column:span 12}.civix .c6{grid-column:span 6}
+  @media(max-width:1200px){.civix .c6{grid-column:span 12}}
+
+  /* Cards propios (evita conflicto con .card de Bootstrap) */
+  .civix .cvx-card{background:var(--card);border:1px solid var(--edge);border-radius:14px;display:flex;flex-direction:column;margin-top:16px}
+  .civix .cvx-card-h{padding:10px 14px;border-bottom:1px solid var(--edge);font-weight:700;font-size:13px;color:#d8dee9;display:flex;gap:10px;align-items:center}
+  .civix .cvx-card-b{padding:12px 14px;overflow:visible}
+
+  /* Marco de gráficos */
+  .civix .cvx-chart-box{border:1px solid var(--edge); border-radius:12px; padding:8px; background:transparent; display:flex}
+  .civix .cvx-chart-box > *{flex:1; min-width:0}
+
+  /* Alturas explícitas para ECharts (resistentes a CSS externo) */
+  .civix .chart{width:100% !important;height:360px !important}
+  .civix .chart-mid{height:340px !important}
+  .civix .chart-lg{height:440px !important}
+
+  /* KPIs */
+  .civix .cvx-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:1200px){.civix .cvx-kpi-grid{grid-template-columns:repeat(2,1fr)}}
+  .civix .cvx-kpi{border:1px solid var(--edge);border-radius:12px;padding:12px;background:#101522}
+  .civix .cvx-kpi .t{font-size:12px;color:var(--muted)} 
+  .civix .cvx-kpi .v{font-size:28px;font-weight:900;margin-top:6px}
+  .civix .cvx-kpi .sub{font-size:11px;color:#7c8692;margin-top:2px}
+
+  .civix .cvx-donut-wrap{position:relative}
+  .civix .cvx-center-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:#e8eef8;pointer-events:none}
+  .civix .cvx-center-label .big{font-size:28px;font-weight:900}
+  .civix .cvx-center-label .small{font-size:12px;color:#9aa4ad}
+
+  /* Chips */
+  .civix .chips{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .civix .chip{border:1px solid #334155;border-radius:999px;padding:4px 10px;font-size:12px;background:#0f141f;color:#e5e7eb;cursor:pointer;transition:.15s}
+  .civix .chip:hover{border-color:#55627a}
+  .civix .chip.sel{border-color:var(--hl);color:#fff;box-shadow:0 0 0 2px rgba(255,193,7,.12) inset}
+
+  /* Botones (evita estilos globales del host) */
+  .civix button.cvx-tab{
+    appearance:none;-webkit-appearance:none;border:1px solid #334155;background:#0f141f;color:#e5e7eb;
+    border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer;line-height:1
+  }
+
+  /* Leaflet */
+  .civix .leaflet-container { background:#0b0f16 !important; border-radius:10px; }
+  .civix .cvx-legend {
+    position: absolute; z-index: 400; right: 12px; bottom: 12px;
+    background:#0f141f; border:1px solid #334155; color:#e5e7eb;
+    border-radius:8px; padding:8px 10px; font-size:12px;
+  }
+  .civix .cvx-legend .cvx-legend-row { display:flex; align-items:center; gap:6px; }
+  .civix .cvx-legend .cvx-dot { width:10px; height:10px; border-radius:50%; box-shadow:none; }
+</style>
+</head>
+<body>
+<div class="civix" id="civix-root">
+<div class="cvx-container">
+  <div class="cvx-title">
+    <span class="cvx-dot"></span> CIVIX • Miraflores • 12 meses
+    <span class="cvx-pill">MOCK: ON</span>
+  </div>
+
+  <!-- A) CABECERA -->
+  <div class="cvx-card" style="margin-top:0">
+    <div class="cvx-card-h">A) Resumen global (12 m)</div>
+    <div class="cvx-card-b">
+      <div class="cvx-kpi-grid">
+        <div class="cvx-kpi"><div class="t">Cámaras activas</div><div id="kpi-cam" class="v">—</div><div class="sub">de 110</div></div>
+        <div class="cvx-kpi"><div class="t">Permanencia total</div><div id="kpi-min" class="v">—</div><div class="sub">min acumulados</div></div>
+        <div class="cvx-kpi"><div class="t">Alertas totales</div><div id="kpi-al" class="v">—</div><div class="sub">todas las analíticas</div></div>
+        <div class="cvx-kpi"><div class="t">Objetos totales</div><div id="kpi-obj" class="v">—</div><div class="sub">personas + vehículos</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B) DONA + MINI-KPIs -->
+  <div class="cvx-card">
+    <div class="cvx-card-h">B) Distribución por tipo de zona — filtro maestro <span id="flt-tag" style="margin-left:8px;border:1px solid #334155;background:#0f141f;border-radius:999px;padding:2px 8px;font-size:11px">Todos</span></div>
+
+    <div class="cvx-card-b">
+      <div class="cvx-row">
+        <div class="c6">
+          <div class="cvx-kpi"><div class="t">Vehículos (filtro)</div><div id="flt-veh" class="v">—</div></div>
+        </div>
+        <div class="c6">
+          <div class="cvx-kpi" style="text-align:right"><div class="t">Personas (filtro)</div><div id="flt-pers" class="v">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cvx-card-b cvx-donut-wrap" style="padding-top:4px">
+      <div class="cvx-chart-box"><div id="donut" class="chart-lg"></div></div>
+      <div class="cvx-center-label">
+        <div class="big" id="donut-center-v">—%</div>
+        <div class="small" id="donut-center-s">Participación del año</div>
+      </div>
+    </div>
+
+    <div class="cvx-card-b">
+      <div class="cvx-kpi-grid">
+        <div class="cvx-kpi"><div class="t">Cámaras (filtro)</div><div id="flt-cam" class="v">—</div></div>
+        <div class="cvx-kpi"><div class="t">Permanencia (filtro)</div><div id="flt-min" class="v">—</div></div>
+        <div class="cvx-kpi"><div class="t">Alertas (filtro)</div><div id="flt-al" class="v">—</div></div>
+        <div class="cvx-kpi"><div class="t">Objetos (filtro)</div><div id="flt-obj" class="v">—</div></div>
+      </div>
+    </div>
+
+    <div class="cvx-card-b" style="border-top:1px solid var(--edge);margin-top:10px">
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+
+  <!-- C) ALERTAS -->
+  <div class="cvx-card">
+    <div class="cvx-card-h">C) Alertas — cantidad y distribución (12 m)</div>
+    <div class="cvx-card-b">
+      <div class="cvx-row">
+        <div class="c6"><div class="cvx-chart-box"><div id="alerts-hour" class="chart-mid"></div></div></div>
+        <div class="c6"><div class="cvx-chart-box"><div id="alerts-zone" class="chart-mid"></div></div></div>
+        <div class="c6" style="margin-top:16px"><div class="cvx-chart-box"><div id="alerts-recid" class="chart-mid"></div></div></div>
+        <div class="c6" style="margin-top:16px"><div class="cvx-chart-box"><div id="alerts-split" class="chart-mid"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- E) PERMANENCIA -->
+  <div class="cvx-card">
+    <div class="cvx-card-h">E) Permanencia — composición y comportamiento (12 m)</div>
+    <div class="cvx-card-b">
+      <div class="cvx-row">
+        <div class="c6"><div class="cvx-chart-box"><div id="rank-impact" class="chart-mid"></div></div></div>
+        <div class="c6"><div class="cvx-chart-box"><div id="dwell-avg-zone" class="chart-mid"></div></div></div>
+        <div class="c6" style="margin-top:16px"><div class="cvx-chart-box"><div id="ratio-min-ev" class="chart-mid"></div></div></div>
+        <div class="c6" style="margin-top:16px"><div class="cvx-chart-box"><div id="heatmap-dwell" class="chart-mid"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D) MAPA -->
+  <div class="cvx-card">
+    <div class="cvx-card-h">
+      D) Mapa de cámaras — 12 m
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button id="tab-perm" class="cvx-tab">Permanencia</button>
+        <button id="tab-alert" class="cvx-tab">Alertas</button>
+      </div>
+    </div>
+    <div class="cvx-card-b" style="position:relative">
+      <div class="cvx-chart-box"><div id="map-cameras" class="chart" style="height:420px"></div></div>
+      <div id="map-legend" class="cvx-legend" style="display:none">
+        <div class="cvx-legend-row"><span class="cvx-dot" style="background:#22c55e"></span> Bajo</div>
+        <div class="cvx-legend-row" style="margin-top:6px"><span class="cvx-dot" style="background:#f59e0b"></span> Medio</div>
+        <div class="cvx-legend-row" style="margin-top:6px"><span class="cvx-dot" style="background:#ef4444"></span> Alto</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  /* ===== Datos mock ===== */
+  const CATS = [
+    'Zona de Estacionamiento','Zonas de Estaciones de Transporte Público','Zonas de Pasajes Peatonales','Zonas de Evacuación','Zonas de Ciclovías',
+    'Zonas de Centros de Salud','Zonas de Restricción Temporal por Obras','Zonas de Proximidad a Monumentos','Zonas de Puentes y Viaductos','Zona Restringida para Personas'
+  ];
+  const NAME_SHORT={
+    'Zona de Estacionamiento':'zona de Estacionamiento','Zonas de Estaciones de Transporte Público':'zona de Transp. público','Zonas de Pasajes Peatonales':'zona de Pasajes peatonales',
+    'Zonas de Evacuación':'zona de Evacuación','Zonas de Ciclovías':'zona de Ciclovías','Zonas de Centros de Salud':'zona de Centros de salud','Zonas de Restricción Temporal por Obras':'zona de Obras',
+    'Zonas de Proximidad a Monumentos':'zona de Monumentos','Zonas de Puentes y Viaductos':'zona de Puentes/Viad.','Zona Restringida para Personas':'zona Restringida (pers.)'
+  };
+  const ORANGE_SCALE=['#fff1e6','#ffe3cc','#ffd6b3','#ffc999','#ffbc80','#ffae66','#ffa14d','#ff9433','#ff8720','#ff7a1a'];
+  const M = Array.from({length:12},(_,i)=>new Date(2025,i,1))
+    .map(d=>d.toLocaleDateString('es-PE',{month:'short'}).replace('.',''))
+    .map(s=>s[0].toUpperCase()+s.slice(1));
+  const fmt = n=>Math.round(n).toLocaleString('es-PE');
+
+  const DATA24={
+    'Zona de Estacionamiento':{evVeh:1400,evPers:900,minVeh:22000,minPers:12000,alVeh:85,alPers:60},
+    'Zonas de Estaciones de Transporte Público':{evVeh:300,evPers:1500,minVeh:6000,minPers:18000,alVeh:20,alPers:70},
+    'Zonas de Pasajes Peatonales':{evVeh:150,evPers:1200,minVeh:3000,minPers:16000,alVeh:12,alPers:55},
+    'Zonas de Evacuación':{evVeh:100,evPers:400,minVeh:2000,minPers:7000,alVeh:8,alPers:20},
+    'Zonas de Ciclovías':{evVeh:800,evPers:300,minVeh:12000,minPers:5000,alVeh:40,alPers:15},
+    'Zonas de Centros de Salud':{evVeh:500,evPers:700,minVeh:9000,minPers:10000,alVeh:25,alPers:30},
+    'Zonas de Restricción Temporal por Obras':{evVeh:400,evPers:600,minVeh:7000,minPers:9000,alVeh:30,alPers:28},
+    'Zonas de Proximidad a Monumentos':{evVeh:200,evPers:500,minVeh:4000,minPers:8000,alVeh:14,alPers:24},
+    'Zonas de Puentes y Viaductos':{evVeh:650,evPers:450,minVeh:11000,minPers:6000,alVeh:32,alPers:18},
+    'Zona Restringida para Personas':{evVeh:100,evPers:1100,minVeh:2000,minPers:15000,alVeh:6,alPers:50}
+  };
+  const CAMS_ACTIVE=95;
+
+  const baseProfileM=Array.from({length:12},(_,m)=>{
+    const p1=Math.exp(-Math.pow((m-3)/2.2,2));
+    const p2=Math.exp(-Math.pow((m-9)/2.6,2));
+    return 0.6 + 0.9*p1 + 1.0*p2 + 0.15*Math.sin((m+1)/2);
+  });
+  function monthly(total){
+    const d = baseProfileM.map(w=>Math.max(0,w));
+    const s = d.reduce((a,b)=>a+b,0)||1;
+    const raw = d.map(w=>total*w/s);
+    const round = raw.map((x,i)=> i<raw.length-1 ? Math.round(x) : (total - raw.slice(0,-1).reduce((a,b)=>a+Math.round(b),0)));
+    return round;
+  }
+
+  const catsSel = current => current==='Todos'? CATS : [current];
+  const minVehK = ks => ks.reduce((s,k)=>s+DATA24[k].minVeh,0);
+  const minPersK = ks => ks.reduce((s,k)=>s+DATA24[k].minPers,0);
+  const alVehK  = ks => ks.reduce((s,k)=>s+DATA24[k].alVeh,0);
+  const alPersK = ks => ks.reduce((s,k)=>s+DATA24[k].alPers,0);
+  const totVeh  = ks => ks.reduce((s,k)=>s+DATA24[k].evVeh,0);
+  const totPers = ks => ks.reduce((s,k)=>s+DATA24[k].evPers,0);
+
+  let current='Todos', selectedCat=null, modeD='perm';
+
+  function seedFrom(str){
+    let s=0; for(const ch of str) s=(s*31 + ch.charCodeAt(0))>>>0;
+    return () => { s=(s*1664525+1013904223)>>>0; return (s>>>0)/4294967296; };
+  }
+
+  const VEH_TYPES = [
+    { key:'Auto',   color:'#f59e0b' },
+    { key:'Moto',   color:'#22c55e' },
+    { key:'Bus',    color:'#a855f7' },
+    { key:'Camión', color:'#ef4444' }
+  ];
+  function splitVehByType(label, total){
+    const rnd = seedFrom(label);
+    const w = [0.35+0.15*rnd(), 0.25+0.20*rnd(), 0.18+0.12*rnd(), 0.15+0.10*rnd()];
+    const s = w.reduce((a,b)=>a+b,0);
+    const p = w.map(x=>x/s);
+    let acc=0, parts=p.map((pi,i)=>{
+      const v = i<VEH_TYPES.length-1 ? Math.round(total*pi) : (total-acc);
+      acc += v; return v;
+    });
+    return parts;
+  }
+
+  function buildCamerasForZone(cat, n=12){
+    const rnd = seedFrom(cat);
+    const minutesCat = DATA24[cat].minVeh + DATA24[cat].minPers;
+    const eventsCat  = DATA24[cat].evVeh  + DATA24[cat].evPers;
+    const alVehTot   = DATA24[cat].alVeh;
+    const alPerTot   = DATA24[cat].alPers;
+
+    const weights = Array.from({length:n},()=>0.8 + 0.6*rnd());
+    const sumW = weights.reduce((a,b)=>a+b,0);
+    const wnorm = weights.map(w=>w/sumW);
+
+    const arr=[];
+    for(let i=0;i<n;i++){
+      const minutes = Math.round(minutesCat * wnorm[i]);
+      const events  = Math.max(1, Math.round(eventsCat  * wnorm[i] * (0.9+0.2*((i%3)-1)/2)));
+      const vehA    = Math.round(alVehTot * wnorm[i]);
+      const perA    = Math.round(alPerTot * wnorm[i]);
+      arr.push({
+        label:`Cam ${i+1} • ${NAME_SHORT[cat]}`,
+        cat,
+        minutes,
+        minPerMonth: Math.round(minutes/12),
+        events,
+        ratio: +(minutes/Math.max(1,events)).toFixed(2),
+        veh: vehA, per: perA
+      });
+    }
+    return arr.sort((a,b)=>b.minutes-a.minutes);
+  }
+
+  const ec={};
+  function observeResize(el, cb){
+    if(!window.ResizeObserver) return;
+    const ro = new ResizeObserver(()=>cb && cb());
+    ro.observe(el);
+  }
+  function initCharts(){
+    ec.donut=echarts.init(document.getElementById('donut'));
+    ec.alertsHour=echarts.init(document.getElementById('alerts-hour'));
+    ec.alertsZone=echarts.init(document.getElementById('alerts-zone'));
+    ec.alertsRecid=echarts.init(document.getElementById('alerts-recid'));
+    ec.alertsSplit=echarts.init(document.getElementById('alerts-split'));
+    ec.rankImpact=echarts.init(document.getElementById('rank-impact'));
+    ec.dwellAvg=echarts.init(document.getElementById('dwell-avg-zone'));
+    ec.ratio=echarts.init(document.getElementById('ratio-min-ev'));
+    ec.heat=echarts.init(document.getElementById('heatmap-dwell'));
+    window.addEventListener('resize',()=>Object.values(ec).forEach(c=>c&&c.resize()));
+
+    /* Observers por cuadro */
+    ['donut','alerts-hour','alerts-zone','alerts-recid','alerts-split','rank-impact','dwell-avg-zone','ratio-min-ev','heatmap-dwell']
+      .forEach(id=>{
+        const n=document.getElementById(id);
+        if(n) observeResize(n.parentElement, ()=>{ const ch=Object.values(ec).find(x=>x && x.getDom && x.getDom()===n); ch && ch.resize(); });
+      });
+  }
+
+  function renderDonut(){
+    const total=(minVehK(CATS)+minPersK(CATS))||1;
+    const order = [...CATS].sort((a,b)=> (minVehK([b])+minPersK([b])) - (minVehK([a])+minPersK([a])) );
+    const data=order.map((c,idx)=>({
+      name:NAME_SHORT[c], full:c,
+      value: minVehK([c])+minPersK([c]),
+      share: (minVehK([c])+minPersK([c]))*100/total,
+      selected: selectedCat===c,
+      itemStyle:{ color: (selectedCat===c? '#ffc107' : ORANGE_SCALE[idx%ORANGE_SCALE.length]),
+                  borderColor:'#0b0f16', borderWidth:2 }
+    }));
+
+    ec.donut.setOption({
+      color:ORANGE_SCALE,
+      tooltip:{trigger:'item',formatter:p=>`${p.data.full}<br/>Minutos: <b>${fmt(p.data.value)}</b><br/>Participación: ${p.data.share.toFixed(1)}%`},
+      series:[{type:'pie',radius:['50%','78%'],center:['50%','50%'],selectedMode:'single',selectedOffset:10,
+        label:{show:true,position:'outer',formatter:p=>`${p.data.name}\n${(+p.percent).toFixed(1)}%`,color:'#fff',fontWeight:800,fontSize:12,textShadowColor:'rgba(0,0,0,.55)',textShadowBlur:6},
+        labelLine:{show:true,length:18,length2:12},
+        data}]
+    });
+
+    const wrap=document.getElementById('chips'); wrap.innerHTML='';
+    for(const c of CATS){
+      const chip=document.createElement('div'); chip.className='chip'; chip.title=c; chip.textContent=NAME_SHORT[c];
+      chip.classList.toggle('sel', selectedCat===c);
+      chip.onclick=()=>{ selectedCat = (selectedCat===c?null:c); current = selectedCat? c : 'Todos'; hydrateFilterKPIs(); updateDonutCenter(); renderAll(); };
+      wrap.appendChild(chip);
+    }
+    ec.donut.off('click');
+    ec.donut.on('click',p=>{ const c=p.data.full; selectedCat=(selectedCat===c?null:c); current=selectedCat?c:'Todos'; hydrateFilterKPIs(); updateDonutCenter(); renderAll(); });
+  }
+
+  function zonesListDesc(ks){
+    const arr=[]; const baseTotal = alVehK(ks)+alPersK(ks);
+    for(let i=1;i<=12;i++){
+      const k = ks[(i-1)%ks.length];
+      const promm = Math.max(0.8, 5.2 - i*0.25) * ( (alVehK([k])+alPersK([k])) / Math.max(1, baseTotal) + 0.4 );
+      arr.push({name:`Zona ${i} • ${NAME_SHORT[k]}`, perM:+promm.toFixed(2)});
+    }
+    return arr.sort((a,b)=>b.perM-a.perM);
+  }
+  function camsReincDesc(ks){
+    const arr=[]; const base = alVehK(ks)+alPersK(ks);
+    for(let i=1;i<=15;i++){
+      const k = ks[(i-1)%ks.length];
+      const v = Math.round((180 - i*8) * ((alVehK([k])+alPersK([k]))/Math.max(1,base) + 0.5));
+      arr.push({name:`Cam ${i} • ${NAME_SHORT[k]}`, v:Math.max(10,v)});
+    }
+    return arr.sort((a,b)=>b.v-a.v);
+  }
+
+  /* ====== MAPA ====== */
+  const CENTER = { lat:-12.121, lng:-77.03 };
+  function geoForCameras(list){
+    const out=[];
+    list.forEach((c)=>{
+      const rnd = seedFrom(c.label);
+      const dLat = (rnd()-0.5)*0.018;
+      const dLng = (rnd()-0.5)*0.025;
+      out.push({ ...c, lat:CENTER.lat + dLat, lng:CENTER.lng + dLng });
+    });
+    return out;
+  }
+  let map=null, markersLayer=null;
+  function initMap(){
+    if(map) return;
+    map = L.map('map-cameras', { scrollWheelZoom:true, zoomControl:true }).setView([CENTER.lat, CENTER.lng], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap & CARTO' }).addTo(map);
+    markersLayer = L.layerGroup().addTo(map);
+    document.getElementById('map-legend').style.display='block';
+
+    window.addEventListener('resize', ()=>{ setTimeout(()=>map && map.invalidateSize(), 50); });
+    observeResize(document.getElementById('map-cameras').parentElement, ()=>{ setTimeout(()=>map && map.invalidateSize(), 60); });
+  }
+  function renderMap(){
+    initMap();
+    markersLayer.clearLayers();
+
+    let camsList=[];
+    const ks=catsSel(current);
+    if(current==='Todos'){ CATS.forEach(cat=>{ camsList = camsList.concat(buildCamerasForZone(cat, 4)); }); }
+    else { camsList = buildCamerasForZone(current, 12); }
+
+    if(current==='Zona Restringida para Personas'){ camsList = camsList.map(c=>({ ...c, veh:0 })); }
+    else if(current!=='Todos'){ camsList = camsList.map(c=>({ ...c, per:0 })); }
+
+    const geo = geoForCameras(camsList);
+    const vals = geo.map(g => (modeD==='perm' ? g.minutes : (g.veh + g.per)));
+    const ord = [...vals].sort((a,b)=>a-b);
+    const q33 = ord[Math.floor(ord.length*0.33)] || 0;
+    const q66 = ord[Math.floor(ord.length*0.66)] || 1;
+    function colorForValue(v){ return v<=q33 ? '#22c55e' : (v<=q66 ? '#f59e0b' : '#ef4444'); }
+
+    geo.forEach(g=>{
+      const val = (modeD==='perm' ? g.minutes : (g.veh + g.per));
+      const color = colorForValue(val);
+      L.circleMarker([g.lat, g.lng], {
+        radius: 7, color, fillColor: color, fillOpacity: .85, weight: 1
+      }).bindTooltip(
+        `<b>${g.label}</b><br>`+
+        `Permanencia: <b>${fmt(g.minutes)}</b> min<br>`+
+        `Alertas: <b>${fmt(g.veh + g.per)}</b>`+
+        (current==='Zona Restringida para Personas' ? ` (solo personas)` : (current==='Todos' ? `` : ` (solo ${current==='Zona Restringida para Personas'?'personas':'vehículos'})`))
+        , {direction:'top'}
+      ).addTo(markersLayer);
+    });
+
+    const b = L.latLngBounds(geo.map(g=>[g.lat,g.lng]));
+    if(b.isValid()){ map.fitBounds(b.pad(0.2)); }
+  }
+  /* ====== /MAPA ====== */
+
+  function renderAll(){
+    renderDonut();
+
+    const ks=catsSel(current);
+    const minutesTot = minVehK(ks)+minPersK(ks);
+    const alertsTot  = alVehK(ks)+alPersK(ks);
+
+    /* C) Alertas */
+    const A = monthly(alertsTot);
+    const mov3 = A.map((_,i)=>{const a=Math.max(0,i-1),b=Math.min(11,i+1);const s=A.slice(a,b+1);return Math.round(s.reduce((x,y)=>x+y,0)/s.length);});
+    const avgA = A.reduce((a,b)=>a+b,0)/12;
+    ec.alertsHour.setOption({
+      title:{text:`Alertas por mes (12 m) + Promedio móvil (3 m) — ${current==='Todos'?'Todas las zonas':NAME_SHORT[current]}`,left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+      grid:{left:60,right:50,bottom:50,top:40},
+      xAxis:{type:'category',data:M,axisLabel:{color:'#cbd5e1'}},
+      yAxis:[{type:'value',axisLabel:{color:'#cbd5e1'}},{type:'value',axisLabel:{color:'#cbd5e1'},position:'right'}],
+      tooltip:{trigger:'axis'},
+      series:[
+        {name:'Alertas',type:'bar',barMaxWidth:18,data:A,itemStyle:{color:'#f59e0b'},
+          markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#ffd89b'},label:{formatter:()=>`Promedio: ${Math.round(avgA)}`},data:[{yAxis:avgA}]}
+        },
+        {name:'Promedio móvil (3 meses)',type:'line',yAxisIndex:1,data:mov3,symbol:'circle',symbolSize:5,lineStyle:{width:2,color:'#4da3ff'}}
+      ]
+    });
+
+    const zones=zonesListDesc(ks);
+    const yCats=zones.map(z=>z.name);
+    ec.alertsZone.setOption({
+      title:{text:'Alertas por zona (prom/mes)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+      grid:{left:210,right:26,top:40,bottom:40},
+      xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'prom/mes'},
+      yAxis:{type:'category',data:yCats,inverse:true,axisLabel:{color:'#cbd5e1'}},
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+      series:[{type:'bar',barMaxWidth:16,data:zones.map(z=>({value:z.perM,itemStyle:{color:'#f59e0b'}}))}]
+    });
+
+    const cams=camsReincDesc(ks);
+    ec.alertsRecid.setOption({
+      title:{text:'Reincidencia por cámara (12 m)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+      grid:{left:210,right:26,top:40,bottom:40},
+      xAxis:{type:'value',axisLabel:{color:'#cbd5e1'}},
+      yAxis:{type:'category',data:cams.map(c=>c.name),inverse:true,axisLabel:{color:'#cbd5e1'}},
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+      series:[{type:'bar',barMaxWidth:16,data:cams.map(c=>({value:c.v,itemStyle:{color:'#f59e0b'}}))}]
+    });
+
+    /* D) Personas vs Vehículos / serie de permanencia */
+    if(current !== 'Todos'){
+      const camsZ = buildCamerasForZone(current, 12);
+      const minutesTotZ = camsZ.reduce((s,z)=>s+z.minutes,0);
+      renderPermanenciaSerie(minutesTotZ);
+      const yC = camsZ.map(c=>c.label);
+
+      if (current === 'Zona Restringida para Personas'){
+        const perData = camsZ.map(c=>c.per);
+        ec.alertsSplit.setOption({
+          title:{text:`Alertas por cámara — ${NAME_SHORT[current]}`,left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+          grid:{left:210,right:26,top:50,bottom:46},
+          legend:{bottom:10,icon:'circle',itemWidth:10,itemHeight:10,textStyle:{color:'#d8dee9'}},
+          xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'alertas'},
+          yAxis:{type:'category',data:yC,inverse:true,axisLabel:{color:'#cbd5e1'}},
+          tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
+            formatter:(p)=>{ const i=p[0].dataIndex; const pe=perData[i]; return `${yC[i]}<br/>Personas: <b>${pe}</b>`; } },
+          series:[{name:'Personas', type:'bar', stack:'al', barMaxWidth:16, data:perData, itemStyle:{color:'#4da3ff'}}]
+        });
+      } else {
+        const seriesByType = [
+          { key:'Auto',   color:'#f59e0b' },
+          { key:'Moto',   color:'#22c55e' },
+          { key:'Bus',    color:'#a855f7' },
+          { key:'Camión', color:'#ef4444' }
+        ].map((t,ti)=>{
+          const data = camsZ.map(c=>{
+            const [a,m,b,ca] = splitVehByType(c.label, c.veh);
+            return [a,m,b,ca][ti];
+          });
+          return { name:t.key, type:'bar', stack:'al', barMaxWidth:16, data, itemStyle:{color:t.color} };
+        });
+
+        ec.alertsSplit.setOption({
+          title:{text:`Alertas por cámara — ${NAME_SHORT[current]}`,left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+          grid:{left:210,right:26,top:50,bottom:46},
+          legend:{bottom:10,icon:'circle',itemWidth:10,itemHeight:10,textStyle:{color:'#d8dee9'}},
+          xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'alertas'},
+          yAxis:{type:'category',data:yC,inverse:true,axisLabel:{color:'#cbd5e1'}},
+          tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
+            formatter:(p)=>{ const i=p[0].dataIndex; const lines = p.map(s=>`${s.marker} ${s.seriesName}: <b>${s.value}</b>`).join('<br/>'); const total = p.reduce((acc,s)=>acc+Number(s.value||0),0); return `${yC[i]}<br/>${lines}<br/><span style="opacity:.7">Total: <b>${total}</b></span>`; } },
+          series: seriesByType
+        });
+      }
+    }else{
+      const names=CATS.map(k=>NAME_SHORT[k]);
+      const veh=CATS.map(k=>DATA24[k].alVeh), per=CATS.map(k=>DATA24[k].alPers);
+      const minutesTotAll = minVehK(CATS) + minPersK(CATS);
+      renderPermanenciaSerie(minutesTotAll);
+
+      const order = names.map((n,i)=>({i,t:veh[i]+per[i]})).sort((a,b)=>b.t-a.t).map(o=>o.i);
+      const yC = order.map(i=>`Zona ${i+1} • ${names[i]}`);
+      const vehS = order.map(i=>veh[i]), perS = order.map(i=>per[i]);
+      ec.alertsSplit.setOption({
+        title:{text:'Alertas por zona — Personas vs Vehículos',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+        grid:{left:210,right:26,top:50,bottom:46},
+        legend:{bottom:10,icon:'circle',itemWidth:10,itemHeight:10,textStyle:{color:'#d8dee9'}},
+        xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'alertas'},
+        yAxis:{type:'category',data:yC,inverse:true,axisLabel:{color:'#cbd5e1'}},
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
+          formatter:(p)=>{const i=p[0].dataIndex;const t=vehS[i]+perS[i];return `${yC[i]}<br/>Vehículos: <b>${vehS[i]}</b><br/>Personas: <b>${perS[i]}</b><br/>Total: <b>${t}</b>`;}},
+        series:[
+          {name:'Vehículos',type:'bar',stack:'al',barMaxWidth:16,data:vehS,itemStyle:{color:'#f59e0b'}},
+          {name:'Personas', type:'bar',stack:'al',barMaxWidth:16,data:perS,itemStyle:{color:'#4da3ff'}}
+        ]
+      });
+    }
+
+    /* E) Permanencia: serie */
+    if(current !== 'Todos'){
+      const CAMS = buildCamerasForZone(current, 12);
+      const CAMS6 = CAMS.slice(0,6);
+
+      ec.rankImpact.setOption({
+        title:{text:'Top cámaras por minutos (impacto)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+        grid:{left:210,right:26,top:40,bottom:40},
+        xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'min'},
+        yAxis:{type:'category',data:CAMS.map(z=>z.label),inverse:true,axisLabel:{color:'#cbd5e1'}},
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+        series:[{type:'bar',barMaxWidth:16,data:CAMS.map(z=>z.minutes),itemStyle:{color:'#ff7a1a'}}]
+      });
+
+      const avgC = CAMS.reduce((a,b)=>a+b.minPerMonth,0)/CAMS.length;
+      ec.dwellAvg.setOption({
+        title:{text:'Permanencia promedio por cámara (min/mes)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+        grid:{left:210,right:26,top:50,bottom:40},
+        xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'min/mes'},
+        yAxis:{type:'category',data:CAMS.map(z=>z.label),inverse:true,axisLabel:{color:'#cbd5e1'}},
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+        series:[{type:'bar',barMaxWidth:16,data:CAMS.map(z=>z.minPerMonth),itemStyle:{color:'#ff7a1a'},
+          markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#ffd89b'},label:{formatter:()=>`Promedio cámaras: ${Math.round(avgC)}`},data:[{xAxis:avgC}]}}]
+      });
+
+      const seriesData=[]; const vmaxRef=[];
+      CAMS6.forEach((z,ri)=>{ const mm = monthly(z.minutes); vmaxRef.push(Math.max(...mm)); mm.forEach((v,mi)=>seriesData.push([mi,ri,Math.round(v/60)])); });
+      const vmax=Math.max(1, ...vmaxRef.map(x=>Math.round(x/60)));
+      ec.heat.setOption({
+        title:{text:'Mapa de calor — horas de permanencia por cámara (h/mes)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+        grid:{left:110,right:20,top:50,bottom:40},
+        xAxis:{type:'category',data:M,axisLabel:{color:'#cbd5e1'},splitArea:{show:true}},
+        yAxis:{type:'category',data:CAMS6.map(z=>z.label),axisLabel:{color:'#cbd5e1'},splitArea:{show:true}},
+        visualMap:{min:0,max:vmax,calculable:true,orient:'horizontal',left:'center',bottom:8,textStyle:{color:'#e5e7eb'}},
+        tooltip:{formatter:(p)=>`${CAMS6[p.value[1]].label}<br>${M[p.value[0]]}: <b>${p.value[2]} h</b>`},
+        series:[{type:'heatmap',data:seriesData,itemStyle:{borderWidth:1,borderColor:'#0b0f16'}}]
+      });
+
+    } else {
+      const Z = CATS.map((k,i)=>({label:`Zona ${i+1} • ${NAME_SHORT[k]}`, minutes:Math.round((DATA24[k].minVeh+DATA24[k].minPers)/10)*10})).sort((a,b)=>b.minutes-a.minutes);
+
+      ec.rankImpact.setOption({
+        title:{text:'Top zonas por minutos (impacto)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+        grid:{left:210,right:26,top:40,bottom:40},
+        xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'min'},
+        yAxis:{type:'category',data:Z.map(z=>z.label),inverse:true,axisLabel:{color:'#cbd5e1'}},
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+        series:[{type:'bar',barMaxWidth:16,data:Z.map(z=>z.minutes),itemStyle:{color:'#ff7a1a'}}]
+      });
+
+      const prom=CATS.map(k=> Math.round((DATA24[k].minVeh+DATA24[k].minPers)/12));
+      const names=CATS.map(k=>NAME_SHORT[k]);
+      const avg = prom.reduce((a,b)=>a+b,0)/prom.length;
+      ec.dwellAvg.setOption({
+        title:{text:'Permanencia promedio por zona (min/mes)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+        grid:{left:210,right:26,top:50,bottom:40},
+        xAxis:{type:'value',axisLabel:{color:'#cbd5e1'},name:'min/mes'},
+        yAxis:{type:'category',data:names.map((n,i)=>`Zona ${i+1} • ${n}`),inverse:true,axisLabel:{color:'#cbd5e1'}},
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+        series:[{type:'bar',barMaxWidth:16,data:prom,itemStyle:{color:'#ff7a1a'},
+          markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#ffd89b'},label:{formatter:()=>`Promedio zonas: ${Math.round(avg)}`},data:[{xAxis:avg}]}}]
+      });
+
+      const namesH=CATS.slice(0,6).map((k,i)=>`Zona ${i+1} • ${NAME_SHORT[k]}`);
+      const seriesData=[]; 
+      const mmAll = monthly( minVehK(CATS)+minPersK(CATS) );
+      const vmax = Math.max(1, ...mmAll.map(v=>Math.round(v/60)));
+      namesH.forEach((_,ri)=>{ mmAll.forEach((v,mi)=>seriesData.push([mi,ri,Math.round(v/60)]) )});
+      ec.heat.setOption({
+        title:{text:'Mapa de calor — horas de permanencia por zona (h/mes)',left:'center',textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'}},
+        grid:{left:110,right:20,top:50,bottom:40},
+        xAxis:{type:'category',data:M,axisLabel:{color:'#cbd5e1'},splitArea:{show:true}},
+        yAxis:{type:'category',data:namesH,axisLabel:{color:'#cbd5e1'},splitArea:{show:true}},
+        visualMap:{min:0,max:vmax,calculable:true,orient:'horizontal',left:'center',bottom:8,textStyle:{color:'#e5e7eb'}},
+        series:[{type:'heatmap',data:seriesData,itemStyle:{borderWidth:1,borderColor:'#0b0f16'}}]
+      });
+    }
+
+    /* Tabs visuales */
+    const tPerm=document.getElementById('tab-perm'), tAl=document.getElementById('tab-alert');
+    function setTab(btn){ btn.style.borderColor='var(--hl)'; btn.style.color='#fff'; btn.style.boxShadow='0 0 0 4px rgba(255,193,7,.12)'; }
+    function unTab(btn){ btn.style.borderColor='#334155'; btn.style.color='#e5e7eb'; btn.style.boxShadow='0 0 0 0 rgba(0,0,0,0)'; }
+    if(modeD==='perm'){ setTab(tPerm); unTab(tAl); } else { setTab(tAl); unTab(tPerm); }
+
+    /* chips resaltados */
+    [...document.querySelectorAll('#chips .chip')].forEach(ch=>{
+      const entry=Object.entries(NAME_SHORT).find(([,s])=>s===ch.textContent);
+      const full=entry?entry[0]:null;
+      ch.classList.toggle('sel', selectedCat===full);
+    });
+
+    renderMap();
+    setTimeout(()=>Object.values(ec).forEach(c=>c && c.resize()), 50);
+  }
+
+  /* Serie temporal de permanencia */
+  function renderPermanenciaSerie(totalMinutes){
+    const MINM = monthly(totalMinutes);
+    const mov3 = MINM.map((_,i)=>{ const a=Math.max(0,i-1), b=Math.min(11,i+1); const s=MINM.slice(a,b+1); return Math.round(s.reduce((x,y)=>x+y,0)/s.length); });
+    const avg = MINM.reduce((a,b)=>a+b,0)/12;
+
+    ec.ratio.setOption({
+      title:{ text:'Permanencia por mes (12 m) + Promedio móvil (3 m)', left:'center', textStyle:{color:'#d8dee9',fontSize:12,fontWeight:'bold'} },
+      grid:{left:60,right:50,bottom:50,top:40},
+      xAxis:{type:'category',data:M,axisLabel:{color:'#cbd5e1'}},
+      yAxis:[{type:'value',axisLabel:{color:'#cbd5e1'}},{type:'value',axisLabel:{color:'#cbd5e1'},position:'right'}],
+      tooltip:{trigger:'axis'},
+      series:[
+        {name:'Minutos', type:'bar', barMaxWidth:18, data:MINM, itemStyle:{color:'#ff7a1a'},
+         markLine:{symbol:'none', lineStyle:{type:'dashed',color:'#ffd89b'}, label:{formatter:()=>`Promedio: ${Math.round(avg)}`}, data:[{yAxis:avg}]}
+        },
+        {name:'Promedio móvil (3 meses)', type:'line', yAxisIndex:1, data:mov3, symbol:'circle', symbolSize:5, lineStyle:{width:2,color:'#4da3ff'}}
+      ]
+    });
+  }
+
+  function hydrateHeaderKPIs(){
+    document.getElementById('kpi-cam').textContent = fmt(CAMS_ACTIVE);
+    document.getElementById('kpi-min').textContent = fmt(minVehK(CATS)+minPersK(CATS));
+    document.getElementById('kpi-al').textContent  = fmt(alVehK(CATS)+alPersK(CATS));
+    document.getElementById('kpi-obj').textContent = fmt(totVeh(CATS)+totPers(CATS));
+  }
+  function hydrateFilterKPIs(){
+    const ks=catsSel(current);
+    document.getElementById('flt-cam').textContent=fmt(Math.round(CAMS_ACTIVE*(ks.length/CATS.length)));
+    document.getElementById('flt-min').textContent=fmt(minVehK(ks)+minPersK(ks));
+    document.getElementById('flt-al').textContent =fmt(alVehK(ks)+alPersK(ks));
+    document.getElementById('flt-obj').textContent=fmt(totVeh(ks)+totPers(ks));
+    document.getElementById('flt-veh').textContent=fmt(totVeh(ks));
+    document.getElementById('flt-pers').textContent=fmt(totPers(ks));
+    document.getElementById('flt-tag').textContent=current==='Todos'?'Todos':NAME_SHORT[current];
+  }
+  function updateDonutCenter(){
+    const total=minVehK(CATS)+minPersK(CATS) || 1;
+    let pct=0,label='Participación del año';
+    if(current==='Todos'){ pct=((minVehK(['Zona de Estacionamiento'])+minPersK(['Zona de Estacionamiento']))/total)*100; }
+    else { pct=((minVehK([current])+minPersK([current]))/total)*100; label='Participación del filtro'; }
+    document.getElementById('donut-center-v').textContent=pct.toFixed(1)+'%';
+    document.getElementById('donut-center-s').textContent=label;
+  }
+
+  function boot(){
+    document.getElementById('tab-perm').onclick=()=>{modeD='perm'; renderAll();};
+    document.getElementById('tab-alert').onclick=()=>{modeD='alert'; renderAll();};
+    hydrateHeaderKPIs(); hydrateFilterKPIs(); updateDonutCenter();
+    initCharts(); renderAll();
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);} else {boot();}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1974 @@
+<div class="list-container" style="padding:12px">
+    <!-- Panel de Filtros (ahora arriba) -->
+    <div class="panel panel-filled panel-c-accent mb-4">
+        <div class="panel-heading">
+            <div class="panel-tools">
+                <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>                    
+            </div>
+            Filtros
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label>Incidencia</label>
+                    <input id="incidence_id" type="text" class="form-control">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label>Origen</label>
+                    <select id="origin_id" class="form-control">
+                        <option value="0">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2" style="display:none">
+                    <label>Nro. Doc. Identidad</label>
+                    <input id="document_number" type="text" class="form-control">
+                </div>
+                <div class="col-md-3 mb-2" style="display:none">
+                    <label>Informante / Celular</label>
+                    <input id="complainant" type="text" class="form-control">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label>Unidad</label>
+                    <select id="unit_id" class="form-control">
+                        <option value="0">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label>Clasificación</label>
+                    <select id="incidence_classification_id" class="form-control">
+                        <option value="0">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label>Tipo</label>
+                    <select id="incidence_type_id" class="form-control"></select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label>SubTipo</label>
+                    <select id="incidence_subtype_id" class="form-control"></select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label>Estado</label>
+                    <select id="incidence_state_id" class="form-control">
+                        <option value="0">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2" style="display:none">
+                    <label>Dirección</label>
+                    <input id="location" type="text" class="form-control">
+                </div>
+                <!--div class="col-md-3 mb-2">
+                    <label>Motivo</label>
+                    <input id="reason" type="text" class="form-control">
+                </div>
+                <div class="col-md-3 mb-2 d-flex align-items-center">
+                    <div>
+                        <label class="mb-0 me-2">Total de Incidencias</label>
+                        <span>1</span>
+                    </div>
+                </div-->
+                <div class="col-md-4 mb-2">
+                    <label for="date_start">Fecha Inicial</label>
+                    <input id="date_start" type="date" class="form-control">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label for="date_end">Fecha Final</label>
+                    <input id="date_end" type="date" class="form-control">
+                </div>
+                <br>
+                <div class="col-md-12 d-flex justify-content-end mt-3" style="text-align:right; margin-top:20px">
+                    <button id="btnBuscar" class="btn btn-accent btn-rounded me-2" onclick="buscar()">Buscar</button>
+                    <button class="btn btn-success btn-rounded" onclick="abrirModal()">Nuevo incidente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Bandeja de Incidencias (debajo) -->
+
+       
+ 
+
+
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-hover-1">
+                <thead>
+                    <tr>
+                        <th>Incidencia</th>
+                        <th>Origen</th>
+                        <th>Unidad</th>
+                        <th>Clasificación</th>
+                        <th>Tipo</th>
+                        <th>Subtipo</th>
+                        <th>Detalle</th>
+                        <th>Estado</th>
+                        <th>Operador</th>
+                        <th>Fecha</th>
+                        <th>Denunciante</th>
+                        <!--th>Acciones</th-->
+                    </tr>
+                </thead>
+                <tbody id="tablaIncidencias"></tbody>
+            </table>
+        </div>
+    </div>
+   
+</div>
+
+<!-- Modal Registro/Edición -->
+<div class="modal fade" id="modalIncidente" data-backdrop="static" tabindex="-1" role="dialog" >
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header text-left">
+        <h3>Registro de Incidencia</h3>
+      </div>
+      <div class="modal-body" >
+        
+        <form id="formIncidente">
+          <div class="row">
+            <!-- Campos a la izquierda -->
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6 mb-2">
+                  <label>Origen</label>
+                  <select id="origin_id" class="form-control">
+                  </select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Denunciante</label>
+                  <input id="complainant" class="form-control">
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Nro. Documento</label>
+                  <input id="document_number" class="form-control">
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Celular</label>
+                  <input id="contact_number" class="form-control">
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Unidad de  atención</label>
+                  <select id="unit_id" class="form-control">
+                  </select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Clasificación</label>
+                  <select id="incidence_classification_id" class="form-control"></select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Tipo</label>
+                  <select id="incidence_type_id" class="form-control"></select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Subtipo</label>
+                  <select id="incidence_subtype_id" class="form-control"></select>
+                </div>
+                <div class="col-md-6 mb-2" style="display:none;">
+                  <label>Estado</label>
+                  <select id="incidence_state_id" class="form-control">
+                  </select>
+                </div>
+                <div class="col-md-12 mb-2">
+                  <label>Dirección</label>
+                  <input id="location" name="location" class="form-control">
+                </div>
+                <!--div class="col-md-12 mb-2">
+                  <label>Motivo</label>
+                  <input id="reason" class="form-control">
+                </div-->
+                <div class="col-md-12 mb-2">
+                  <label>Descripción</label>
+                  <textarea id="description_incidence" class="form-control"></textarea>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <label for="incidence_date">Fecha de incidencia</label>
+                    <input id="incidence_date" type="datetime-local" class="form-control">
+                </div>
+                <!-- 🔽 Sección: Datos de la alerta (escondida inicialmente) -->
+                <div id="alertSection" class="col-md-12 mb-2" style="display: none;">
+                  <h6 class="mt-3">Datos de la alerta</h6>
+                  <div class="row">
+                    <div class="col-md-6 mb-2">
+                      <label for="alert_civix_id">ID de alerta</label>
+                      <input id="alert_civix_id" type="text" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <label for="camera_civix_name">Cámara</label>
+                      <input id="camera_civix_name" type="text" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <input id="camera_civix_id" type="hidden" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <input id="epoch_civix" type="hidden" class="form-control" readonly>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+
+            <!-- Mapa a la derecha -->
+            <div class="col-md-6">
+              <label>Ubicación</label>
+              <div id="map" style="height:500px;"></div>
+              <input type="hidden" name="latitud" id="latitud">
+              <input type="hidden" name="longitud" id="longitud">
+            </div>
+          </div>
+        </form>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+        <!--button class="btn btn-secondary btn-rounded" data-bs-dismiss="modal">Cancelar</button-->
+        <button class="btn btn-accent btn-rounded" onclick="guardarIncidente()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalAlerta" data-backdrop="static" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">⚠️ Alertas</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- Tabla de Alertas -->
+          <div class="col-md-6">
+               <div class="col-lg-3">
+                    <div class=form-group>
+                        <strong>Filtrar</strong><input id="txtfilter" type="text" class="form-control" placeholder="Ingrese texto a buscar"  oninput="filterAndRenderAlertas()">
+                    </div>
+                </div>
+              <div class="table-responsive" style="height:470px">
+                <table class="table table-hover-1">
+                    <thead>
+                    <tr>
+                        <th>Identificador</th>
+                        <th>Alerta</th>
+                        <th>Cámara</th>
+                        <th>Ubicación</th>
+                        <th>Fecha</th>
+                        <th>Detección</th>
+                        <th>Nombre o Placa</th>
+                        <th>Foto</th>
+                    </tr>
+                    </thead>
+                    <tbody id="alertasAll">
+                    
+                    </tbody>
+                </table>
+            </div>
+          </div>
+
+          <!-- Video -->
+            <div class="col-md-6">
+              <!--h3>Vista Previa</h3-->
+              <h5 id="identificadorBox" style="display:none;"><strong>
+                Identificador : </strong><span class="c-white" id="showId"></span>
+              </h5>
+              <h5 id="alertaBox" style="display:none;"><strong>
+                Alerta : </strong><span class="c-white" id="showAlert"></span>
+              </h5>
+               <div class="videorraper" style="
+                    height: 440px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-weight: 700;  /* negrita */
+                    font-size: 1.5rem;
+                    text-align: center;
+                    background-color: #222;
+                    color: #eee;
+                    border-radius: 8px;
+                  ">
+                
+              </div>
+            </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+        <button class="btn btn-accent btn-rounded" onclick="selectAlert()">Seleccionar</button>
+      </div>
+      <!--input type="hidden" id="camera_civix_id" class="form-control">
+      <input type="hidden" id="camera_civix_name" class="form-control">
+      <input type="hidden" id="epoch_civix" class="form-control">
+      <input type="hidden" id="alert_civix_id" class="form-control"-->
+    </div>
+  </div>
+</div>
+
+<!-- Modal Atencion de incidencia-->
+<!--div class="modal fade" id="modalAtencion" data-backdrop="static" tabindex="-1" role="dialog" >
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header text-left">
+        <h3>Atención de Incidencia: <span class="c-white" id="incidence"></span></h3>
+      </div>
+      <div class="modal-body" -->
+<div class="panel panel-filled panel-c-accent mb-4" id="panelformAtencion">
+    <div class="panel-heading">
+        <div class="panel-tools">
+            <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>                    
+        </div>
+       <h3> Atención de incidencia: <span id="incidence"></span></h3>
+    </div>
+    <div class="panel-body">   
+        <form id="formAtencion">
+          <div class="row">
+            <!-- Campos a la izquierda -->
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6 mb-2">
+                  <label>Origen</label>
+                  <select id="origin_id" class="form-control">
+                  </select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Denunciante</label>
+                  <input id="complainant" class="form-control">
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Nro. Documento</label>
+                  <input id="document_number" class="form-control">
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Celular</label>
+                  <input id="contact_number" class="form-control">
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Unidad de  atención</label>
+                  <select id="unit_id" class="form-control">
+                  </select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Clasificación</label>
+                  <select id="incidence_classification_id" class="form-control"></select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Tipo</label>
+                  <select id="incidence_type_id" class="form-control"></select>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label>Subtipo</label>
+                  <select id="incidence_subtype_id" class="form-control"></select>
+                </div>
+
+                <div class="col-md-12 mb-2">
+                  <label>Dirección</label>
+                  <input id="location" name="location" class="form-control">
+                </div>
+                <!--div class="col-md-12 mb-2">
+                  <label>Motivo</label>
+                  <input id="reason" class="form-control">
+                </div-->
+                <div class="col-md-12 mb-2">
+                  <label>Descripción</label>
+                  <textarea id="description_incidence" class="form-control"></textarea>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <label for="incidence_date">Fecha de incidencia</label>
+                    <input id="incidence_date" type="text" class="form-control" readonly>
+                </div>
+                <div class="col-md-6 mb-2" >
+                  <label>Estado</label>
+                  <select id="incidence_state_id" class="form-control"></select>
+                </div>
+              </div>
+              
+              
+              <br>
+              <!-- Tabla de Agentes -->
+          
+              <!--div class="table-responsive-agent" id="agentes" style="height:470px"-->
+              <div class="table-responsive-agent" >
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <h3 style="margin: 0;">Agentes asignados:</h3>
+                    <button type="button" class="btn btn-success btn-rounded" id="btnAgregarAgente">Agregar</button>
+                </div>
+                <table class="table table-hover-1">
+                    <thead>
+                    <tr>
+                        <th>Unidad</th>
+                        <th>Apellidos</th>
+                        <th>Nombres</th>
+                        <th>Dni</th>
+                        <th>Fecha</th>
+                    </tr>
+                    </thead>
+                    <tbody id="agentAssigned">
+                    
+                    </tbody>
+                </table>
+            </div>
+         
+            </div>
+            
+            <!-- Mapa a la derecha -->
+            <div class="col-md-6">
+              <h4><strong>Seguimiento de la incidencia</strong></h4>
+              <!--div id="map" style="height:500px;"></div>
+              <input  name="latitud" id="latitud">
+              <input name="longitud" id="longitud"-->
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn btn-default btn-rounded" onclick="cerraAtencion();">Cerrar</button>
+            <button class="btn btn-accent btn-rounded" onclick="actualizarIncidente()"> Actualizar</button>
+              
+          </div>
+        </form>
+     </div>
+</div>
+      <!--/div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+        
+        <button class="btn btn-accent btn-rounded" onclick="actualizarIncidente()"> Actualizar</button>
+      </div>
+    </div>
+  </div>
+</div-->
+
+
+<!-- Modal de agentes en campo -->
+<!--div class="modal fade" id="modalAgente" data-backdrop="static" tabindex="-1" role="dialog" >
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header text-left">
+        <h3>Geolocalización de agentes de campo</h3>
+      </div>
+      <div class="modal-body" >
+        
+        <form id="formAgente">
+          <div class="row">
+            
+            <div class="col-md-12">
+              <label>Ubicación</label>
+              <div id="mapagent" style="height:500px;"></div>
+            </div>
+          </div>
+        </form>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+       
+        <button class="btn btn-accent btn-rounded" onclick="guardarIncidente()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div-->
+
+<!-- Modal de agentes en campo -->
+<div class="modal fade" id="modalAgente" tabindex="-1" aria-labelledby="modalAgenteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"> <!-- modal ancho grande -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgenteLabel">Seleccionar Agentes</h5>
+        <!--button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button-->
+      </div>
+      <div class="modal-body">
+        <div class="row" style="height: 500px;">
+          <!-- Contenedor Mapa (8 columnas) -->
+          <div id="mapagent" class="col-md-7 mb-7" style="height: 100%; border: 1px solid #ccc;"></div>
+
+          <!-- Contenedor Tabla (4 columnas) -->
+          <div class="col-md-5 mb-5" style="height: 100%; overflow-y: auto;">
+            <!--table id="tablaAgentes" class="table table-striped table-bordered mb-0">
+              <thead-->
+                  
+                          <div class="panel-body">
+            <div class="table-responsive">
+                <table class="table table-hover-1" id="tablaAgentes" >
+                    <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>Teléfono</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <!-- Aquí se insertan las filas dinámicamente -->
+              </tbody>
+            </table>
+                          </div>
+              </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-success btn-rounded" id="guardarSeleccion">Guardar selección</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Leaflet JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+
+
+<script>
+    //script de mapas
+    function limpiarDireccion(displayName) {
+        if (typeof displayName !== 'string') return displayName;
+    
+        // Expresión regular para quitar: , [provincia], [departamento], [región], [código postal opcional], Perú
+        return displayName.replace(
+            /,\s*\w+(?:\s\w+)*,\s*\w+(?:\s\w+)*,\s*\w+(?:\s\w+)*(?:,\s*\d{5})?,\s*Perú$/i,
+            ''
+        );
+    }
+    
+let map, marker;
+let markers = [];
+let selectedAgents = [];
+
+//Agentes del mapa para seleccionar agentes
+function actualizarTablaAgentes() {
+  let tbody = document.querySelector('#tablaAgentes tbody');
+  tbody.innerHTML = '';
+  log(selectedAgents)
+  selectedAgents.forEach((agent, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${agent.agent_name}</td>
+      <td>${agent.agent_last_name}</td>
+      <td>${agent.phone_number}</td>
+      <td><button data-index="${index}" class="btn btn-danger btn-rounded btn-sm btn-eliminar">Eliminar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+//Elimina agente seleccionado del mapa
+  document.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const i = parseInt(e.target.getAttribute('data-index'));
+      selectedAgents.splice(i, 1);
+      actualizarTablaAgentes();
+    });
+  });
+}
+
+//Carga tabla del formulario con los agentes seleccionados
+document.getElementById('guardarSeleccion').addEventListener('click', () => {
+  $('#modalAgente').modal('hide');   
+  let tbody = document.querySelector('#formAtencion #agentAssigned');
+  tbody.innerHTML = '';
+  log(selectedAgents)
+  //if(selectedAgents.length>=1)
+     //   document.getElementById('btnAgregarAgente').disabled = true;
+  selectedAgents.forEach((agent, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${agent.unit_name}</td>
+      <td>${agent.agent_name}</td>
+      <td>${agent.agent_last_name}</td>
+      <td>${agent.phone_number}</td>
+      <td><button data-index="${index}" class="btn btn-danger btn-rounded btn-sm btn-eliminar">Liberar</button></td>
+    `;
+        log("agent_id: "+agent.agent_id)
+       callAPI({
+            method:"gestion/incidenceagents",     
+            post: 1,
+            params:{
+            'incidence_id': incidence,
+            'agent_id': agent.agent_id
+            },
+            ok:(data)=>{
+
+
+            }
+        });
+    tbody.appendChild(tr);
+  });
+
+
+  document.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const i = parseInt(e.target.getAttribute('data-index'));
+      selectedAgents.splice(i, 1);
+      actualizarTablaAgentes();
+    });
+  });
+
+});
+
+
+function getMarkerIcon(isAssigned) {
+    
+      return L.icon({
+        iconUrl: isAssigned === 0 ? 'https://maps.google.com/mapfiles/ms/icons/green-dot.png' : 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      });
+
+}
+
+let action="";
+function initMap(mapa) {
+  map = L.map(mapa).setView([-12.1211, -77.0290], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  if (mapa === "map") {
+    map.on('click', function (e) {
+      if (marker) marker.remove();
+      marker = L.marker(e.latlng).addTo(map);
+
+      let lat = e.latlng.lat.toFixed(6);
+      let lng = e.latlng.lng.toFixed(6);
+
+      document.getElementById("latitud").value = lat;
+      document.getElementById("longitud").value = lng;
+
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.display_name) {
+            document.querySelector("input[name='location']").value = limpiarDireccion(data.display_name);
+          }
+        })
+        .catch(err => console.error("Error obteniendo dirección:", err));
+    });
+  }
+
+  if (mapa == "mapagent") {
+    callAPI({
+      method: 'gestion/getagent',
+      ok: function (vals) {
+        // Limpiar markers anteriores
+          let tbody = document.querySelector('#tablaAgentes tbody');
+        tbody.innerHTML = '';
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+         actualizarTablaAgentes();
+        //selectedAgents = [];
+        //log(vals)
+        vals.forEach(agent => {
+              if (!agent) {
+                console.warn("Agente undefined en la lista");
+                return;
+              }
+          // Elegimos vehículo aleatorio para icono base
+          //const vehicle = getRandomVehicle();
+          //const baseIconUrl = baseIcons[vehicle];
+          // Creamos icono con color según is_assigned
+          //const icon = createColoredIcon(baseIconUrl, agent.is_assigned);
+          const icon = getMarkerIcon(agent.is_assigned);
+           // let icon = 'pe-7s-add-user';
+          const m = L.marker([agent.latitude, agent.longitude], { icon }).addTo(map);
+
+          // Construir popup con info
+          const popupContent = `
+            <b>${agent.agent_name} ${agent.agent_last_name}</b><br>
+            Teléfono: ${agent.phone_number}<br>
+            Unidad: ${agent.unit_name}<br>
+            Estado: ${agent.is_assigned === 0 ? '<span style="color:green;">Disponble</span>' : '<span style="color:red;">No disponible</span>'}
+          `;
+
+          m.bindPopup(popupContent);
+
+          m.agentData = agent;
+
+            m.on('dblclick', () => {
+                
+               
+          if (agent.is_assigned === 0) {
+            // Evitar duplicados por número de documento
+            const yaSeleccionado = selectedAgents.some(a => a.document_number === agent.document_number);
+            if (!yaSeleccionado) {
+                
+                 log(agent)
+              selectedAgents.push(agent);
+              actualizarTablaAgentes();
+                  m.openPopup();
+                } else {
+                alert('Este agente ya está en la lista.');
+              }
+              } else {
+                alert('Este agente ya está asignado y no puede seleccionarse.');
+              }
+            });
+
+          markers.push(m);
+        });
+      },
+      error: function () {
+        $('#origin_id').html('<option value="">Error al cargar</option>');
+      }
+    });
+  }
+}
+
+    $("#txtfilter").keyup( function (ev) {
+        //videoPlayer.stop();  
+        //log(ev)
+        var value=$("#txtfilter").val().toLowerCase();
+        log($("#alertasAll"))
+        
+        var list=$("#alertasAll")[0].childNodes
+        for(x of list){
+            x.style.display="";
+            var data=x.innerHTML.toLowerCase()
+            if(data.indexOf(value)==-1){
+                x.style.display="none";
+            }
+        }
+        
+        log(list)
+
+    });
+
+</script>
+
+
+<script>
+    //script de formulario sin mapas
+const hoy = new Date();
+const ayer = new Date(hoy);
+ayer.setDate(hoy.getDate() - 7);
+const formatear = d => d.toISOString().split('T')[0];
+
+$('#date_start').val(formatear(ayer));
+$('#date_end').val(formatear(hoy));
+
+    //variables para setear al seleccionar la alerta    
+    let locat ="";   
+    let latitud =""; 
+    let longitud =""; 
+    let alertdesc="";
+    let alertid="";
+    let epoch="";
+    let camid="";
+    let camname="";
+    let trackid="";
+    let tipoobj="";
+    let alerta="";
+    var a2c_vals=[]; //arreglo de valrores homologados para a2c
+    var videoPlayer=null;
+    const tabla = document.getElementById("tablaIncidencias");
+    const modal =document.getElementById("modalIncidente");
+    const form = document.getElementById("formIncidente");
+
+    let incidencias = [
+      { origin_name:"PBX-S", incidence_state_name:"Pendiente", operator:"Karla Valencia", incidence_id:"1061365", incidence_date:"2025-09-05 11:58", complainant:"MÁXIMO JESÚS", description_incidence:"Robo en comercio", unit_name:"Unidad 1"},
+      { origin_name:"PBX-E", incidence_state_name:"Pendiente", operator:"Avendaño Cahuapaza", incidence_id:"1061363", incidence_date:"2025-09-05 11:58", complainant:"MARY ANN", description_incidence:"Accidente vehicular", unit_name:"Unidad 2"}
+    ];
+    
+    function getAlertas(){
+        /*var camera_id = $('#txtCameraName').val();
+        var tipoAlerta = $('#tipo_alerta').val();
+        var location = $('#txtLocation').val();*/
+        callAPI({
+            method: 'gestion/geteventsbytype',
+            params: {
+            },
+            ok: function (vals) {
+                $("#totalAlertas").html(vals.length);
+                listaAlertas = vals;
+                
+               // topCameras = top5ByFieldAsAmount("camera_name");
+               // topEvents = top5ByFieldAsAmount("type_event_name");
+        
+                // No se llama a render_alertas() aquí. 
+                // En su lugar, se llama a la función que aplica todos los filtros.
+                render_alertas($('#alertasAll'),listaAlertas);
+            },
+            error: function () {
+                console.error("Error al obtener las alertas");
+            }
+        });
+    }
+    
+    function render_alertas(loc, data) {
+    let html = "";
+    let i = 0;
+    for (let r of data) {
+        const fecha = new Date(r.init_time_frame);
+        const fechaFormateada = fecha.toLocaleString('es-PE', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+
+        //const rowClass = getAlertClass(fecha);
+        const rowClass = "";
+        const containerW = 70; // ancho de la celda de la tabla
+        const containerH = 80; // alto de la celda de la tabla
+
+        // Calcular coordenadas como en showresultsearch
+        const [xf1, yf1, xf2, yf2] = (r.person_coords_face || "0,0,1,1").split(",").map(Number);
+        const [xb1, yb1] = (r.person_coords_obj || "0,0").split(",").map(Number);
+        
+
+        const x1 = xf1 + xb1;
+        const y1 = yf1 + yb1;
+        const w = xf2 - xf1;
+        const h = yf2 - yf1;
+
+
+        const [xo1, yo1, xo2, yo2] = (r.person_coords_obj || "0,0,1,1").split(",").map(Number);
+        const w_obj = xo2 - xo1;
+        const h_obj = yo2 - yo1;
+
+
+        // Generamos un ID único para luego aplicar el fondo
+        const cropId_obj = `crop-${i}-${Date.now()}-obj`;
+        const cropId = `crop-${i}-${Date.now()}`;
+        
+       var a2c_type = [
+                      r.unit_a2c_id || '',
+                      r.classification_a2c_id || '',
+                      r.type_a2c_id || '',
+                      r.subtype_a2c_id || ''
+                    ];
+        //log("a2c_type: ",a2c_type)
+
+        let row = `<tr class="${rowClass}" onclick="${r.foto?(`verVideoPersona(${r.epoch_frame} || '', ${r.camera_id} || '','${r.camera_name}','${r.tracking_id}', '${r.location}', '${r.type_event_name}', '${r.id}','${r.coords_zone}','${r.final_time_frame}','${r.matched_ident}','${r.nombre +" "+ r.apellido}','${r.person_coords_face},'${r.location}','${r.latitud}','${r.longitud}','${r.type_event_id}','${a2c_type}')`):(`verVideo(${r.epoch_frame} || '', ${r.camera_id} || '','${r.camera_name}','${r.tracking_id}', '${r.location}', '${r.type_event_name}', '${r.id}','${r.coords_zone}','${r.location}','${r.latitud}','${r.longitud}','${r.type_event_id}','${a2c_type}')`)}">
+            <th>` + r.id + `</th>
+            <td>` + r.type_event_name + `</th>
+            <td>` + r.camera_name + `</td>
+            <td>` + r.location + `</td>
+            <td>` + fechaFormateada + `</td>
+            <td>`+(r.foto?(` <div id="${cropId_obj}" style="width:${containerW}px; height:${containerH}px; border-radius:5px; overflow:hidden; background:#000;"></div>`):``)+ `</td>>
+            <td>` + (r.nombre && r.apellido ? r.nombre + ' ' + r.apellido : r.nombre || r.apellido || '') + `</td>
+            <td>`+(r.foto?(`<div id="${cropId}" style="width:${containerW}px; height:${containerH}px; border-radius:5px; overflow:hidden; background:#000;">`):``)+`</div> </td>
+            </tr>`;
+        html += row;
+        //log("data",r);
+            const img = new Image();
+            img.src = r.foto;
+            img.onload = () => {
+                const imgW = img.naturalWidth;
+                const imgH = img.naturalHeight;
+                
+                if (r.matched_category == "persona"){
+                    log("foto",r.foto);
+                    var scale = Math.min(containerW / w, containerH / h);
+                    var bgW = imgW * scale;
+                    var bgH = imgH * scale;
+        
+                    var bgX = (containerW - w * scale) / 2 - x1 * scale;
+                    var bgY = (containerH - h * scale) / 2 - y1 * scale;
+        
+                    document.getElementById(cropId_obj).style.backgroundImage = `url(${r.foto})`;
+                    document.getElementById(cropId_obj).style.backgroundSize = `${bgW}px ${bgH}px`;
+                    document.getElementById(cropId_obj).style.backgroundPosition = `${bgX}px ${bgY}px`;
+                    document.getElementById(cropId_obj).style.backgroundRepeat = "no-repeat";
+                    let string = String(r.matched_ident);
+                    log("Cadena",string)
+                    document.getElementById(cropId).style.backgroundImage =  `url(/personimages/inputs/${string}.jpg)`;
+                    //document.getElementById(cropId).style.backgroundSize = `${containerW}px ${containerH}px`;
+                    document.getElementById(cropId).style.backgroundSize = `${containerW}px ${containerH}px`;
+                    
+                }else if(r.category == "vehiculo"){
+                    var scale = Math.min(containerW / w, containerH / h);
+                    var bgW = imgW * scale;
+                    var bgH = imgH * scale;
+        
+                    var bgX = (containerW - w * scale) / 2 - x1 * scale;
+                    var bgY = (containerH - h * scale) / 2 - y1 * scale;
+        
+                    document.getElementById(cropId).style.backgroundImage = `url(${r.foto})`;
+                    document.getElementById(cropId).style.backgroundSize = `${bgW}px ${bgH}px`;
+                    document.getElementById(cropId).style.backgroundPosition = `${bgX}px ${bgY}px`;
+                    document.getElementById(cropId).style.backgroundRepeat = "no-repeat";
+                    
+                    var scale_ = Math.min(containerW / w_obj, containerH / h_obj);
+                    var bgW_ = imgW * scale_;
+                    var bgH_ = imgH * scale_;
+            
+                    var bgX_ = (containerW - w_obj * scale_) / 2 - xo1 * scale_;
+                    var bgY_ = (containerH - h_obj * scale_) / 2 - yo1 * scale_;
+        
+                    document.getElementById(cropId_obj).style.backgroundImage = `url(${r.foto})`;
+                    document.getElementById(cropId_obj).style.backgroundSize = `${bgW_}px ${bgH_}px`;
+                    document.getElementById(cropId_obj).style.backgroundPosition = `${bgX_}px ${bgY_}px`;
+                    document.getElementById(cropId_obj).style.backgroundRepeat = "no-repeat";
+                    
+                }
+            };
+        
+        i++;
+    }
+
+    loc.html(html);
+   // rows_data = data;
+  //  render_top_camaras(topCameras, []);
+  //  render_tipo_alertas(topEvents, []);
+}
+
+    function filterAndRenderAlertas() {
+        //const selectedCameras = $('.chk-camera:checked').map((_, cb) => cb.value).get();
+        //const selectedTypes = $('.chk-tipoAlerta:checked').map((_, cb) => cb.value).get();
+        const textFilter = $('#txtfilter').val().trim().toLowerCase();
+        
+        const filtered = listaAlertas.filter(alerta => {
+            //const matchesCamera = selectedCameras.length === 0 ||
+            //  selectedCameras.includes(alerta.camera_name);
+            //const matchesType = selectedTypes.length === 0 ||
+            //  selectedTypes.includes(alerta.type_event_name);
+            const matchesText = !textFilter ||
+              [alerta.camera_name, alerta.location, alerta.type_event_name]
+                .some(val => String(val || '').toLowerCase().includes(textFilter));
+                
+            return /*matchesCamera && matchesType &&*/ matchesText;
+        });
+    
+        filtered.sort((a, b) => b.init_time_frame - a.init_time_frame);
+        render_alertas($('#alertasAll'), filtered);
+        //render_top_camaras(topCameras, selectedCameras);
+        //render_tipo_alertas(topEvents, selectedTypes);
+    }
+    
+ function render_incidences(loc,data) {
+      tabla.innerHTML = "";
+
+      data.forEach(inc => {
+     // incidencias.forEach(inc => {
+           const fecha = new Date(inc.incidence_date);
+          const fechaFormateada = fecha.toLocaleString('es-PE', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        tabla.innerHTML += `
+          <tr class="incidence-row" data-status="${inc.incidence_state_id}" onclick="abrirModalAtencion('${inc.incidence_id}')">
+            
+            <td><a href="#">${inc.incidence_id}</a></td>
+            <td>${inc.origin_name}</td>
+            <td>${inc.unit_name}</td>
+            <td>${inc.classification_name}</td>
+            <td>${inc.type_name}</td>
+            <td>${inc.subtype_name}</td>
+            <td>${inc.description_incidence}</td>
+            <td>${inc.state_name}</td>
+            <td>${inc.operator}</td>
+            <td>${fechaFormateada}</td>
+            <td>${inc.complainant}</td>
+            
+            <!--td><button class="btn btn-sm btn-outline-primary" onclick="abrirModalAtencion(${inc.incidence_id})">✏️</button></td-->
+          </tr>
+        `;
+      });
+    }
+
+
+    // La función load_incidencias ahora inicia el proceso de filtrado.
+    function load_incidences(){
+        callAPI({
+            method:"gestion/getincidences",            
+            params:{},
+            ok:(data)=>{
+                render_incidences(
+                    $("#tablaIncidencias"),
+                    data
+                );
+                // Esto asegura que la tabla se muestre completa al cargar la página.
+                //filterCameras('all');
+            }
+        });
+    }
+    
+    
+    $(document).ready(function () {
+            //render_incidences("","");
+            load_incidences();
+            carga_combo();
+         $('#formAtencion').hide();
+         $('#panelformAtencion').hide();
+         
+         
+              $(document).on("change", "#formIncidente #origin_id", function() {
+                let val = $(this).val();
+                if (val == "10") { 
+                    videoPlayer=null;
+                  $('#modalAlerta').modal('show');
+                         $("#identificadorBox").hide();
+                        $("#alertaBox").hide();
+                        $("#showAlert").text("");
+                        $("#showId").text("");
+                        resetVideoPlayer()
+                   getAlertas();
+                }
+              });
+              
+            // Delegar el evento 'input' al campo de búsqueda de cámaras
+            $('#txtCameraName').on('input', function() {
+                filterAndRenderAlertas();
+            });
+    });
+    
+    function carga_combo(){
+        
+      callAPI({
+        method: 'gestion/getorigin',
+        ok: function (vals) {
+          const sel = $('#origin_id').empty();
+          sel.append(`<option value="0">Todos</option>`);
+          
+          vals.forEach(obj => {
+            const i = obj.origin_id;
+            const n = obj.origin_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $('#origin_id').html('<option value="">Error al cargar</option>');
+        }
+      });
+      
+     callAPI({
+        method: 'gestion/getunit',
+        ok: function (vals) {
+          const sel = $('#unit_id').empty();
+          
+          sel.append(`<option value="0">Todos</option>`);
+          vals.forEach(obj => {
+            const i = obj.unit_id;
+            const n = obj.unit_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $('#unit_id').html('<option value="">Error al cargar</option>');
+        }
+      });
+      
+     callAPI({
+        method: 'gestion/getclassification',
+        ok: function (vals) {
+          const sel = $('#incidence_classification_id').empty();
+          sel.append(`<option value="0">Todos</option>`);
+          
+          vals.forEach(obj => {
+            const i = obj.incidence_classification_id;
+            const n = obj.incidence_classification_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $('#incidence_classification_id').html('<option value="">Error al cargar</option>');
+        }
+      });
+      
+      callAPI({
+        method: 'gestion/gettypeincidence',
+        ok: function (vals) {
+          const sel = $('#incidence_type_id').empty();
+          sel.append(`<option value="0">Todos</option>`);
+          
+          vals.forEach(obj => {
+            const i = obj.incidence_type_id;
+            const n = obj.incidence_type_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $('#incidence_type_id').html('<option value="">Error al cargar</option>');
+        }
+      });
+
+      callAPI({
+        method: 'gestion/getsubtypeincidence',
+        ok: function (vals) {
+          const sel = $('#incidence_subtype_id').empty();
+          sel.append(`<option value="0">Todos</option>`);
+          
+          vals.forEach(obj => {
+            const i = obj.incidence_subtype_id;
+            const n = obj.incidence_subtype_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $('#incidence_subtype_id').html('<option value="">Error al cargar</option>');
+        }
+      });     
+     
+      callAPI({
+        method: 'gestion/getincidencestate',
+        ok: function (vals) {
+          const sel = $('#incidence_state_id').empty();
+          sel.append(`<option value="0">Todos</option>`);
+          
+          vals.forEach(obj => {
+            const i = obj.incidence_state_id;
+            const n = obj.incidence_state_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $('#incidence_state_id').html('<option value="">Error al cargar</option>');
+        }
+      });  
+
+        
+    }
+
+
+    function carga_combo_form(mod){
+        
+      callAPI({
+        method: 'gestion/getorigin',
+        ok: function (vals) {
+          const sel = $(`#${mod} #origin_id`).empty();
+          vals.forEach(obj => {
+            const i = obj.origin_id;
+            const n = obj.origin_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $(`#${mod} #origin_id`).html('<option value="">Error al cargar</option>');
+        }
+      });
+      
+     callAPI({
+        method: 'gestion/getunit',
+        ok: function (vals) {
+
+          const sel = $(`#${mod} #unit_id`).empty();
+          vals.forEach(obj => {
+            const i = obj.unit_id;
+            const n = obj.unit_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $(`#${mod} #unit_id`).html('<option value="">Error al cargar</option>');
+        }
+      });
+      
+     callAPI({
+        method: 'gestion/getclassification',
+        ok: function (vals) {
+          const sel = $(`#${mod} #incidence_classification_id`).empty();
+          vals.forEach(obj => {
+            const i = obj.incidence_classification_id;
+            const n = obj.incidence_classification_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $(`#${mod} #incidence_classification_id`).html('<option value="">Error al cargar</option>');
+        }
+      });
+      
+      callAPI({
+        method: 'gestion/gettypeincidence',
+        ok: function (vals) {
+          const sel = $(`#${mod} #incidence_type_id`).empty();
+          vals.forEach(obj => {
+            const i = obj.incidence_type_id;
+            const n = obj.incidence_type_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $(`#${mod} #incidence_type_id`).html('<option value="">Error al cargar</option>');
+        }
+      });
+
+      callAPI({
+        method: 'gestion/getsubtypeincidence',
+        ok: function (vals) {
+          const sel = $(`#${mod} #incidence_subtype_id`).empty();
+          vals.forEach(obj => {
+            const i = obj.incidence_subtype_id;
+            const n = obj.incidence_subtype_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $(`#${mod} #incidence_subtype_id`).html('<option value="">Error al cargar</option>');
+        }
+      });     
+     
+      callAPI({
+        method: 'gestion/getincidencestate',
+        ok: function (vals) {
+          const sel = $(`#${mod} #incidence_state_id`).empty();
+          vals.forEach(obj => {
+            const i = obj.incidence_state_id;
+            const n = obj.incidence_state_name;
+            sel.append(`<option value="${i}">${n}</option>`);
+          });
+        },
+        error: function () {
+          $(`#${mod} #incidence_state_id`).html('<option value="">Error al cargar</option>');
+        }
+      });  
+
+        
+    }
+    
+    function resetVideoPlayer() {
+        // Detener cualquier reproducción en curso
+        if (videoPlayer && videoPlayer.stop) {
+            videoPlayer.stop();
+        }
+        
+        // Limpiar el contenedor del video
+        const videoContainer = document.querySelector("#modalAlerta .videorraper");
+        if (videoContainer) {
+            videoContainer.innerHTML = "Seleccione una alerta para ver el video";
+        }
+        
+        // Reinicializar el objeto videoPlayer si es necesario
+        videoPlayer = null;
+    }
+    
+    function abrirModal() {
+      //form.reset();
+      //form.dataset.editing = "";
+     // modal.modal("show");
+        resetVideoPlayer();
+        $('#txtfilter').val("");
+        $('#modalIncidente').modal('show'); 
+       document.getElementById("formIncidente").reset();
+        carga_combo_form("formIncidente");
+        
+       if (map) {
+            map.remove();
+            map = null;
+        }
+        setTimeout(function() {
+            initMap('map');
+        
+        }, 300);
+    }
+    
+    let incidence = "";
+    let classificationid = "";
+    let classificationname = "";
+    let unitid = "";
+    let unitname = "";
+    let stateid = "";
+    let statename = "";
+
+    // se cambio el modal por un formulrio en toda la pantalla
+    function abrirModalAtencion(incidence_id) {
+      resetVideoPlayer();
+      incidence = incidence_id;
+      $("#incidence").text(incidence);
+      // Limpia la lista de agentes seleccionados al abrir el modal para evitar duplicados
+      selectedAgents = [];
+      
+      //$('#modalAtencion').modal('show');
+      
+      $('.list-container').fadeOut();
+      $('#formAtencion').fadeIn();
+      $('#panelformAtencion').show();
+         
+      // Resetear formulario y cargar combos
+      const form = document.getElementById("formAtencion");
+      if (form) form.reset();
+      
+      carga_combo_form("formAtencion");
+      carga_datos_incidencia(incidence_id);
+      carga_datos_incidenciaagente(incidence_id);
+      
+      $("#formAtencion #incidence_subtype_id").prop("disabled", true);
+      $("#formAtencion #incidence_type_id").prop("disabled", true);
+      $("#formAtencion #incidence_date").prop("readonly", true);
+      $("#formAtencion #complainant").prop("readonly", true);
+      $("#formAtencion #origin_id").prop("disabled", true);
+      $("#formAtencion #location").prop("readonly", true);
+      
+    }
+    
+    function cerraAtencion(){
+      $('.list-container').fadeIn();
+      $('#formAtencion').hide();
+      $('#panelformAtencion').hide();
+         
+      
+    }
+    
+    function carga_datos_incidenciaagente(incidence_id) {
+        selectedAgents=[];
+      log("carga_datos_incidenciaagente-incidence_id: "+incidence_id) 
+      callAPI({
+        method: 'gestion/getincidenceagent',
+        params: { "incidence_id": incidence_id },
+        ok: (data) => {
+            
+            log("agentes",data)
+          if (Array.isArray(data)) {
+            data.forEach(agent => {
+              selectedAgents.push(agent);
+            });
+          } else {
+            console.warn("Los datos recibidos no son un array:", data);
+          }
+          if (selectedAgents.length>=1){
+                cargaagentes();
+          }
+          else{
+              //document.querySelector('#modalAtencion #agentAssigned').innerHTML='';
+              document.querySelector('#formAtencion #agentAssigned').innerHTML='';
+          }
+        },
+        error: (err) => {
+          console.error("Error en la llamada a la API:", err);
+        }
+      });
+    }
+    /*
+    function cargaagentes() {
+      const tbody = document.querySelector('#modalAtencion #agentAssigned');
+      if (!tbody) {
+        console.error("No se encontró tbody #agentAssigned");
+        return;
+      }
+      
+      tbody.innerHTML = '';
+      log("selectedAgents: ",selectedAgents);
+     
+      const btnAgregar = document.getElementById('btnAgregarAgente');
+      if (btnAgregar) btnAgregar.disabled = selectedAgents.length > 0; // deshabilita si hay agentes
+    
+      selectedAgents.forEach((agent, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${agent.unit_name || ''}</td>
+          <td>${agent.agent_last_name || ''}</td>
+          <td>${agent.agent_name || ''}</td>
+          <td>${agent.phone_number || ''}</td>
+          <td><button data-index="${index}" class="btn btn-danger btn-rounded btn-sm btn-eliminar">Liberar</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    
+      document.querySelectorAll('#modalAtencion .btn-eliminar').forEach(btn => {
+          log("agentdel")
+                          
+            btn.addEventListener('click', (e) => {
+              const i = parseInt(e.target.getAttribute('data-index'));
+              if (!isNaN(i)) {
+
+                 //log(selectedAgents[i])
+                 //log(selectedAgents[i].agent_id)
+                 let agentdel = selectedAgents[i].agent_id;
+                log(agentdel)
+                
+                callAPI({
+                  method: 'gestion/incidenceagentsupt',
+                  params: {
+                    "agent_id": agentdel
+                  },
+                  ok: (data) => {
+                      log(data)
+                    //selectedAgents.splice(i, 1);
+                    //cargaagentes(); 
+                  },
+                  error: (err) => {
+                    console.error("Error al actualizar agente:", err);
+                  }
+                });
+                 
+              }
+            
+          });
+        });
+    }
+  */
+  
+  function cargaagentes() {
+      //const tbody = document.querySelector('#modalAtencion #agentAssigned');
+      const tbody = document.querySelector('#formAtencion #agentAssigned');
+      if (!tbody) {
+        console.error("No se encontró tbody #agentAssigned");
+        return;
+      }
+      
+      tbody.innerHTML = '';
+      console.log("selectedAgents: ", selectedAgents);
+     
+      //const btnAgregar = document.getElementById('btnAgregarAgente');
+     // if (btnAgregar) btnAgregar.disabled = selectedAgents.length > 0; // deshabilita si hay agentes
+    
+      selectedAgents.forEach((agent, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${agent.unit_name || ''}</td>
+          <td>${agent.agent_last_name || ''}</td>
+          <td>${agent.agent_name || ''}</td>
+          <td>${agent.phone_number || ''}</td>
+          <td><button data-index="${index}" class="btn btn-danger btn-rounded btn-sm btn-eliminar">Liberar</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    
+      //document.querySelectorAll('#modalAtencion .btn-eliminar').forEach(btn => {
+      document.querySelectorAll('#formAtencion .btn-eliminar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const i = parseInt(e.target.getAttribute('data-index'), 10);
+          if (!isNaN(i)) {
+            const agentdel = selectedAgents[i].agent_id;
+            console.log("Eliminando agente ID:", agentdel);
+    
+            callAPI({
+              method: 'gestion/incidenceagentsupt',
+              params: {
+                "agent_id": agentdel
+              },
+              ok: (data) => {
+                console.log("Agente actualizado:", data);
+                // Actualiza localmente la lista y recarga la tabla
+                selectedAgents.splice(i, 1);
+                cargaagentes();
+              },
+              error: (err) => {
+                console.error("Error al actualizar agente:", err);
+              }
+            });
+          }
+        });
+      });
+    }
+
+    
+      function carga_datos_incidencia(incidence_id) {
+
+            callAPI({
+                method: 'gestion/getincidence',
+                params: {
+                    "incidence_id": incidence_id
+                },
+                ok: (data) => {
+                    log("dataincidence")
+                    log(data)
+                    var obj = data[0];
+                    
+                    $("#formAtencion #incidence_date").val(obj.incidence_date);
+                    $("#formAtencion #description_incidence").val(obj.description_incidence);
+                    $("#formAtencion #incidence_classification_name").val(obj.incidence_classification_name);
+                    $("#formAtencion #incidence_classification_id").val(obj.incidence_classification_id);
+                    $("#formAtencion #incidence_type_id").val(obj.incidence_type_id);
+                    $("#formAtencion #incidence_subtype_id").val(obj.incidence_subtype_id);
+                    $("#formAtencion #complainant").val(obj.complainant);
+                    $("#formAtencion #contact_number").val(obj.contact_number);
+                    $("#formAtencion #document_number").val(obj.document_number);
+                    $("#formAtencion #origin_id").val(obj.origin_id);
+                    $("#formAtencion #unit_id").val(obj.unit_id);
+                    //$("#formAtencion #reason").val(obj.reason);
+                    $("#formAtencion #location").val(obj.location);
+                    $("#formAtencion #incidence_state_id").val(obj.incidence_state_id);
+                    $("#formAtencion #incidence_date").val(obj.incidence_date);
+                    
+                    classificationid = obj.incidence_classification_id;
+                    classificationname = obj.classification_name;
+                    unitid = obj.unit_id;
+                    unitname = obj.unit_name;
+                    stateid=obj.incidence_state_id;
+                    statename=obj.state_name;
+
+                }
+             });
+            
+    }  
+
+    
+    document.getElementById('btnAgregarAgente').addEventListener('click', () => {
+        
+        log('carga agente')
+          $('#modalAgente').modal('show');
+        
+          if (map) {
+            map.remove();
+            map = null;
+          }
+        
+          setTimeout(() => {
+            initMap('mapagent');
+          }, 300);
+         
+        });
+    
+    
+    
+    function buscar() {
+
+            callAPI({
+                method: 'gestion/getincidencesfilter',
+                params: {
+                    "origin_id": $("#origin_id").val(),
+                    "incidence_subtype_id": $("#incidence_subtype_id").val(),
+                    "incidence_type_id": $("#incidence_type_id").val(),
+                    "incidence_classification_id": $("#incidence_classification_id").val(),
+                    "incidence_state_id": $("#incidence_state_id").val(),
+                    "unit_id": $("#unit_id").val(),                    "location": $("#location").val(),
+                    "complainant": $("#complainant").val(),
+                    //"reason": $("#reason").val(),
+                    "document_number": $("#document_number").val(),
+                    "incidence_date": $("#incidence_date").val(),
+                    "date_start": $("#date_start").val(),
+                    "date_end": $("#date_end").val(),
+                    
+                    "personas": true
+                },
+                ok: (data) => {
+                    log("databuscar")
+                    log(data)
+       
+                    $('#modalIncidente').modal('hide');               
+                    render_incidences(
+                        $(".table-responsive tbody"),
+                        data
+                    );
+                }
+             });
+            /*
+                },
+                error: (err) => {
+                    console.error("Error en la llamada a la API:", err);
+                }
+            });
+            */
+    }
+
+
+function actualizarIncidente() {
+    let classification_name = $('#formAtencion #incidence_classification_id option:selected').text();
+    let state_name = $('#formAtencion #incidence_state_id option:selected').text();
+    let unit_name = $('#formAtencion #unit_id option:selected').text();
+    let nombreCompleto = __MAINDOCUMENT.fullname;
+    
+    log("nombreCompleto: "+nombreCompleto)
+    log("incidence: "+incidence)
+    
+    let derivated = 0;
+    if (
+        classificationid != $('#formAtencion #incidence_classification_id').val() ||
+        unitid != $('#formAtencion #unit_id').val() ||
+        stateid != $('#formAtencion #incidence_state_id').val() 
+    ) {
+        derivated = 1;
+    }
+      log(unit_name+" - "+$('#formAtencion #unit_id').val() ) 
+      log(classificationname+" - "+$('#formAtencion #incidence_classification_id').val() )   
+      log(state_name+" - "+$('#formAtencion #incidence_state_id').val() ) 
+      
+                callAPI({
+                method: 'gestion/getderivatedcount',
+                params: {
+                    "incidence_id": incidence,
+                    "personas": true
+                },
+                ok: (data) => {
+                        var nro = data[0].numero;
+                        log(nro)
+                        
+                        callAPI({
+                            method: 'gestion/incidenceupt',
+                            post: 1,
+                            params: {
+                                incidence_id: incidence,
+                                incidence_classification_id: $('#formAtencion #incidence_classification_id').val(),
+                                classification_name: classification_name,
+                                incidence_state_id: $('#formAtencion #incidence_state_id').val(),
+                                state_name: state_name,
+                                unit_id: $('#formAtencion #unit_id').val(),
+                                unit_name: unit_name,
+                                description_incidence: $('#formAtencion #description_incidence').val(),
+                                document_number: $('#formAtencion #document_number').val(),
+                                contact_number: $('#formAtencion #contact_number').val(),
+                                operator: nombreCompleto,
+                                personas: true
+                            },
+                            ok: (data) => {
+                                if (derivated) {
+                                    // Si se derivó, llamar a la segunda API
+                                    callAPI({
+                                        method: 'gestion/incidencederivated',
+                                        post: 1,
+                                        params: {
+                                            incidence_id: incidence,
+                                            incidence_derivative_id: nro,
+                                            incidence_classification_id: $('#formAtencion #incidence_classification_id').val(),
+                                            incidence_classification_name: classification_name,
+                                            incidence_classification_id_old: classificationid,
+                                            incidence_classification_name_old: classificationname,
+                                            incidence_state_id: $('#formAtencion #incidence_state_id').val(),
+                                            incidence_state_name: state_name,
+                                            incidence_state_id_old: stateid,
+                                            incidence_state_name_old: statename,
+                                            unit_id: $('#formAtencion #unit_id').val(),
+                                            unit_name: unit_name,
+                                            unit_id_old: unitid,
+                                            unit_name_old: unitname,
+                                            operator: nombreCompleto,
+                                            personas: true
+                                        },
+                                        ok: (data) => {
+                                            //$('#modalAtencion').modal('hide');
+                                            //$('#formAtencion').modal('hide');
+                                            $('#formAtencion').hide();
+                                            $('#panelformAtencion').hide();
+         
+                                            render_incidences($(".table-responsive tbody"), data);
+                                        }
+                                    });
+                                } else {
+                                    //$('#modalAtencion').modal('hide');
+                                    //$('#formAtencion').modal('hide');
+                                    $('#formAtencion').hide();
+                                    $('#panelformAtencion').hide();
+         
+                                    render_incidences($(".table-responsive tbody"), data);
+                                }
+                            }
+                        });
+                    }
+             });
+        }
+
+
+    function guardarIncidente() {
+            let origin_name = $('#formIncidente #origin_id').find(':selected').text();
+            let subtype_name = $('#formIncidente #incidence_subtype_id').find(':selected').text();
+            let type_name = $('#formIncidente #incidence_type_id').find(':selected').text();
+            let classification_name = $('#formIncidente #incidence_classification_id').find(':selected').text();
+            let state_name = $('#formIncidente #incidence_state_id').find(':selected').text();
+            let unit_name = $('#formIncidente #unit_id').find(':selected').text();
+            let nombreCompleto = __MAINDOCUMENT.fullname;
+
+            
+            callAPI({
+                method: 'gestion/incidencenew',
+                post:1,
+                params: {
+                    "origin_id": $("#formIncidente #origin_id").val(),
+                    "origin_name": origin_name,
+                    "incidence_subtype_id": $("#formIncidente #incidence_subtype_id").val(),
+                    "subtype_name": subtype_name,
+                    "incidence_type_id": $("#formIncidente #incidence_type_id").val(),
+                    "type_name": type_name,
+                    "incidence_classification_id": $("#formIncidente #incidence_classification_id").val(),
+                    "classification_name": classification_name,
+                    "incidence_state_id": $("#formIncidente #incidence_state_id").val(),
+                    "state_name": state_name,
+                    "unit_id": $("#formIncidente #unit_id").val(),
+                    "unit_name": unit_name,
+                    "location": $("#formIncidente #location").val(),
+                    "complainant": $("#formIncidente #complainant").val(),
+                    //"reason": $("#formIncidente #reason").val(),
+                    "description_incidence": $("#formIncidente #description_incidence").val(),
+                    "document_number": $("#formIncidente #document_number").val(),
+                    "contact_number": $("#formIncidente #contact_number").val(),
+                    "latitude": $("#formIncidente #latitud").val(),
+                    "longitude": $("#formIncidente #longitud").val(),
+                    "incidence_date": $("#formIncidente #incidence_date").val(),
+                    "mode_id": 0,
+                    "mode_name": "",
+                    "location_reference": "",
+                    "operator": nombreCompleto,
+                    "operator_id": 0,
+                    "cuadrante_id": "",
+                    "camera_civix_id": $("#formIncidente #camera_civix_id").val(),
+                    "camera_civix_name": $("#formIncidente #camera_civix_name").val(),
+                    "epoch_civix":$("#formIncidente #epoch_civix").val(),
+                    "alert_civix_id":$("#formIncidente #alert_civix_id").val(),
+                    "personas": true
+                    
+                },
+                ok: (data) => {
+                    log("data")
+       
+                    $('#modalIncidente').modal('hide');               
+                    render_incidences(
+                        $(".table-responsive tbody"),
+                        data
+                    );
+                }
+             });
+            /*
+                },
+                error: (err) => {
+                    console.error("Error en la llamada a la API:", err);
+                }
+            });
+            */
+    }
+    
+      function setEpochToInput(epochValue) {
+        let d = new Date(epochValue);
+    
+        // Obtener valores locales (según zona horaria del navegador, Lima en este caso)
+        let year = d.getFullYear();
+        let month = String(d.getMonth() + 1).padStart(2, '0');
+        let day = String(d.getDate()).padStart(2, '0');
+        let hours = String(d.getHours()).padStart(2, '0');
+        let minutes = String(d.getMinutes()).padStart(2, '0');
+    
+        let formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+        return formatted;
+      }
+      
+      
+      
+    function selectAlert() {
+        
+        resetVideoPlayer();
+        
+        locat=locat; //.replace(/,\s*[^,]+,\s*[^,]+,\s*[^,]+(?:,\s*\d{5})?,\s*Perú$/i,'');
+        
+        
+        
+        let fechaformat = setEpochToInput(epoch);
+        $('#modalAlerta').modal('hide'); 
+        //setear valores en el formulario
+        $("#formIncidente #location").val(locat);
+        $("#formIncidente #latitud").val(latitud);
+        $("#formIncidente #longitud").val(longitud);
+        $("#formIncidente #incidence_date").val(fechaformat);
+        $("#formIncidente #description_incidence").val(alertdesc);
+        $("#formIncidente #camera_civix_id").val(camid);
+        $("#formIncidente #camera_civix_name").val(camname);
+        $("#formIncidente #epoch_civix").val(epoch);
+        $("#formIncidente #alert_civix_id").val(alerta);
+        $("#formIncidente #unit_id").val(a2c_vals[0]);
+        $("#formIncidente #incidence_classification_id").val(a2c_vals[1]);
+        $("#formIncidente #incidence_type_id").val(a2c_vals[2]);
+        $("#formIncidente #incidence_subtype_id").val(a2c_vals[3]);
+        
+        
+        
+        
+        /*
+        //setea unidad
+        $("#formIncidente #unit_id").val(tipoobj == "V" ? "7" : "6");
+        $("#formIncidente #unit_id").val(tipoobj == "V" ? "7" : "6");
+
+        //setea congestion vehicular
+        if(alertid ==5 )
+        {
+            $("#formIncidente #incidence_classification_id").val("10");
+            $("#formIncidente #incidence_type_id").val("12");
+            $("#formIncidente #incidence_subtype_id").val("73");
+            
+        }
+        */
+        //setea zonas restringidas de vehiculos
+            
+            
+        log("fechaformat: "+fechaformat);
+        log("tipoobj: "+tipoobj);
+        log("epoch: "+epoch);
+        log("trackid: "+trackid);
+        
+        if (!isNaN(latitud) && !isNaN(longitud)) {
+          if (marker) {
+            marker.setLatLng([latitud, longitud]); // mover marker existente
+          } else {
+            marker = L.marker([latitud, longitud]).addTo(map); // crear marker nuevo
+          }
+          map.setView([latitud, longitud], 15); // centrar mapa
+        }
+        
+        $("#alertSection").slideDown();
+        
+    }
+
+    function verVideo(date_start,cam_id,camera_name,tracking_id, location, message, id, polygon_coords,loc,lat,lon,eventid,a2c_type){
+       /* $("#showcamera").text(camera_name);
+        $("#showUbication").text(location);
+        $("#showAlert").text(message);
+        $("#showId").text(id);*/
+        log("a2c_vals_video: ",a2c_type)
+        $("#identificadorBox").show();
+        $("#alertaBox").show();
+        $("#showAlert").text(message);
+        $("#showId").text(id);
+        
+        //log(id+" - "+camera_name+" - "+cam_id+" - "+date_start)
+        //variables para setear al seleccionar la alerta    
+        locat =location;   
+        latitud =lat; 
+        longitud =lon; 
+        alertdesc= message;
+        epoch=date_start;
+        camid=cam_id;
+        camname=camera_name;
+        trackid=tracking_id;
+        tipoobj="V";
+        alertid=eventid;
+        alerta=id;
+        a2c_vals=a2c_type.split(','); //arreglo de valrores hologados para a2c
+        //log(alerta+" - "+camname+" - "+camid+" - "+epoch)
+        
+        if(polygon_coords){
+            let poligono = JSON.parse(polygon_coords)
+            
+            var coords_data = [{
+                points:poligono
+                , // pentágono
+                lineColor: "blue",
+                fillColor: "rgba(0,0,255,0.3)",
+                lineWidth: 3
+            }];
+        }
+         // videoPlayer=null;
+          
+            callAPI({
+                method: 'gestion/dolistimgevents',
+                params: { 
+                    camid: cam_id ,
+                    date_start: date_start,
+                    tracking_id: tracking_id
+             
+                },                                                                                                 
+                     
+                ok: function(data) {                  
+                    videoPlayer=new videoplay("#modalAlerta .videorraper".qs());
+                    
+                    setTimeout(()=>{
+                        $('#modalAlerta').modal('show');   
+                        const grouped = Object.values(
+                        data[1].reduce((acc, item) => {
+                            if (!acc[item.foto]) {
+                                acc[item.foto] = { 
+                                foto: item.foto, 
+                                coords_obj: [] 
+                        
+                    };
+                            }
+                            acc[item.foto].coords_obj.push({
+                            categoria: item.category,
+                            accuracy_obj: item.accuracy_obj,
+                            colorupper: item.color_name_upper,
+                            colorlower: item.color_name_lower,
+                            plate: item.plate,
+                            coords: item.coords_obj.split(","),
+                            coordsplate: (item.coords_plate||'').split(",")
+                            });
+                            
+                            return acc;
+                        }, {})
+                        );
+                        videoPlayer.update(grouped,"foto","coords_obj",coords_data);
+                        setTimeout(()=>{videoPlayer.play()},500)
+                    },100)
+                }
+            });
+        
+    }
+    
+    function verVideoPersona(date_start,cam_id,camera_name,tracking_id, location, message, id, polygon_coords,date_end,documento,nombre_completo,matched_coords_face,loc,lat,lon,eventid,a2c_type){
+       /* $("#showcamera").text(camera_name);
+        $("#showUbication").text(location);
+        $("#showAlert").text(message);
+        $("#showId").text(id);*/
+        $("#identificadorBox").show();
+        $("#alertaBox").show();
+        $("#showAlert").text(message);
+        $("#showId").text(id);
+        log("a2c_vals_video: ",a2c_type)
+        //variables para setear al seleccionar la alerta    
+        
+         
+        //log(id+" - "+camera_name+" - "+cam_id+" - "+date_start)
+        locat =location;   
+        latitud =lat; 
+        longitud =lon; 
+        alertdesc= message;
+        epoch=date_start;
+        camid=cam_id;
+        camname=camera_name;
+        trackid=tracking_id;
+        tipoobj="P";
+        alertid=eventid;
+        alerta=id;
+        a2c_vals=a2c_type.split(','); //arreglo de valrores hologados para a2c
+        //log(alerta+" - "+camname+" - "+camid+" - "+epoch)
+        
+        
+        let coords = JSON.parse(polygon_coords);
+        
+        poligono = coords;
+        
+        var coords_data = [{
+                            points:coords
+                            , // pentágono
+                            lineColor: "blue",
+                            fillColor: "rgba(0,0,255,0.3)",
+                                lineWidth: 0
+                            }];
+        // debe de añadirse lógica para comparar la categoría del objeto, cuando se compare con listas de vehiculos. if(category=="persona") else
+            callAPI({
+                method: 'gestion/getframesperson',
+                params: { 
+                    documento:  documento,
+                    fechaini: date_start,
+                    fechafin: date_end,
+                    tracking_id: tracking_id
+             
+                },                                                                                                 
+                     
+                ok: function (data) {
+                    //log(data)
+                    videoPlayer = new videoplay("#modalAlerta .videorraper".qs());
+                    setTimeout(() => {
+                        $('#showVideoModal').modal('show');
+                        
+                        const frames = data;
+                        const grouped = Object.values(
+                            frames.reduce((acc, item) => {
+                                
+                                if (!item.coords_obj) return data;
+        
+                                if (!acc[item.foto]) {
+                                    acc[item.foto] = {
+                                        foto: item.foto,
+                                        coords_obj: []
+                                    };
+                                }
+        
+                                acc[item.foto].coords_obj.push({
+                                    categoria: item.category,
+                                    
+                                    accuracy_obj: item.acc_parecido,
+                                    colorupper: item.color_name_upper,
+                                    colorlower: item.color_name_lower,
+                                    coords: (item.coords_obj || '').split(","),
+                                    coordsplate: (item.coords_face || '').split(","),
+                                    plate: nombre_completo
+                                });
+        
+                                return acc;
+                            }, {})
+                        ).sort((a, b) => a.foto.localeCompare(b.foto));
+        
+                        videoPlayer.update(grouped, "foto", "coords_obj",null)
+                        setTimeout(() => { videoPlayer.play() }, 100)
+        
+                    }, 100)
+                }
+            });
+        
+    }
+    
+        
+</script>
+

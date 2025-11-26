@@ -1,0 +1,3011 @@
+<!-- === ESTILOS === -->
+<style>
+#main-chart, #line-chart, #heatmap {
+  width: 100%;
+  min-height: 300px;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#line-chart, #heatmap {
+  position: relative;
+}
+
+#tipoAlertaFiltro {
+  background: #2b2b3d;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+#heatmap {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 400px;
+  margin: 0;
+  padding: 0;
+  border-radius: 6px;
+}
+
+#camera-list-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#camera-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#camera-list table th,
+#camera-list table td {
+  padding: 6px 4px;
+  vertical-align: middle;
+}
+
+
+#camera-list {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+.time-btn {
+  border: 1px solid #f67200 !important;
+  color: #fff !important;
+  background: transparent !important;
+  margin-left: 3px;
+  font-weight: 500;
+}
+.time-btn.active {
+  background: #f67200 !important;
+  color: #fff !important;
+}
+
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+}
+.kpi-title {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 5px;
+}
+.kpi-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #f67200;
+}
+.kpi-sub {
+  font-size: 12px;
+  color: #ccc;
+}
+
+/* === PANEL DE CÁMARAS Y MAPA AJUSTADOS === */
+#camera-list-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+}
+
+#camera-list {
+  height: 100%;
+  overflow: hidden; /* ❌ elimina scroll */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+#camera-list table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#camera-list table th,
+#camera-list table td {
+  padding: 6px 4px;
+  vertical-align: middle;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+#camera-list table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Forzar altura fija para ambas secciones */
+#camera-list-container,
+#heatmap-container {
+  min-height: 430px;
+  max-height: 430px;
+}
+
+/* El mapa ocupará 100% del espacio disponible */
+#heatmap {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 6px;
+}
+
+/* Ajuste general */
+.row-equal {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.btn-reset {
+  border: 1px solid #f67200;
+  color: #fff;
+  background: transparent;
+  opacity: 0.5;
+  cursor: not-allowed;
+  transition: opacity 0.2s ease;
+}
+.btn-reset.active {
+  opacity: 1;
+  cursor: pointer;
+}
+
+/* Scrollbar personalizado */
+*::-webkit-scrollbar, body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+}
+
+/* === PANEL DE VIDEO LATERAL DENTRO DEL MODAL === */
+#videoOvl {
+  position: absolute;
+  top: 0;
+  right: -50%; /* empieza oculto a la derecha */
+  width: 100%; /* ocupa mitad del modal */
+  height: 100%;
+  background: rgba(20, 20, 30, 0.95);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 8px 8px 0;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
+  z-index: 50; /* encima del video pero debajo del modal principal */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: right 0.4s ease-in-out;
+  overflow: hidden;
+}
+
+/* Cuando está visible */
+#videoOvl.show {
+  right: 0;
+}
+
+/* Cabecera del panel */
+#videoOvl .modal-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#videoOvl .modal-header h3,
+#videoOvl .modal-header h5 {
+  margin: 0;
+  color: #22e6d9;
+}
+
+#videoOvl .modal-body {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: rgba(10, 10, 15, 0.8);
+}
+
+/* Botón de cerrar */
+#videoOvl .btn-danger {
+  background: #ff7b00;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+#videoOvl .btn-danger:hover {
+  background: #ff9c42;
+}
+
+/* === AJUSTE DEL CONTENEDOR PRINCIPAL DE VIDEO === */
+#modal-frame-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* === ANIMACIÓN SUAVE AL CERRAR === */
+#videoOvl.hide {
+  right: -50%;
+  transition: right 0.4s ease-in-out;
+}
+
+/* === OPCIONAL: Scrollbar oscuro integrado === */
+#videoOvl::-webkit-scrollbar {
+  width: 8px;
+}
+#videoOvl::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/* === CONTENEDOR PRINCIPAL DEL VIDEO (lado izquierdo) === */
+#modal-frame-container {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+  height: 430px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+}
+
+/* === VIDEO REAL (IZQUIERDA) === */
+#modal-frame-container .video-real {
+  flex: 1;
+  transition: all 0.4s ease-in-out;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#modal-frame-container .video-real video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* === PANEL LATERAL DE VIDEO ALERTA (videoOvl) === */
+#videoOvl {
+  position: absolute;
+  top: 0;
+  right: -100%;  /* inicia fuera del modal */
+  width: 66.66%; /* 🔹 el doble de ancho que el video real (que ocupa ~33%) */
+  height: 100%;
+  background: rgba(15, 15, 25, 0.96);
+  border-left: 1px solid rgba(255,255,255,0.1);
+  box-shadow: -4px 0 12px rgba(0,0,0,0.4);
+  border-radius: 0 8px 8px 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.45s ease-in-out;
+}
+
+/* Al mostrarlo, se desliza hacia adentro */
+#videoOvl.show {
+  right: 0;
+}
+
+/* Cabecera del panel */
+#videoOvl .ovl-header {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#videoOvl .ovl-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #22e6d9;
+}
+
+/* Botón cerrar */
+#videoOvl .ovl-close-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ff7b00;
+  font-si
+.ovevideo {
+    width: 100% !important;
+}
+
+#videoOvl.show {
+  width: 100% !important;
+}
+/* === OVERLAY DE VIDEO A PANTALLA COMPLETA === */
+#videoOvl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(10, 10, 15, 0.98);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999; /* 🔹 encima del video real */
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+  overflow: hidden;
+}
+
+/* Cuando se muestra */
+#videoOvl.show {
+  display: flex !important;
+  opacity: 1;
+}
+
+/* Cabecera superior con botón de cierre */
+#videoOvl::before {
+  content: "✕";
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 22px;
+  color: #ff7b00;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 100000;
+  transition: color 0.2s ease;
+}
+
+#videoOvl::before:hover {
+  color: #ffc26f;
+}
+
+/* Asegura que el video dentro se vea bien */
+#videoOvl video,
+#videoOvl .video-player-wrapper {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.overlay2 {
+
+    display: flex;
+
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    height: 100%;
+    z-index: 20;
+    background: rgba(20, 20, 30, 0.95);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0px 6px 6px 0px;
+    transition: right 0.4s;
+
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
+</style><!-- === FILTROS DE TIEMPO Y STATS === -->
+<div class="row" style="margin-bottom:10px; align-items:center; justify-content:space-between;">
+  <div class="col-md-6">
+    <h5 style="margin:0; color:#f67200;">⏱️ Filtro de Tiempo</h5>
+  </div>
+  <div class="col-md-6" style="text-align:right;">
+    <div id="time-filter" class="btn-group" role="group" aria-label="Filtros de tiempo">
+      <button class="btn btn-sm btn-outline-light time-btn" data-period="5m">5 m</button>
+      <button class="btn btn-sm btn-outline-light time-btn" data-period="15m">15 m</button>
+      <button class="btn btn-sm btn-outline-light time-btn" data-period="1h">1 h</button>
+      <button class="btn btn-sm btn-outline-light time-btn active" data-period="3h">3 h</button>
+      <!--button class="btn btn-sm btn-outline-light time-btn active" data-period="4h">4 h</button-->
+      <button class="btn btn-sm btn-outline-light time-btn" data-period="6h">6 h</button>
+      <button class="btn btn-sm btn-outline-light time-btn" data-period="12h">12 h</button>
+      <button class="btn btn-sm btn-outline-light time-btn" data-period="24h">24 h</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-md-6">
+<!-- === NUEVO PANEL: ESTADÍSTICAS TOP 6 ALERTAS === -->
+    <div class="panel" style="margin-top:3px;">
+      <!--div class="panel-heading">
+        Estadísticas por tipo de alerta
+      </div-->
+      <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Estadísticas por tipo de alerta</span>
+          <button id="btn-reset-tipo" class="btn btn-sm btn-accent" style="border:1px solid #f67200; color:#fff;">
+            Quitar filtro
+          </button>
+        </div>
+      <div class="panel-body">
+        <div id="stats-alertas"></div>
+      </div>
+    </div>
+</div>
+
+<!-- === NUEVO MAPA DE CALOR POR TIPO DE ALERTA === -->
+
+<div class="col-md-6">
+  <div class="panel-heading">
+    Mapa de Calor por Tipo de Alerta
+  </div>
+  <div class="panel-body" style="padding:0;">
+    <div id="heatmap-tipoalerta" style="width:100%; height:490px; border-radius:6px;"></div>
+  </div>
+</div>
+
+
+
+<!-- === CONTENEDOR PRINCIPAL === -->
+<div class="col-md-12">
+  <div class="panel">
+    <div class="panel-heading">
+      <strong>Gráfico de comportamiento evolutivo</strong>
+    </div>
+    <div class="panel-body">
+      <label for="tipoAlertaFiltro">Tipo de alerta:</label>
+      <select id="tipoAlertaFiltro" class="form-control" style="width:100%; margin-bottom:10px;">
+        <option value="0">Todos</option>
+        <option value="1">Accidentes de tránsito</option>
+        <option value="2">Estacionamiento de vehículos</option>
+        <option value="3">Zonas restringidas de vehículos</option>
+        <option value="4">Vehículos abandonados</option>
+        <option value="5">Congestión vehicular</option>
+        <option value="6">Vehículos en listas</option>
+        <option value="7">Zonas de estacionamiento</option>
+        <option value="8">Zonas de pasajes peatonales</option>
+        <option value="9">Zonas de evacuación</option>
+        <option value="10">Zonas de ciclovías</option>
+        <option value="11">Zonas de centros de salud</option>
+        <option value="12">Zonas de restricción temporal por obras</option>
+        <option value="13">Zonas de proximidad a monumentos</option>
+        <option value="14">Zonas de puentes y viaductos</option>
+        <option value="15">Zona restringida de personas</option>
+        <option value="16">Personas en lista</option>
+        <option value="17">Aglomeración de personas</option>
+        <option value="18">Detección de violencia</option>
+        <option value="19">Vehículo robado encontrado</option>
+        <option value="20">Vehículo sospechoso encontrado</option>
+        <option value="21">Persona desaparecida encontrada</option>
+        <option value="22">Persona requisitoriada encontrada</option>
+        <option value="23">Persona sospechosa encontrada</option>
+      </select>
+      <div id="line-chart"></div>
+    </div>
+  </div>
+</div>
+<!--div class="col-md-4">
+    <div id="camera-list-container" style="margin-top:10px; display:flex; flex-direction:row;">
+      <div id="camera-list" style="width:35%; background:#2b2b3d; color:#fff; border-radius:6px; padding:10px; margin-left:10px; max-height:400px; overflow-y:auto;">
+        <h5 style="color:#f67200; font-weight:bold;">📸 Top 10 cámaras con más alertas</h5>
+        <ul id="camera-list-ul" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
+    </div>
+</div>
+
+<div class="col-md-8">
+  
+  <div class="panel" style="margin-top:20px;">
+    <div class="panel-heading">
+      Mapa de calor de alertas (últimas 4 horas)
+    </div>
+    <div class="panel-body">
+      <div id="heatmap"></div>
+    </div>
+  </div>
+</div-->
+
+<!-- === NUEVO PANEL: DISTRIBUCIÓN POR ÁREA / ZONA / SUBZONA === -->
+<div class="col-md-12">
+  <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center;">
+    <span><strong>Distribución por Áreas, Zonas y Subzonas</strong></span>
+    <button id="btn-reset-areas" class="btn btn-sm btn-accent btn-reset" disabled>Quitar filtro</button>
+  </div>
+  <div class="panel-body">
+    <div id="stats-areas-zonas"></div>
+  </div>
+</div>
+<div class="row row-equal" style="margin-top:3px;">
+  <!-- 🧭 TABLA DE CÁMARAS -->
+  <div class="col-md-5" style="display:flex; flex-direction:column;">
+<div id="camera-list-container" class="panel">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <h5 style="color:#f67200; font-weight:bold; margin:0;">📸 Top 8 cámaras con más alertas</h5>
+    <button id="btn-reset-camaras" class="btn btn-sm btn-accent" style="border:1px solid #f67200; color:#fff;">
+      Quitar filtro
+    </button>
+  </div>
+  <div id="camera-list">
+    <ul id="camera-list-ul" style="list-style:none; padding:0; margin:0;"></ul>
+  </div>
+</div>
+  </div>
+
+  <!-- 🗺️ MAPA DE CALOR -->
+  <div class="col-md-7" style="display:flex; flex-direction:column;">
+    <div id="heatmap-container" class="panel" style="flex:1; padding:0; background:#1e1e2f;">
+      <div id="heatmap"></div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<!-- === KPIs === -->
+<div class="row" id="stats-row" style="margin-bottom:20px;">
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-title">Cámaras Activas</div>
+      <div class="kpi-value" id="kpi-active-cams">--</div>
+      <div class="kpi-sub"><span id="kpi-active-percent">--%</span> del total</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-title">Cámaras Inactivas</div>
+      <div class="kpi-value" id="kpi-inactive-cams">--</div>
+      <div class="kpi-sub"><span id="kpi-inactive-percent">--%</span> del total</div>
+    </div>
+  </div>
+  
+    <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-title">Cámaras con perdida de frames</div>
+      <div class="kpi-value" id="kpi-lostframes-cams">--</div>
+      <div class="kpi-sub"><span id="kpi-inactive-percent">--%</span> del total</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-title">Alertas del periodo</div>
+      <div class="kpi-value" id="kpi-total-alerts">--</div>
+
+    </div>
+  </div>
+  
+  
+
+    <!-- === MODAL DE VIDEO DE CÁMARA === -->
+    <div id="cameraModal" class="modal" tabindex="-1"
+      style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+             background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+      
+      <div class="modal-content"
+        style="background:#1e1e2f; border-radius:8px; padding:15px; width:90%; max-width:1000px;
+               color:white; position:relative;">
+    
+        <!-- Botón de cerrar -->
+        <button id="closeModal"
+          style="position:absolute; top:10px; right:15px; background:none; border:none;
+                 color:#f67200; font-size:22px; cursor:pointer;">✕</button>
+    
+        <!-- Botón de activar/desactivar boxes -->
+        <!--button id="toggleBboxBtn"
+          onclick="toggleBoundingBoxes()"
+          class="btn btn-sm active"
+          style="position:absolute; top:10px; right:55px; background:none; border:1px solid #22e6d9;
+                 color:#22e6d9; font-size:12px; border-radius:4px; padding:4px 8px;">
+          🧩 Activar Boxes
+        </button-->
+    
+        <!-- 🟢 Cabecera de cámara -->
+        <div id="modal-header"
+          style="margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">
+          <h4 id="modal-camera-name" style="margin:0; color:#22e6d9;">Cámara: —</h4>
+          <div id="modal-info" style="font-size:13px; color:#bbb;">
+            <p id="modal-location" style="margin:2px 0;">Ubicación: —</p>
+            <!--p id="modal-datetime" style="margin:2px 0;">Fecha y Hora: —</p>
+            <p id="modal-objetivo" style="margin:2px 0;">Última alerta: —</p-->
+          </div>
+        </div>
+    
+        <!-- 🟢 Contenedor principal en dos columnas -->
+        <div style="display:flex; gap:15px; align-items:stretch; height:430px;">
+          
+          <!-- 📋 Lista de alertas recientes -->
+          <div id="camera-alerts-list"
+            style="flex:1; overflow-y:auto; background:#232338; border-radius:6px; padding:10px;">
+            <h5 style="color:#f67200; margin-bottom:8px;">📋 Alertas recientes</h5>
+            <div id="camera-alerts-items" style="font-size:13px; color:#ddd;">
+              <p style="opacity:0.6;">Sin alertas recientes.</p>
+            </div>
+          </div>
+    
+          <!-- 🎥 Video / frames -->
+          <div id="modal-frame-container"
+            style="flex:2; position:relative; background:#000;
+                   display:flex; justify-content:center; align-items:center; border-radius:6px;">
+                         <div id="frame-timestamp" 
+                 style="
+                   position:absolute;
+                   top:10px;
+                   left:10px;
+                   background:rgba(0,0,0,0.55);
+                   padding:4px 8px;
+                   font-size:12px;
+                   font-weight:bold;
+                   color:#fff;
+                   border-radius:4px;
+                   z-index:30;
+                 ">
+              --
+            </div>
+            <div id="frame-slot"
+              style="width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
+              <span style="color:#666;">Cargando video...</span>
+   
+            </div>
+          </div>
+    
+        </div>
+      </div>
+    </div>
+    
+        <div class="overlay2" id="videoOvl" aria-hidden="true" style="display: none;width:100% !important;">
+      <div class="modal-video" role="dialog" aria-modal="true">
+        <div class="modal-content">
+          <div class="modal-header text-left" style="display: flex;justify-content: space-between;">
+            <div style="width:100%">
+              <span class="c-white" style="float:right" id="showtime"><button type="button" class="btn btn-danger btn-rounded" id="closeVideoModal">X</button></span>
+              <h3>Identificador: <span class="c-white" id="showId"></span></h3>
+              <h5>Alerta: <span class="c-white" id="showAlert"></span></h5>
+              <!--h5>Cámara: <span class="c-white" id="showcamera"></span></h5>
+              <h5>Ubicación: <span class="c-white" id="showUbication"></span></h5-->
+              <h5>Fecha y hora: <span class="c-white" id="fechahoravideo"> </span></h5>
+              <div id="showlocation"></div>
+            </div>
+            <div id="photo-short" style="display:none; width:100%; justify-content:end; gap: 1em;">
+              <div class="image-section" style="overflow:hidden;">
+                <div class="image-label">Detección Recortada</div>
+                <div class="image-container" id="cropped-detection"></div>
+              </div>
+              <div class="image-section" id="photo-name">
+                <div class="image-label">Foto de Referencia</div>
+                <div class="image-container" id="person-photo"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="modal-body">
+            <div class="video-player-wrapper"></div>  
+            <div class="person-info-panel" id="person-info-panel" style="display: none;">
+              <h4>Detección</h4>
+              <div id="person-data"></div>
+            </div>
+          </div>
+          
+          <!--div class="modal-footer">
+            <button type="button" class="btn btn-danger btn-rounded" id="closeVideoModal">Cerrar</button>
+          </div-->
+        </div>
+      </div>
+    </div>
+
+
+</div>
+
+<!-- === LIBRERÍAS === -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+<script>
+let chart = echarts.init(document.getElementById('line-chart'));
+let refreshTimer = null;
+let allAlertas = [];
+let tipoActual = "0";
+let map, heatLayer;
+let periodoActual = "3h"; // valor por defecto
+
+/* =====================================================
+   🧩 FUNCIÓN PARA OBTENER ALERTAS DESDE EL API
+   ===================================================== */
+async function fetchAlertasPorTipo(type_event = 0) {
+    
+    //log("aqui")
+  callAPI({
+   // method: 'gestion/getalerts',
+    
+    method: 'dashboards/alertscache',
+    params: { type_event: type_event, window: periodoActual  },
+    ok: function (vals) {
+      log("vals", vals.data);
+      allAlertas = vals.data || [];
+      renderLineChart(allAlertas);
+      renderHeatMap(allAlertas); // 🔥 también actualiza el mapa
+      renderTopAlertStats(allAlertas); // 🆕
+      //renderKpiStats(allAlertas);
+      renderAreaZoneSubzoneStats(allAlertas);
+
+    },
+    error: function (err) {
+      console.error('❌ Error getAlertasPorTipo:', err);
+    }
+  });
+}
+
+/* =====================================================
+   🧩 FUNCIÓN PARA RENDERIZAR EL GRÁFICO
+   ===================================================== */
+function renderLineChartxHora(alertas) {
+  const ahora = Date.now();
+  const horas = [];
+  for (let i = 4; i >= 0; i--) {
+    const t = new Date(ahora - i * 60 * 60 * 1000);
+    horas.push(t.getHours().toString().padStart(2, "0") + ":00");
+  }
+
+  const conteo = {};
+  for (let h of horas) conteo[h] = 0;
+  for (let alerta of alertas) {
+    if (!alerta.epoch_frame) continue;
+    const fecha = new Date(alerta.epoch_frame);
+    const horaKey = fecha.getHours().toString().padStart(2, "0") + ":00";
+    if (conteo[horaKey] !== undefined) conteo[horaKey]++;
+  }
+
+  const valores = horas.map(h => conteo[h]);
+  const nombreTipo = obtenerNombreTipo(tipoActual);
+
+  const option = {
+    backgroundColor: "transparent",
+    tooltip: {
+      trigger: "axis",
+      formatter: p => {
+        const pt = p[0];
+        return `<b>${nombreTipo}</b><br>Hora: ${pt.axisValue}<br>Alertas: <b>${pt.data}</b>`;
+      }
+    },
+    xAxis: {
+      type: "category",
+      data: horas,
+      axisLine: { lineStyle: { color: "#fff" } },
+      axisLabel: { color: "#fff" }
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { lineStyle: { color: "#fff" } },
+      axisLabel: { color: "#fff" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } }
+    },
+    series: [{
+      name: "Alertas",
+      type: "line",
+      data: valores,
+      smooth: true,
+      lineStyle: { color: "#f67200", width: 3 },
+      itemStyle: { color: "#f67200" },
+      label: { show: true, position: "top", color: "#fff", fontWeight: "bold" }
+    }]
+  };
+  chart.setOption(option);
+}
+
+function renderLineChartlinea(alertas) {
+  if (!alertas || alertas.length === 0) {
+    chart.clear();
+    chart.setOption({
+      title: { text: "Sin datos disponibles", left: "center", textStyle: { color: "#fff" } }
+    });
+    return;
+  }
+noshowwait = 1; 
+  // 🧩 Ordenar por tiempo
+  const sorted = alertas
+    .filter(a => a.epoch_frame)
+    .sort((a, b) => a.epoch_frame - b.epoch_frame);
+
+  // 🕓 Extraer puntos de tiempo
+  const times = sorted.map(a => {
+    const fecha = new Date(a.epoch_frame);
+    // formato corto: "HH:mm:ss" o "DD/MM HH:mm"
+    return `${fecha.getHours().toString().padStart(2, "0")}:${fecha.getMinutes().toString().padStart(2, "0")}:${fecha.getSeconds().toString().padStart(2, "0")}`;
+  });
+
+  // 📈 Acumulado o conteo directo
+  const values = sorted.map((_, idx) => idx + 1); // cantidad acumulada en el tiempo
+
+  const nombreTipo = obtenerNombreTipo(tipoActual);
+
+  const option = {
+    backgroundColor: "transparent",
+    tooltip: {
+      trigger: "axis",
+      formatter: p => {
+        const pt = p[0];
+        return `<b>${nombreTipo}</b><br>Tiempo: ${pt.axisValue}<br>Alerta #${pt.data}`;
+      }
+    },
+    xAxis: {
+      type: "category",
+      data: times,
+      name: "Tiempo",
+      axisLine: { lineStyle: { color: "#fff" } },
+      axisLabel: {
+        color: "#fff",
+        rotate: 45,
+        fontSize: 10,
+        formatter: (val, idx) => (idx % Math.ceil(times.length / 10) === 0 ? val : "")
+      }
+    },
+    yAxis: {
+      type: "value",
+      name: "Alertas acumuladas",
+      axisLine: { lineStyle: { color: "#fff" } },
+      axisLabel: { color: "#fff" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } }
+    },
+    series: [{
+      name: "Alertas",
+      type: "line",
+      data: values,
+      smooth: true,
+      showSymbol: false,
+      lineStyle: { color: "#f67200", width: 2 },
+      itemStyle: { color: "#f67200" },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: "rgba(246, 114, 0, 0.4)" },
+          { offset: 1, color: "rgba(246, 114, 0, 0.05)" }
+        ])
+      }
+    }]
+  };
+
+  chart.setOption(option);
+}
+
+function renderLineChart(alertas) {
+  if (!alertas || alertas.length === 0) {
+    chart.clear();
+    chart.setOption({
+      title: { text: "Sin datos disponibles", left: "center", textStyle: { color: "#fff" } }
+    });
+    return;
+  }
+
+  // 🕓 Determinar intervalo de agrupación según el periodoActual
+  let intervalMs = 60 * 1000; // 1 min por defecto
+  if (periodoActual.includes("m")) {
+    const minutos = parseInt(periodoActual);
+    intervalMs = minutos <= 5 ? 60 * 1000 : 10 * 60 * 1000; // ≤5m → 1min, sino 10min
+  } else if (periodoActual.includes("h")) {
+    const horas = parseInt(periodoActual);
+    if (horas <= 3) intervalMs = 10 * 60 * 1000; // 10 min
+    else if (horas <= 6) intervalMs = 30 * 60 * 1000; // 30 min
+    else intervalMs = 60 * 60 * 1000; // 1 hora
+  }
+
+  // 🧩 Ordenar por tiempo
+  const sorted = alertas
+    .filter(a => a.epoch_frame)
+    .sort((a, b) => a.epoch_frame - b.epoch_frame);
+
+  // 🧮 Agrupar por intervalos de tiempo
+  const start = sorted[0].epoch_frame;
+  const end = sorted[sorted.length - 1].epoch_frame;
+  const buckets = {};
+
+  for (let t = start; t <= end; t += intervalMs) {
+    const key = Math.floor(t / intervalMs) * intervalMs;
+    buckets[key] = 0;
+  }
+
+  sorted.forEach(a => {
+    const key = Math.floor(a.epoch_frame / intervalMs) * intervalMs;
+    buckets[key] = (buckets[key] || 0) + 1;
+  });
+
+  // 🕓 Eje X: etiquetas legibles según el intervalo
+  const labels = Object.keys(buckets).sort((a, b) => a - b).map(ts => {
+    const d = new Date(Number(ts));
+    if (intervalMs < 60 * 60 * 1000) {
+      return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+    } else {
+      return `${d.getHours().toString().padStart(2, "0")}:00`;
+    }
+  });
+
+  const valores = Object.values(buckets);
+  const nombreTipo = obtenerNombreTipo(tipoActual);
+
+  // 📊 Renderizar gráfico
+  const option = {
+    backgroundColor: "transparent",
+    tooltip: {
+      trigger: "axis",
+      formatter: p => {
+        const pt = p[0];
+        return `<b>${nombreTipo}</b><br>Periodo: ${pt.axisValue}<br>Alertas: <b>${pt.data}</b>`;
+      }
+    },
+    xAxis: {
+      type: "category",
+      data: labels,
+      name: "Tiempo",
+      axisLine: { lineStyle: { color: "#fff" } },
+      axisLabel: {
+        color: "#fff",
+        rotate: 45,
+        fontSize: 10,
+        formatter: (val, idx) => (idx % Math.ceil(labels.length / 10) === 0 ? val : "")
+      }
+    },
+    yAxis: {
+      type: "value",
+      name: "Cantidad de alertas",
+      axisLine: { lineStyle: { color: "#fff" } },
+      axisLabel: { color: "#fff" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } }
+    },
+
+    // 🔍 Zoom y desplazamiento interactivo
+    dataZoom: [
+      {
+        type: "inside",
+        throttle: 50,
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+        moveOnMouseWheel: true
+      },
+      {
+        type: "slider",
+        show: true,
+        height: 20,
+        bottom: 10,
+        textStyle: { color: "#fff" },
+        borderColor: "#444",
+        backgroundColor: "rgba(255,255,255,0.05)",
+        fillerColor: "rgba(246,114,0,0.4)",
+        handleStyle: { color: "#f67200", borderColor: "#f67200" }
+      }
+    ],
+
+    // ⚙️ Herramientas
+    toolbox: {
+      feature: {
+        saveAsImage: { show: true, title: "Guardar PNG" },
+        restore: { show: true, title: "Restaurar vista" },
+        dataZoom: { show: true, title: { zoom: "Zoom", back: "Reiniciar zoom" } }
+      },
+      iconStyle: { borderColor: "#f67200" },
+      right: 20,
+      top: 10
+    },
+
+    series: [{
+      name: "Alertas",
+      type: "line",
+      data: valores,
+      smooth: true,
+      showSymbol: true, // 🔸 muestra puntos
+      symbolSize: 6,
+      lineStyle: { color: "#f67200", width: 2 },
+      itemStyle: { color: "#f67200" },
+      label: { show: true, position: "top", color: "#fff", fontWeight: "bold", fontSize: 10 },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: "rgba(246,114,0,0.4)" },
+          { offset: 1, color: "rgba(246,114,0,0.05)" }
+        ])
+      }
+    }]
+  };
+
+  chart.setOption(option);
+}
+
+/* =====================================================
+   🧩 FUNCIÓN PARA RENDERIZAR MAPA DE CALOR
+   ===================================================== */
+
+
+function renderHeatMapold(alertas) {
+  if (!map) {
+    map = L.map('heatmap').setView([-12.121, -77.03], 14);
+
+    // 🗺️ Capa base oscura
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+  }
+
+  // 🔥 Generar puntos de calor
+  const puntos = alertas
+    .filter(a => a.latitud && a.longitud)
+    .map(a => [a.latitud, a.longitud, 0.8]);
+
+  if (heatLayer) map.removeLayer(heatLayer);
+  heatLayer = L.heatLayer(puntos, {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+    gradient: {
+      0.2: 'blue',
+      0.4: 'lime',
+      0.6: 'yellow',
+      0.8: 'orange',
+      1.0: 'red'
+    }
+  }).addTo(map);
+
+  /* =========================================================
+     📍 NUEVO: PINCHOS DE CÁMARAS CON TOOLTIP Y LISTA
+     ========================================================= */
+  if (window.cameraMarkers) {
+    window.cameraMarkers.forEach(m => map.removeLayer(m));
+  }
+  window.cameraMarkers = [];
+
+  // Agrupar alertas por cámara
+  const camStats = {};
+  alertas.forEach(a => {
+    if (!a.camera_id || !a.latitud || !a.longitud) return;
+    if (!camStats[a.camera_id]) {
+      camStats[a.camera_id] = {
+        camera_name: a.camera_name || "Sin nombre",
+        location: a.location || "Sin ubicación",
+        lat: a.latitud,
+        lon: a.longitud,
+        count: 0
+      };
+    }
+    camStats[a.camera_id].count++;
+  });
+
+  // Crear marcadores
+  Object.values(camStats).forEach(cam => {
+    const marker = L.marker([cam.lat, cam.lon])
+      .bindPopup(
+        `<b>${cam.camera_name}</b><br>${cam.location}<br><b>Alertas:</b> ${cam.count}`
+      )
+      .addTo(map);
+    window.cameraMarkers.push(marker);
+  });
+
+  // 🧮 TOP 10 cámaras con más alertas
+  const top10 = Object.values(camStats)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  // Renderizar lista lateral
+  const ul = document.getElementById('camera-list-ul');
+  if (!ul) return;
+  ul.innerHTML = '';
+
+  top10.forEach((cam, idx) => {
+    const li = document.createElement('li');
+    li.style.padding = '6px 4px';
+    li.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+    li.style.cursor = 'pointer';
+    li.innerHTML = `
+      <span style="color:#f67200; font-weight:bold;">${idx + 1}.</span>
+      <span style="margin-left:4px;">${cam.camera_name}</span>
+      <span style="float:right; color:#ccc;">${cam.count}</span>
+    `;
+    li.addEventListener('click', () => {
+      const marker = window.cameraMarkers.find(m => {
+        const pos = m.getLatLng();
+        return pos.lat === cam.lat && pos.lng === cam.lon;
+      });
+      if (marker) {
+        map.setView([cam.lat, cam.lon], 17);
+        marker.openPopup();
+      }
+    });
+    ul.appendChild(li);
+  });
+}
+function renderHeatMapold(alertas) {
+
+
+    if (!map) {
+      map = L.map('heatmap').setView([-12.121, -77.03], 14);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      // ✅ Espera 300 ms y recalcula tamaño
+      setTimeout(() => map.invalidateSize(), 300);
+    }
+
+  
+
+  /* =========================================================
+     🔥 INTENSIDAD PROPORCIONAL (rojo = cámara más activa)
+     ========================================================= */
+  const camStats = {};
+  alertas.forEach(a => {
+    if (a.camera_id && a.latitud && a.longitud) {
+      if (!camStats[a.camera_id]) {
+        camStats[a.camera_id] = { lat: a.latitud, lon: a.longitud, count: 0 };
+      }
+      camStats[a.camera_id].count++;
+    }
+  });
+
+  const maxCount = Math.max(...Object.values(camStats).map(c => c.count), 1);
+
+  const puntos = Object.values(camStats).map(c => {
+    const intensidad = Math.max(0.2, c.count / maxCount); // escala 0.2 → 1.0
+    return [c.lat, c.lon, intensidad];
+  });
+
+  if (heatLayer) map.removeLayer(heatLayer);
+  heatLayer = L.heatLayer(puntos, {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+    gradient: {
+      0.2: '#0033ff',
+      0.4: '#00ffcc',
+      0.6: '#ffff33',
+      0.8: '#ff6600',
+      1.0: '#ff0000'
+    }
+  }).addTo(map);
+
+  /* =========================================================
+     📍 MARCADORES + TABLA TOP 10 (todas visibles en el contenedor)
+     ========================================================= */
+  if (window.cameraMarkers) {
+    window.cameraMarkers.forEach(m => map.removeLayer(m));
+  }
+  window.cameraMarkers = [];
+
+  // Agrupar alertas detalladas
+  const camDetails = {};
+  alertas.forEach(a => {
+    if (!a.camera_id || !a.latitud || !a.longitud) return;
+    if (!camDetails[a.camera_id]) {
+      camDetails[a.camera_id] = {
+        camera_name: a.camera_name || "Sin nombre",
+        location: a.location || "Sin ubicación",
+        lat: a.latitud,
+        lon: a.longitud,
+        count: 0
+      };
+    }
+    camDetails[a.camera_id].count++;
+  });
+
+  // Crear marcadores en el mapa
+  Object.values(camDetails).forEach(cam => {
+    const marker = L.marker([cam.lat, cam.lon])
+      .bindPopup(
+        `<b>${cam.camera_name}</b><br>${cam.location}<br><b>Alertas:</b> ${cam.count}`
+      )
+      .addTo(map);
+    window.cameraMarkers.push(marker);
+  });
+
+  // 🧮 Top 10 cámaras más activas
+  const top10 = Object.values(camDetails)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  // Renderizar tabla sin recortar cámaras
+  const container = document.getElementById('camera-list-ul');
+  if (!container) return;
+
+  container.innerHTML = `
+    <table style="width:100%; color:white; border-collapse:collapse; table-layout:fixed;">
+      <thead>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+          <th style="text-align:left;">Cámara</th>
+          <th style="text-align:center;">Alertas</th>
+          <th style="text-align:right;">%</th>
+        </tr>
+      </thead>
+      <tbody id="camera-list-body"></tbody>
+    </table>
+  `;
+
+  const totalAlertas = Object.values(camDetails).reduce((sum, c) => sum + c.count, 0);
+  const tbody = document.getElementById('camera-list-body');
+
+  top10.forEach((cam, idx) => {
+    const pct = totalAlertas > 0 ? ((cam.count / totalAlertas) * 100).toFixed(1) : 0;
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+    tr.innerHTML = `
+      <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cam.camera_name}</td>
+      <td style="text-align:center;">
+        <div style="background:rgba(255,255,255,0.1); height:10px; border-radius:4px; position:relative;">
+          <div style="background:#f67200; width:${pct}%; height:10px; border-radius:4px;"></div>
+        </div>
+        <small>${cam.count}</small>
+      </td>
+      <td style="text-align:right;">${pct}%</td>
+    `;
+    tr.addEventListener('click', () => {
+      const marker = window.cameraMarkers.find(m => {
+        const pos = m.getLatLng();
+        return pos.lat === cam.lat && pos.lng === cam.lon;
+      });
+      if (marker) {
+        map.setView([cam.lat, cam.lon], 17);
+        marker.openPopup();
+      }
+    });
+    tbody.appendChild(tr);
+  });
+
+  // 🧩 Asegurar que todas las 10 cámaras se vean
+  const cameraListContainer = document.getElementById('camera-list');
+  if (cameraListContainer) {
+    cameraListContainer.style.height = 'auto';
+    cameraListContainer.style.overflow = 'visible';
+  }
+}
+
+function renderHeatMap(alertas) {
+  if (!map) {
+    map = L.map('heatmap').setView([-12.121, -77.03], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // ✅ Espera a que el contenedor tenga tamaño visible
+    setTimeout(() => map.invalidateSize(), 300);
+  }
+
+  /* =========================================================
+     🔥 INTENSIDAD PROPORCIONAL (rojo = cámara más activa)
+     ========================================================= */
+  const camStats = {};
+  alertas.forEach(a => {
+    if (a.camera_id && a.latitud && a.longitud) {
+      if (!camStats[a.camera_id]) {
+        camStats[a.camera_id] = { lat: a.latitud, lon: a.longitud, count: 0 };
+      }
+      camStats[a.camera_id].count++;
+    }
+  });
+
+  const maxCount = Math.max(...Object.values(camStats).map(c => c.count), 1);
+  const puntos = Object.values(camStats).map(c => {
+    const intensidad = Math.max(0.2, c.count / maxCount); // escala 0.2 → 1.0
+    return [c.lat, c.lon, intensidad];
+  });
+
+  // ✅ Evitar error si no hay puntos
+  if (!puntos.length) {
+    if (heatLayer) map.removeLayer(heatLayer);
+    return;
+  }
+
+  if (heatLayer) map.removeLayer(heatLayer);
+  heatLayer = L.heatLayer(puntos, {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+    gradient: {
+      0.2: '#0033ff',
+      0.4: '#00ffcc',
+      0.6: '#ffff33',
+      0.8: '#ff6600',
+      1.0: '#ff0000'
+    }
+  }).addTo(map);
+
+  /* =========================================================
+     📍 MARCADORES + TABLA TOP 8
+     ========================================================= */
+  if (window.cameraMarkers) {
+    window.cameraMarkers.forEach(m => map.removeLayer(m));
+  }
+  window.cameraMarkers = [];
+
+  const camDetails = {};
+  alertas.forEach(a => {
+    if (!a.camera_id || !a.latitud || !a.longitud) return;
+    if (!camDetails[a.camera_id]) {
+      camDetails[a.camera_id] = {
+        camera_name: a.camera_name || "Sin nombre",
+        location: a.location || "Sin ubicación",
+        lat: a.latitud,
+        lon: a.longitud,
+        count: 0
+      };
+    }
+    camDetails[a.camera_id].count++;
+  });
+/*
+  Object.values(camDetails).forEach(cam => {
+    const marker = L.marker([cam.lat, cam.lon])
+      .bindPopup(`<b>${cam.camera_name}</b><br>${cam.location}<br><b>Alertas:</b> ${cam.count}`)
+      .addTo(map);
+    window.cameraMarkers.push(marker);
+  });
+  */
+  
+  Object.entries(camDetails).forEach(([cameraId, cam]) => {
+  const marker = L.marker([cam.lat, cam.lon])
+    .bindPopup(`<b>${cam.camera_name}</b><br>${cam.location}<br><b>Alertas:</b> ${cam.count}`)
+    .addTo(map);
+
+  // 🎥 NUEVO: al hacer clic sobre el marcador → abrir modal de cámara
+  marker.on('click', () => {
+    openCameraModal(cameraId);
+  });
+
+  window.cameraMarkers.push(marker);
+});
+
+
+  const top8 = Object.values(camDetails).sort((a, b) => b.count - a.count).slice(0, 8);
+  const container = document.getElementById('camera-list-ul');
+  if (!container) return;
+
+  container.innerHTML = `
+    <table style="width:100%; color:white; border-collapse:collapse; table-layout:fixed;">
+      <thead>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+          <th style="text-align:left;">Cámara</th>
+          <th style="text-align:center;">Alertas</th>
+          <th style="text-align:right;">%</th>
+        </tr>
+      </thead>
+      <tbody id="camera-list-body"></tbody>
+    </table>
+  `;
+
+  const totalAlertas = Object.values(camDetails).reduce((sum, c) => sum + c.count, 0);
+  const tbody = document.getElementById('camera-list-body');
+
+  top8.forEach(cam => {
+    const pct = totalAlertas > 0 ? ((cam.count / totalAlertas) * 100).toFixed(1) : 0;
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+    tr.innerHTML = `
+      <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cam.camera_name}</td>
+      <td style="text-align:center;">
+        <div style="background:rgba(255,255,255,0.1); height:10px; border-radius:4px; position:relative;">
+          <div style="background:#f67200; width:${pct}%; height:10px; border-radius:4px;"></div>
+        </div>
+        <small>${cam.count}</small>
+      </td>
+      <td style="text-align:right;">${pct}%</td>
+    `;
+    tr.addEventListener('click', () => {
+      const marker = window.cameraMarkers.find(m => {
+        const pos = m.getLatLng();
+        return pos.lat === cam.lat && pos.lng === cam.lon;
+      });
+      if (marker) {
+        map.setView([cam.lat, cam.lon], 17);
+        marker.openPopup();
+      }
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+/* =====================================================
+   🧩 NOMBRE DEL TIPO DE ALERTA
+   ===================================================== */
+function obtenerNombreTipo(id) {
+  const tipos = {
+    0: "Todos los tipos",
+    1: "Accidentes de tránsito",
+    2: "Estacionamiento de vehículos",
+    3: "Zonas restringidas de vehículos",
+    4: "Vehículos abandonados",
+    5: "Congestión vehicular",
+    6: "Vehículos en listas",
+    7: "Zonas de estacionamiento",
+    8: "Zonas de pasajes peatonales",
+    9: "Zonas de evacuación",
+    10: "Zonas de ciclovías",
+    11: "Zonas de centros de salud",
+    12: "Zonas de restricción temporal por obras",
+    13: "Zonas de proximidad a monumentos",
+    14: "Zonas de puentes y viaductos",
+    15: "Zona restringida de personas",
+    16: "Personas en lista",
+    17: "Aglomeración de personas",
+    18: "Detección de violencia",
+    19: "Detección de vehículo robado",
+    20: "Detección de vehículo sospechoso",
+    21: "Detección de persona desaparecidad",
+    22: "Detección de persona requisitoriada",
+    23: "Detección de persona sospechosa",
+  };
+  return tipos[id] || "Desconocido";
+}
+
+/* =====================================================
+   🧩 AUTO-REFRESH CADA 30 s
+   ===================================================== */
+function iniciarAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(actualizarGrafico, 30000);
+}
+
+/* =====================================================
+   🧩 FILTRO LOCAL EN CLIENTE
+   ===================================================== */
+function filtrarAlertasPorTipo(tipoSeleccionado) {
+  if (!Array.isArray(allAlertas)) return [];
+  if (tipoSeleccionado === "0" || tipoSeleccionado === 0) return allAlertas;
+  return allAlertas.filter(a => String(a.type_event_id) === String(tipoSeleccionado));
+}
+
+/* =====================================================
+   🧩 EVENTO DE CAMBIO EN SELECT
+   ===================================================== */
+document.getElementById("tipoAlertaFiltro").addEventListener("change", function (e) {
+  tipoActual = e.target.value;
+  const filtradas = filtrarAlertasPorTipo(tipoActual);
+  renderLineChart(filtradas);
+  renderHeatMap(filtradas);
+  iniciarAutoRefresh();
+});
+
+/* =====================================================
+   🧩 ACTUALIZAR GRÁFICO (desde API)
+   ===================================================== */
+ function actualizarGrafico() {
+    //log("actualizarGrafico")
+  callAPI({
+    //method: 'gestion/getalerts',
+    method: 'dashboards/alertscache',
+    params: { window: periodoActual }, // 🔥 nuevo parámetro
+    ok: function (vals) {
+        //log("actualizarGrafico",vals.data)
+      allAlertas = vals.data || [];
+      const filtradas = filtrarAlertasPorTipo(tipoActual);
+      renderLineChart(filtradas);
+      renderHeatMap(filtradas);
+      renderTopAlertStats(allAlertas); // 🆕
+    // renderKpiStats(allAlertas); // 🆕 nuevo KPI
+     renderAreaZoneSubzoneStats(allAlertas);
+    },
+    error: function (err) {
+      console.error('❌ Error getAlertasPorTipo:', err);
+    }
+  });
+}
+
+/* =====================================================
+   🔥 NUEVO MAPA DE CALOR POR TIPO DE ALERTA (INDEPENDIENTE)
+   ===================================================== */
+let mapTipo = null;
+let heatLayerTipo = null;
+
+function renderHeatMapPorTipoold(alertas) {
+  if (!alertas || alertas.length === 0) return;
+
+    if (!mapTipo) {
+      mapTipo = L.map('heatmap-tipoalerta').setView([-12.121, -77.03], 14);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(mapTipo);
+      // ✅ Espera 300 ms y recalcula tamaño
+      setTimeout(() => mapTipo.invalidateSize(), 300);
+    }
+
+  // 🔸 Agrupar alertas por coordenadas (densidad)
+  const puntos = alertas
+    .filter(a => a.latitud && a.longitud)
+    .map(a => [a.latitud, a.longitud, 0.8]);
+
+  if (heatLayerTipo) mapTipo.removeLayer(heatLayerTipo);
+  heatLayerTipo = L.heatLayer(puntos, {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+    gradient: {
+      0.2: '#0044ff',
+      0.4: '#00ffcc',
+      0.6: '#ffff66',
+      0.8: '#ff6600',
+      1.0: '#ff0000'
+    }
+  }).addTo(mapTipo);
+}
+
+function renderHeatMapPorTipoold2(alertas) {
+  if (!alertas || alertas.length === 0) return;
+
+  // Inicializa el mapa si no existe
+  if (!mapTipo) {
+    mapTipo = L.map('heatmap-tipoalerta').setView([-12.121, -77.03], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapTipo);
+  }
+
+  // 🔥 Agrupar alertas por cámara
+  const camStats = {};
+  alertas.forEach(a => {
+    if (a.camera_id && a.latitud && a.longitud) {
+      if (!camStats[a.camera_id]) {
+        camStats[a.camera_id] = {
+          lat: a.latitud,
+          lon: a.longitud,
+          camera_name: a.camera_name || "Cámara sin nombre",
+          location: a.location || "Ubicación no especificada",
+          count: 0
+        };
+      }
+      camStats[a.camera_id].count++;
+    }
+  });
+
+  // 🔺 Normalizar intensidad según el total máximo
+  const maxCount = Math.max(...Object.values(camStats).map(c => c.count), 1);
+  const puntos = Object.values(camStats).map(c => {
+    const intensidad = Math.max(0.2, c.count / maxCount); // 0.2 → 1.0
+    return [c.lat, c.lon, intensidad];
+  });
+
+  // 🔄 Limpiar capa de calor anterior si existe
+  if (heatLayerTipo) mapTipo.removeLayer(heatLayerTipo);
+
+  // 🔥 Crear nueva capa de calor
+  heatLayerTipo = L.heatLayer(puntos, {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+    gradient: {
+      0.2: '#0044ff',
+      0.4: '#00ffcc',
+      0.6: '#ffff66',
+      0.8: '#ff6600',
+      1.0: '#ff0000'
+    }
+  }).addTo(mapTipo);
+
+  // 🧭 Limpiar marcadores previos si existen
+  if (window.tipoAlertMarkers) {
+    window.tipoAlertMarkers.forEach(m => mapTipo.removeLayer(m));
+  }
+  window.tipoAlertMarkers = [];
+
+  // 📍 Agregar marcadores con tooltip informativo
+  Object.values(camStats).forEach(cam => {
+    const marker = L.circleMarker([cam.lat, cam.lon], {
+      radius: 6,
+      fillColor: "#f67200",
+      color: "#fff",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.9
+    }).addTo(mapTipo);
+
+    marker.bindTooltip(
+      `<b>${cam.camera_name}</b><br>` +
+      `${cam.location}<br>` +
+      `<b>Alertas:</b> ${cam.count}`,
+      { direction: "top", offset: [0, -8], opacity: 0.9 }
+    );
+
+    window.tipoAlertMarkers.push(marker);
+  });
+
+  // 🔄 Ajustar el mapa a los puntos visibles
+  const puntosValidos = Object.values(camStats).map(c => [c.lat, c.lon]);
+  if (puntosValidos.length > 0) {
+    mapTipo.fitBounds(puntosValidos, { padding: [20, 20] });
+  }
+}
+
+function renderHeatMapPorTipoold3(alertas) {
+  if (!alertas || alertas.length === 0) return;
+
+  // 🗺️ Crear el mapa si no existe
+  if (!mapTipo) {
+    mapTipo = L.map('heatmap-tipoalerta').setView([-12.121, -77.03], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapTipo);
+  }
+
+  /* =========================================================
+     🔥 INTENSIDAD PROPORCIONAL (rojo = cámara más activa)
+     ========================================================= */
+  const camStats = {};
+  alertas.forEach(a => {
+    if (a.camera_id && a.latitud && a.longitud) {
+      if (!camStats[a.camera_id]) {
+        camStats[a.camera_id] = {
+          lat: a.latitud,
+          lon: a.longitud,
+          camera_name: a.camera_name || "Cámara sin nombre",
+          location: a.location || "Ubicación no especificada",
+          count: 0
+        };
+      }
+      camStats[a.camera_id].count++;
+    }
+  });
+
+  const maxCount = Math.max(...Object.values(camStats).map(c => c.count), 1);
+
+  // 🔹 Puntos con intensidad proporcional
+  const puntos = Object.values(camStats).map(c => {
+    const intensidad = Math.max(0.2, c.count / maxCount);
+    return [c.lat, c.lon, intensidad];
+  });
+
+  // 🔄 Eliminar capa anterior de calor si existe
+  if (heatLayerTipo) mapTipo.removeLayer(heatLayerTipo);
+
+  // 🔥 Capa de calor con el mismo gradiente del mapa de cámaras
+  heatLayerTipo = L.heatLayer(puntos, {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+    gradient: {
+      0.2: '#0033ff',
+      0.4: '#00ffcc',
+      0.6: '#ffff33',
+      0.8: '#ff6600',
+      1.0: '#ff0000'
+    }
+  }).addTo(mapTipo);
+
+  /* =========================================================
+     📍 MARCADORES DE CÁMARAS CON POPUP
+     ========================================================= */
+  if (window.tipoAlertMarkers) {
+    window.tipoAlertMarkers.forEach(m => mapTipo.removeLayer(m));
+  }
+  window.tipoAlertMarkers = [];
+
+  // Crear marcadores con popup
+  Object.values(camStats).forEach(cam => {
+    const marker = L.marker([cam.lat, cam.lon])
+      .bindPopup(
+        `<b>${cam.camera_name}</b><br>${cam.location}<br><b>Alertas:</b> ${cam.count}`
+      )
+      .addTo(mapTipo);
+    window.tipoAlertMarkers.push(marker);
+  });
+
+  // Ajustar la vista a las cámaras activas
+  const puntosValidos = Object.values(camStats).map(c => [c.lat, c.lon]);
+  if (puntosValidos.length > 0) {
+    mapTipo.fitBounds(puntosValidos, { padding: [20, 20] });
+  }
+}
+
+
+function renderHeatMapPorTipo(alertas) {
+  if (!alertas || alertas.length === 0) return;
+
+  if (!mapTipo) {
+    mapTipo = L.map('heatmap-tipoalerta').setView([-12.121, -77.03], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapTipo);
+  }
+
+  // 🔥 Agrupar por cámara
+  const camStats = {};
+  alertas.forEach(a => {
+    if (a.camera_id && a.latitud && a.longitud) {
+      if (!camStats[a.camera_id]) {
+        camStats[a.camera_id] = {
+          lat: a.latitud,
+          lon: a.longitud,
+          camera_name: a.camera_name || "Cámara sin nombre",
+          location: a.location || "Ubicación no especificada",
+          count: 0,
+          type_event: obtenerNombreTipo(a.type_event_id || 0),
+          epoch_frame: a.epoch_frame
+        };
+      }
+      camStats[a.camera_id].count++;
+    }
+  });
+
+  const maxCount = Math.max(...Object.values(camStats).map(c => c.count), 1);
+  const puntos = Object.values(camStats).map(c => {
+    const intensidad = Math.max(0.2, c.count / maxCount);
+    return [c.lat, c.lon, intensidad];
+  });
+
+  if (heatLayerTipo) mapTipo.removeLayer(heatLayerTipo);
+
+  heatLayerTipo = L.heatLayer(puntos, {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+    gradient: {
+      0.2: '#0033ff',
+      0.4: '#00ffcc',
+      0.6: '#ffff33',
+      0.8: '#ff6600',
+      1.0: '#ff0000'
+    }
+  }).addTo(mapTipo);
+
+  // 📍 Marcadores normales (como mapa de cámaras)
+  if (window.tipoAlertMarkers) {
+    window.tipoAlertMarkers.forEach(m => mapTipo.removeLayer(m));
+  }
+  window.tipoAlertMarkers = [];
+
+  Object.entries(camStats).forEach(([cameraId, cam]) => {
+    const marker = L.marker([cam.lat, cam.lon])
+      .bindPopup(`<b>${cam.camera_name}</b><br>${cam.location}<br><b>Alertas:</b> ${cam.count}`)
+      .addTo(mapTipo);
+
+    // 🎥 Al hacer clic -> abrir modal con video
+    marker.on('click', () => {
+      openCameraModal(cameraId, cam);
+    });
+
+    window.tipoAlertMarkers.push(marker);
+  });
+
+  // Ajustar vista
+  const bounds = Object.values(camStats).map(c => [c.lat, c.lon]);
+  if (bounds.length > 0) mapTipo.fitBounds(bounds, { padding: [20, 20] });
+}
+
+/* =====================================================
+   🧩 FUNCIÓN PARA MOSTRAR TOP 6 ALERTAS
+   ===================================================== */
+function renderTopAlertStatsold(alertas) {
+  if (!alertas || alertas.length === 0) {
+    document.getElementById("stats-alertas").innerHTML = "<p>No hay datos disponibles.</p>";
+    return;
+  }
+
+  // Conteo por tipo de alerta
+  const conteo = {};
+  for (const a of alertas) {
+    const tipo = a.type_event_id || 0;
+    conteo[tipo] = (conteo[tipo] || 0) + 1;
+  }
+
+  // Convertir a array y ordenar
+  /*const total = alertas.length;
+  const top6 = Object.entries(conteo)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+    
+    */
+    
+    // Convertir a array, ordenar y mostrar todas con al menos 1 alerta
+const total = alertas.length;
+const top6 = Object.entries(conteo)
+  .filter(([_, count]) => count > 0)       // 🔸 solo las que tengan 1 o más
+  .sort((a, b) => b[1] - a[1]);            // 🔸 orden descendente por cantidad
+
+  // Generar HTML de la tabla con porcentajes
+  let html = `
+    <table class="table table-striped table-dark" style="color:white;">
+      <thead>
+        <tr>
+          <th>Tipo de Alerta</th>
+          <th>Cantidad</th>
+          <th>Porcentaje</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  top6.forEach(([id, count]) => {
+    const nombre = obtenerNombreTipo(id);
+    const pct = ((count / total) * 100).toFixed(1);
+    html += `
+      <tr>
+        <td>${nombre}</td>
+        <td>${count}</td>
+        <td>
+          <div style="display:flex;align-items:center;">
+            <div style="background:#f67200;height:10px;width:${pct}%;margin-right:5px;border-radius:3px;"></div>
+            ${pct}%
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("stats-alertas").innerHTML = html;
+}
+
+
+// 🔄 Evento para botones de período
+document.querySelectorAll('.time-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    periodoActual = e.target.getAttribute('data-period');
+    //document.getElementById("selected-period").innerText = periodoActual;
+    actualizarGrafico(); // reutiliza tu función existente
+  });
+});
+
+/* =====================================================
+   🧩 FUNCIÓN PARA MOSTRAR TOP ALERTAS + MAPA POR TIPO
+   ===================================================== */
+function renderTopAlertStats(alertas) {
+  if (!alertas || alertas.length === 0) {
+    document.getElementById("stats-alertas").innerHTML = "<p>No hay datos disponibles.</p>";
+    renderHeatMapPorTipo([]); // limpiar mapa tipo alerta
+    return;
+  }
+
+  // Conteo por tipo de alerta
+  const conteo = {};
+  for (const a of alertas) {
+    const tipo = a.type_event_id || 0;
+    conteo[tipo] = (conteo[tipo] || 0) + 1;
+  }
+
+  const total = alertas.length;
+  const tipos = Object.entries(conteo)
+    .filter(([_, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1]);
+
+  let html = `
+    <table class="table table-striped table-dark" style="color:white;">
+      <thead><tr><th>Tipo de Alerta</th><th>Cantidad</th><th>%</th></tr></thead>
+      <tbody>
+  `;
+
+  tipos.forEach(([id, count]) => {
+    const nombre = obtenerNombreTipo(id);
+    const pct = ((count / total) * 100).toFixed(1);
+    html += `
+      <tr class="alerta-row" data-type="${id}" style="cursor:pointer;">
+        <td>${nombre}</td>
+        <td>${count}</td>
+        <td>
+          <div style="display:flex;align-items:center;">
+            <div style="background:#f67200;height:10px;width:${pct}%;margin-right:5px;border-radius:3px;"></div>
+            ${pct}%
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("stats-alertas").innerHTML = html;
+
+  /* 🎯 Evento de selección: actualizar solo el mapa de tipo alerta */
+  document.querySelectorAll(".alerta-row").forEach(row => {
+    row.addEventListener("click", e => {
+      const tipo = e.currentTarget.getAttribute("data-type");
+      document.querySelectorAll(".alerta-row").forEach(f => f.style.background = "");
+      e.currentTarget.style.background = "rgba(246,114,0,0.25)";
+      const filtradas =
+        tipo === "0" ? allAlertas :
+        allAlertas.filter(a => String(a.type_event_id) === String(tipo));
+      renderHeatMapPorTipo(filtradas);
+    });
+  });
+
+  // 🔰 Inicializar mapa tipo alerta con todos
+  renderHeatMapPorTipo(alertas);
+}
+
+
+// 📊 Actualiza KPIs
+function renderKpiStats(alertas) {
+  if (!alertas || alertas.length === 0) return;
+  //log("renderKpiStats")
+    // --- Simulación base (ajústalo a tus datos reales) ---
+  let totalCams = 120; // Ejemplo
+  let activeCams = Math.round(totalCams * 0.82); // Ejemplo
+  let inactiveCams = totalCams - activeCams;
+  
+    callAPI({
+    method: 'dashboards/unificado/minuto_cerrado',
+    ok: function (vals) {
+      let camaras = vals || [];
+     // log("camaras",camaras)
+        totalCams=camaras.camera_total;
+        //let camarasObj = JSON.parse(camaras);
+        //inactiveCams = camarasObj.filter(c => c.frames === 0).length;
+        let zeroFrameCameras = camaras.items.filter(
+  c => c.info?.frames?.total === 0
+).length;
+      
+              let fraameslostCameras = camaras.items.filter(
+  c => c.info?.frames?.total <= 50
+).length;
+        document.getElementById('kpi-active-cams').innerText = totalCams;
+        document.getElementById('kpi-inactive-cams').innerText = zeroFrameCameras;
+        document.getElementById('kpi-lostframes-cams').innerText = fraameslostCameras;
+        document.getElementById('kpi-active-percent').innerText = (((totalCams-zeroFrameCameras)/ totalCams) * 100).toFixed(1) + "%";
+        document.getElementById('kpi-inactive-percent').innerText = ((zeroFrameCameras / totalCams) * 100).toFixed(1) + "%";
+    },
+    error: function (err) {
+      console.error('❌ Error unificado/minuto_cerrado', err);
+    }
+  });
+
+
+
+
+  const totalAlerts = alertas.length;
+  const last5mAlerts = alertas.filter(a => a.epoch_frame > (Date.now() - 5 * 60 * 1000)).length;
+  const trend = ((last5mAlerts / totalAlerts) * 100).toFixed(1);
+ document.getElementById('kpi-total-alerts').innerText = totalAlerts;
+  // Actualizar DOM
+  /*
+  document.getElementById('kpi-active-cams').innerText = activeCams;
+  document.getElementById('kpi-inactive-cams').innerText = inactiveCams;
+  document.getElementById('kpi-total-alerts').innerText = totalAlerts;
+  document.getElementById('kpi-period-alerts').innerText = totalAlerts;
+  */
+   //     document.getElementById('kpi-active-percent').innerText = ((activeCams / totalCams) * 100).toFixed(1) + "%";
+   //     document.getElementById('kpi-inactive-percent').innerText = ((inactiveCams / totalCams) * 100).toFixed(1) + "%";
+
+  //document.getElementById('kpi-trend').innerText = trend + "%";
+  //document.getElementById('kpi-trend').style.color = trend > 0 ? "#00e676" : "#ff5252";
+}
+
+
+/* =====================================================
+   🧩 INICIALIZACIÓN
+   ===================================================== */
+window.addEventListener("resize", () => chart.resize());
+actualizarGrafico();
+iniciarAutoRefresh();
+
+/* =====================================================
+   🧩 TOP 8 ÁREAS / ZONAS / SUBZONAS INTERACTIVO
+   ===================================================== */
+let selectedArea = null;
+let selectedZona = null;
+
+function renderAreaZoneSubzoneStats(alertas) {
+  const container = document.getElementById("stats-areas-zonas");
+  if (!container) return;
+
+  if (!alertas || alertas.length === 0) {
+    container.innerHTML = "<p>No hay datos disponibles.</p>";
+    return;
+  }
+
+
+  // 🔹 Agrupar genérico
+  const agruparPor = (arr, campo, filtro = {}) => {
+    const conteo = {};
+    arr.forEach(a => {
+      if (filtro.nombre_area && a.nombre_area !== filtro.nombre_area) return;
+      if (filtro.nombre_zona && a.nombre_zona !== filtro.nombre_zona) return;
+      const key = a[campo] || "Sin dato";
+      conteo[key] = (conteo[key] || 0) + 1;
+    });
+    return Object.entries(conteo)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8);
+  };
+
+  // 🔸 Datos base según selección
+  const topAreas = agruparPor(alertas, "nombre_area");
+  const topZonas = agruparPor(alertas, "nombre_zona", selectedArea ? { nombre_area: selectedArea } : {});
+  const topSubzonas = agruparPor(alertas, "nombre_subzona", selectedZona ? { nombre_zona: selectedZona } : {});
+
+  // 🔸 Crear tabla HTML
+  const crearTabla = (titulo, datos, tipo) => `
+    <div class="col-md-4">
+      <div class="panel" >
+        <div class="panel-heading" style="color:#f67200; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+          <span>${titulo}</span>
+          ${tipo === "zona" && selectedArea ? `<small style="color:#ccc;">Área: ${selectedArea}</small>` : ""}
+          ${tipo === "subzona" && selectedZona ? `<small style="color:#ccc;">Zona: ${selectedZona}</small>` : ""}
+        </div>
+        <div class="panel-body" style="max-height:320px; overflow-y:auto;">
+          <table class="table table-dark table-striped" style="color:white; font-size:13px;">
+            <thead>
+              <tr>
+                <th style="width:70%;">Nombre</th>
+                <th style="width:30%; text-align:right;">Alertas</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${datos.map(([k,v]) => `
+                <tr style="cursor:pointer;" onclick="handleTableClick('${tipo}','${k.replace(/'/g, "\\'")}')">
+                  <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${k}</td>
+                  <td style="text-align:right;">${v}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = `
+    <div class="row">
+      ${crearTabla("Top 8 Áreas", topAreas, "area")}
+      ${crearTabla("Top 8 Zonas", topZonas, "zona")}
+      ${crearTabla("Top 8 Subzonas", topSubzonas, "subzona")}
+    </div>
+  `;
+}
+
+// 🔁 Maneja clics en tablas
+function handleTableClick(tipo, nombre) {
+  if (tipo === "area") {
+    selectedArea = nombre === selectedArea ? null : nombre;
+    selectedZona = null;
+  } else if (tipo === "zona") {
+    selectedZona = nombre === selectedZona ? null : nombre;
+  }
+  renderAreaZoneSubzoneStats(allAlertas);
+}
+
+/* =====================================================
+   🧩 BOTONES "QUITAR FILTRO" PARA AMBOS MAPAS
+   ===================================================== */
+
+// 🔸 Quitar filtro del mapa de tipo de alerta
+document.getElementById("btn-reset-tipo")?.addEventListener("click", () => {
+  document.querySelectorAll(".alerta-row").forEach(f => f.style.background = "");
+  tipoActual = "0"; // volver a mostrar todos
+  renderHeatMapPorTipo(allAlertas); // repinta mapa tipo alerta
+});
+
+// 🔸 Quitar filtro del mapa de cámaras
+document.getElementById("btn-reset-camaras")?.addEventListener("click", () => {
+  renderHeatMap(allAlertas); // repinta mapa principal sin filtrar
+});
+
+/* =====================================================
+   🧩 BOTÓN "QUITAR FILTRO" DE ÁREAS / ZONAS
+   ===================================================== */
+
+const btnResetAreas = document.getElementById("btn-reset-areas");
+
+// Inicialmente desactivado
+btnResetAreas?.setAttribute("disabled", "true");
+btnResetAreas?.classList.remove("active");
+
+// Activar cuando haya filtro activo
+function activarBotonAreas() {
+  btnResetAreas?.removeAttribute("disabled");
+  btnResetAreas?.classList.add("active");
+}
+
+// 🔄 Quitar filtro de área/zona
+btnResetAreas?.addEventListener("click", () => {
+  if (btnResetAreas.disabled) return;
+  selectedArea = null;
+  selectedZona = null;
+  renderAreaZoneSubzoneStats(allAlertas);
+  btnResetAreas.disabled = true;
+  btnResetAreas.classList.remove("active");
+});
+
+function handleTableClick(tipo, nombre) {
+  if (tipo === "area") {
+    selectedArea = nombre === selectedArea ? null : nombre;
+    selectedZona = null;
+  } else if (tipo === "zona") {
+    selectedZona = nombre === selectedZona ? null : nombre;
+  }
+  renderAreaZoneSubzoneStats(allAlertas);
+
+  // ✅ Activar botón cuando haya filtro activo
+  if (selectedArea || selectedZona) {
+    activarBotonAreas();
+  } else {
+    btnResetAreas.disabled = true;
+    btnResetAreas.classList.remove("active");
+  }
+}
+
+window.addEventListener("resize", () => {
+  if (map) setTimeout(() => map.invalidateSize(), 300);
+  if (mapTipo) setTimeout(() => mapTipo.invalidateSize(), 300);
+});
+
+
+
+
+function openCameraModal2(cameraId) {
+  if (!cameraId) return;
+
+  const modal = document.getElementById("cameraModal");
+  const slot = document.getElementById("frame-slot");
+  const camNameEl = document.getElementById("modal-camera-name");
+  const locEl = document.getElementById("modal-location");
+  const dateEl = document.getElementById("modal-datetime");
+  const objEl = document.getElementById("modal-objetivo");
+
+  // 🧩 Estado inicial
+  camNameEl.innerText = "Cámara: cargando...";
+  locEl.innerText = "Ubicación: —";
+  dateEl.innerText = "Fecha y Hora: —";
+  objEl.innerText = "Última alerta: —";
+  slot.innerHTML = `<span style="color:#999;">Cargando video...</span>`;
+
+  // Mostrar modal
+  modal.style.display = "flex";
+
+  // 🖥️ Intentar abrir en fullscreen para ocultar overlays globales
+  if (modal.requestFullscreen) {
+    modal.requestFullscreen().catch(err => console.warn("⚠️ No se pudo entrar a fullscreen:", err));
+  } else if (modal.webkitRequestFullscreen) {
+    modal.webkitRequestFullscreen(); // Safari
+  } else if (modal.msRequestFullscreen) {
+    modal.msRequestFullscreen(); // IE/Edge antiguos
+  }
+
+  // 🚫 Pausar actualización general
+  if (window.refreshTimer) {
+    clearInterval(window.refreshTimer);
+    console.log("⏸️ Actualización de alertas detenida mientras se visualiza la cámara");
+  }
+
+  // 🔁 Refresco de imagen
+  if (window.frameRefreshTimer) clearInterval(window.frameRefreshTimer);
+  fetchCameraFrame(cameraId);
+  window.frameRefreshTimer = setInterval(() => fetchCameraFrame(cameraId), 1000);
+
+  // 🎬 Cerrar modal y salir de fullscreen
+  document.getElementById("closeModal")?.addEventListener("click", () => {
+    modal.style.display = "none";
+
+    // ⏏️ Salir del modo fullscreen
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+
+    slot.innerHTML = "";
+    if (window.frameRefreshTimer) {
+      clearInterval(window.frameRefreshTimer);
+      window.frameRefreshTimer = null;
+    }
+
+    // ▶️ Reanudar actualización general
+    if (!window.refreshTimer) {
+      iniciarAutoRefresh();
+      console.log("▶️ Actualización de alertas reanudada");
+    }
+  });
+}
+
+// === 🔹 FUNCIÓN PRINCIPAL PARA ABRIR EL MODAL (con datos de cámara y alerta) ===
+
+/*
+function openCameraModal(cameraId) {
+  if (!cameraId) return;
+
+  const modal = document.getElementById("cameraModal");
+  const slot = document.getElementById("frame-slot");
+  const camNameEl = document.getElementById("modal-camera-name");
+  const locEl = document.getElementById("modal-location");
+  const dateEl = document.getElementById("modal-datetime");
+  const objEl = document.getElementById("modal-objetivo");
+  const alertsContainer = document.getElementById("camera-alerts-items");
+
+  // Estado inicial
+  camNameEl.innerText = "Cámara: cargando...";
+  locEl.innerText = "Ubicación: —";
+  dateEl.innerText = "Fecha y Hora: —";
+  objEl.innerText = "Última alerta: —";
+  slot.innerHTML = `<span style="color:#999;">Cargando video...</span>`;
+  alertsContainer.innerHTML = `<p style="opacity:0.6;">Cargando alertas...</p>`;
+  modal.style.display = "flex";
+
+  // Pausar auto-refresh global
+  if (window.refreshTimer) clearInterval(window.refreshTimer);
+
+  // Buscar alertas de la cámara
+  const alertasCam = (allAlertas || [])
+    .filter(a => String(a.camera_id) === String(cameraId))
+    .sort((a, b) => (b.epoch_frame || 0) - (a.epoch_frame || 0))
+    .slice(0, 10);
+
+  if (alertasCam.length > 0) {
+    const ultima = alertasCam[0];
+    const fecha = ultima.epoch_frame ? new Date(ultima.epoch_frame) : null;
+
+    camNameEl.innerText = `Cámara: ${ultima.camera_name || "Sin nombre"}`;
+    locEl.innerText = `Ubicación: ${ultima.location || "Sin ubicación"}`;
+    dateEl.innerText = `Fecha y Hora: ${fecha ? fecha.toLocaleString("es-PE") : "—"}`;
+    objEl.innerText = `Última alerta: ${ultima.alert_name || obtenerNombreTipo(ultima.type_event_id) || "—"}`;
+
+    // Renderizar lista de alertas
+    alertsContainer.innerHTML = alertasCam.map(a => {
+      const f = a.epoch_frame ? new Date(a.epoch_frame).toLocaleString("es-PE") : "—";
+      return `
+        <div style="border-bottom:1px solid rgba(255,255,255,0.08); padding:6px 0;">
+          <div><strong>${obtenerNombreTipo(a.type_event_id)}</strong></div>
+          <div style="font-size:12px; color:#bbb;">${a.location || "Sin ubicación"}</div>
+          <div style="font-size:11px; color:#999;">${f}</div>
+          <button class="btn btn-sm" style="margin-top:4px; width:100%; background:#f67200; color:#fff;"
+            onclick="event.stopPropagation(); verVideo('${a.id}')">▶ Ver video</button>
+        </div>
+      `;
+    }).join("");
+  } else {
+    alertsContainer.innerHTML = `<p style="opacity:0.6;">No hay alertas registradas para esta cámara.</p>`;
+  }
+
+  // Refrescar frame cada segundo
+  if (window.frameRefreshTimer) clearInterval(window.frameRefreshTimer);
+  fetchCameraFrame(cameraId);
+  window.frameRefreshTimer = setInterval(() => fetchCameraFrame(cameraId), 1000);
+
+  // Cerrar modal
+  document.getElementById("closeModal")?.addEventListener("click", () => {
+    modal.style.display = "none";
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    slot.innerHTML = "";
+    clearInterval(window.frameRefreshTimer);
+    window.frameRefreshTimer = null;
+    iniciarAutoRefresh();
+  });
+}
+*/
+
+// === 🔹 FUNCIÓN QUE SOLO ACTUALIZA LA IMAGEN ===
+function fetchCameraFrame(cameraId) {
+  const slot = document.getElementById("frame-slot");
+  const modal = document.getElementById("cameraModal");
+
+  // Si el modal ya está cerrado, detener el ciclo
+  if (!modal || modal.style.display !== "flex") {
+    clearInterval(window.frameRefreshTimer);
+    window.frameRefreshTimer = null;
+    return;
+  }
+
+  callAPI({
+    method: "dashboards/lastframe",
+    params: { camera_id: cameraId },
+    silent: true, 
+    ok: function (data) {
+      if (!data || !data.foto) {
+        slot.innerHTML = `<span style="color:#888;">Sin imagen disponible.</span>`;
+        return;
+      }
+
+      const imgUrl = data.foto.startsWith("/")
+        ? `${window.location.origin}${data.foto}?t=${Date.now()}`
+        : `${data.foto}?t=${Date.now()}`;
+
+      const imgEl = document.getElementById("modal-frame-img");
+
+      if (imgEl) {
+        imgEl.src = imgUrl; // 🔁 Solo cambia la imagen
+         // 🧩 Dibujar bounding boxes (si están activas)
+         // 🔹 ACTUALIZAR TIMESTAMP EN CADA FRAME
+        const ts = data.epoch_frame
+          ? new Date(data.epoch_frame).toLocaleString("es-PE")
+          : new Date().toLocaleString("es-PE");
+        
+        const tsEl = document.getElementById("frame-timestamp");
+        if (tsEl) tsEl.textContent = ts;
+
+        //drawBoundingBoxes(slot, data.persons_info, data.vehicles_info);
+      } else {
+        slot.innerHTML = `
+          <img id="modal-frame-img"
+               src="${imgUrl}"
+               style="width:100%; height:100%; object-fit:contain; border-radius:6px;"
+               onerror="this.onerror=null;this.src='';this.alt='Sin imagen disponible';" />
+        `;
+      }
+    },
+    error: function (err) {
+      console.error("❌ Error al obtener frame:", err);
+    },
+  });
+}
+
+
+
+// === 🔹 CONTROL GLOBAL DE BOUNDING BOXES ===
+let showBoundingBoxes = false;
+
+// 🧩 Alternar boxes manualmente
+function toggleBoundingBoxes() {
+  showBoundingBoxes = !showBoundingBoxes;
+  const btn = document.getElementById("toggleBboxBtn");
+log("bbox")
+  if (showBoundingBoxes) {
+    btn.textContent = "🧩 Desactivar Boxes";
+    btn.classList.remove("active");
+    console.log("✅ Detección de boxes activada");
+  } else {
+    btn.textContent = "🧩 Activar Boxes";
+    btn.classList.add("active");
+    console.log("🚫 Detección de boxes desactivada — limpiando overlays...");
+    clearAllBoundingBoxes(); // 🔥 limpiar todos los canvas
+  }
+}
+
+// 🧽 Limpiar todos los overlays
+function clearAllBoundingBoxes() {
+  document.querySelectorAll("canvas.bbox-overlay").forEach(canvas => {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.remove();
+  });
+}
+
+// ✏️ Dibujar boxes sobre el frame
+function drawBoundingBoxes(slotEl, imgEl, frameData) {
+  if (!showBoundingBoxes || !frameData) return;
+
+
+log("slotEl",slotEl)
+log("imgEl",imgEl)
+log("frameData",frameData)
+  const existing = slotEl.querySelector("canvas.bbox-overlay");
+  if (existing) existing.remove();
+
+  // Crear canvas overlay
+  const canvas = document.createElement('canvas');
+  canvas.classList.add("bbox-overlay");
+  canvas.style.position = 'absolute';
+  canvas.style.top = 0;
+  canvas.style.left = 0;
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.zIndex = 15;
+  canvas.width = imgEl.clientWidth;
+  canvas.height = imgEl.clientHeight;
+  slotEl.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+  ctx.lineWidth = 2;
+  ctx.font = '12px sans-serif';
+  ctx.textBaseline = 'top';
+
+  const drawBox = (coords, color, label) => {
+    if (!coords) return;
+    try {
+      const [x1, y1, x2, y2] = coords.split(',').map(Number);
+      const w = x2 - x1, h = y2 - y1;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.strokeRect(x1, y1, w, h);
+      ctx.fillRect(x1, y1 - 16, ctx.measureText(label).width + 8, 14);
+      ctx.fillStyle = '#000';
+      ctx.fillText(label, x1 + 4, y1 - 15);
+    } catch (e) {
+      console.warn("Error al dibujar bounding box:", e);
+    }
+  };
+
+  // Dibujar coordenadas devueltas
+  if (frameData.coords_obj) drawBox(frameData.coords_obj, '#22e6d9', 'OBJ');
+  if (frameData.coords_plate) drawBox(frameData.coords_plate, '#ff7a2f', 'PLATE');
+}
+
+// === 🔹 Cerrar modal con la tecla ESC y reanudar refresco ===
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const modal = document.getElementById("cameraModal");
+    if (modal && modal.style.display === "flex") {
+      // 🧹 Ocultar modal
+      modal.style.display = "none";
+      document.getElementById("frame-slot").innerHTML = "";
+
+      // ⏏️ Salir del fullscreen si está activo
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      // 🛑 Detener refresco de frames
+      if (window.frameRefreshTimer) {
+        clearInterval(window.frameRefreshTimer);
+        window.frameRefreshTimer = null;
+      }
+
+      // ▶️ Reanudar refresco general de alertas
+      if (!window.refreshTimer) {
+        iniciarAutoRefresh();
+        console.log("▶️ Actualización de alertas reanudada (ESC)");
+      }
+    }
+  }
+});
+function openCameraModal(cameraId) {
+  if (!cameraId) return;
+
+  noshowwait = 1; // 🔹 Mantener el control del overlay exactamente como lo pediste
+
+  const modal = document.getElementById("cameraModal");
+  const slot = document.getElementById("frame-slot");
+  const camNameEl = document.getElementById("modal-camera-name");
+  const locEl = document.getElementById("modal-location");
+  const alertsContainer = document.getElementById("camera-alerts-items");
+
+  // 🔹 Estado inicial
+  camNameEl.innerText = "Cámara: cargando...";
+  locEl.innerText = "Ubicación: —";
+  slot.innerHTML = `<span style="color:#999;">Cargando video...</span>`;
+  alertsContainer.innerHTML = `<p style="opacity:0.6;">Cargando alertas...</p>`;
+
+  // 🔹 Mostrar modal (SIN fullscreen)
+  modal.style.display = "flex";
+
+  // 🔹 Pausar actualizaciones globales
+  if (typeof pauseDashboardUpdates === "function") {
+    pauseDashboardUpdates(cameraId, null);
+  } else if (window.refreshTimer) {
+    clearInterval(window.refreshTimer);
+  }
+
+  // 🔹 Obtener alertas recientes de esta cámara
+  const alertasCam = (allAlertas || [])
+    .filter(a => String(a.camera_id) === String(cameraId))
+    .sort((a, b) => (b.epoch_frame || 0) - (a.epoch_frame || 0))
+    .slice(0, 10);
+
+  if (alertasCam.length > 0) {
+    const ultima = alertasCam[0];
+    const fecha = ultima.epoch_frame ? new Date(ultima.epoch_frame) : null;
+
+    camNameEl.innerText = `Cámara: ${ultima.camera_name || "Sin nombre"}`;
+    locEl.innerText = `Ubicación: ${ultima.location || "Sin ubicación"}`;
+
+    alertsContainer.innerHTML = alertasCam.map(a => {
+      const f = a.epoch_frame ? new Date(a.epoch_frame).toLocaleString("es-PE") : "—";
+
+      return `
+        <div style="border-bottom:1px solid rgba(255,255,255,0.08); padding:6px 0;">
+          <div><strong>${obtenerNombreTipo(a.type_event_id)}</strong></div>
+          <div style="font-size:12px; color:#bbb;">${a.location || "Sin ubicación"}</div>
+          <div style="font-size:11px; color:#999;">${f}</div>
+          <button class="btn btn-sm" style="margin-top:4px; width:100%; background:#f67200; color:#fff;"
+            onclick="event.stopPropagation(); verVideo('${a.id}')">▶ Ver video</button>
+        </div>
+      `;
+    }).join("");
+  } else {
+    alertsContainer.innerHTML = `<p style="opacity:0.6;">No hay alertas registradas para esta cámara.</p>`;
+  }
+
+  // 🔹 Render del frame cada segundo
+  if (window.frameRefreshTimer) clearInterval(window.frameRefreshTimer);
+  fetchCameraFrame(cameraId);
+  window.frameRefreshTimer = setInterval(() => fetchCameraFrame(cameraId), 1000);
+
+  // 🔹 Cerrar modal
+  document.getElementById("closeModal")?.addEventListener("click", () => {
+    closeCameraModal(); // usa tu función existente
+  });
+}
+
+
+function openCameraModal22(cameraId) {
+  if (!cameraId) return;
+
+  const modal = document.getElementById("cameraModal");
+  const slot = document.getElementById("frame-slot");
+  const camNameEl = document.getElementById("modal-camera-name");
+  const locEl = document.getElementById("modal-location");
+  //const dateEl = document.getElementById("modal-datetime");
+  //const objEl = document.getElementById("modal-objetivo");
+  const alertsContainer = document.getElementById("camera-alerts-items");
+
+  // 🔹 Estado inicial
+  camNameEl.innerText = "Cámara: cargando...";
+  locEl.innerText = "Ubicación: —";
+  //dateEl.innerText = "Fecha y Hora: —";
+  //objEl.innerText = "Última alerta: —";
+  slot.innerHTML = `<span style="color:#999;">Cargando video...</span>`;
+  alertsContainer.innerHTML = `<p style="opacity:0.6;">Cargando alertas...</p>`;
+
+  // Mostrar modal
+  modal.style.display = "flex";
+
+  // 🔹 Forzar fullscreen automático
+  setTimeout(() => {
+    if (modal.requestFullscreen) modal.requestFullscreen().catch(() => {});
+    else if (modal.webkitRequestFullscreen) modal.webkitRequestFullscreen();
+    else if (modal.msRequestFullscreen) modal.msRequestFullscreen();
+  }, 200);
+
+  // 🔹 Pausar actualizaciones globales
+  if (typeof pauseDashboardUpdates === "function")
+    pauseDashboardUpdates(cameraId, null);
+  else if (window.refreshTimer) clearInterval(window.refreshTimer);
+
+  // 🔹 Buscar alertas de esta cámara
+  const alertasCam = (allAlertas || [])
+    .filter(a => String(a.camera_id) === String(cameraId))
+    .sort((a, b) => (b.epoch_frame || 0) - (a.epoch_frame || 0))
+    .slice(0, 10);
+
+  if (alertasCam.length > 0) {
+    const ultima = alertasCam[0];
+    const fecha = ultima.epoch_frame ? new Date(ultima.epoch_frame) : null;
+
+    camNameEl.innerText = `Cámara: ${ultima.camera_name || "Sin nombre"}`;
+    locEl.innerText = `Ubicación: ${ultima.location || "Sin ubicación"}`;
+    //dateEl.innerText = `Fecha y Hora: ${fecha ? fecha.toLocaleString("es-PE") : "—"}`;
+    //objEl.innerText = `Última alerta: ${ultima.alert_name || obtenerNombreTipo(ultima.type_event_id) || "—"}`;
+
+    // Renderizar lista de alertas
+    alertsContainer.innerHTML = alertasCam.map(a => {
+      const f = a.epoch_frame ? new Date(a.epoch_frame).toLocaleString("es-PE") : "—";
+      return `
+        <div style="border-bottom:1px solid rgba(255,255,255,0.08); padding:6px 0;">
+          <div><strong>${obtenerNombreTipo(a.type_event_id)}</strong></div>
+          <div style="font-size:12px; color:#bbb;">${a.location || "Sin ubicación"}</div>
+          <div style="font-size:11px; color:#999;">${f}</div>
+          <button class="btn btn-sm" style="margin-top:4px; width:100%; background:#f67200; color:#fff;"
+            onclick="event.stopPropagation(); verVideo('${a.id}')">▶ Ver video</button>
+        </div>
+      `;
+    }).join("");
+  } else {
+    alertsContainer.innerHTML = `<p style="opacity:0.6;">No hay alertas registradas para esta cámara.</p>`;
+  }
+
+  // 🔹 Iniciar render de frame cada segundo
+  if (window.frameRefreshTimer) clearInterval(window.frameRefreshTimer);
+  fetchCameraFrame(cameraId);
+  window.frameRefreshTimer = setInterval(() => fetchCameraFrame(cameraId), 1000);
+
+  // 🔹 Cerrar modal
+  document.getElementById("closeModal")?.addEventListener("click", () => {
+    closeCameraModal();
+  });
+
+  // 🔹 Detectar ESC (salida fullscreen)
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      closeCameraModal();
+    }
+  });
+}
+
+// === FUNCION CERRAR MODAL ===
+function closeCameraModal() {
+  const modal = document.getElementById("cameraModal");
+  const slot = document.getElementById("frame-slot");
+  modal.style.display = "none";
+
+  // Salir de fullscreen si aún está activo
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
+
+  // Limpiar intervalos de frames
+  if (window.frameRefreshTimer) {
+    clearInterval(window.frameRefreshTimer);
+    window.frameRefreshTimer = null;
+  }
+
+  // Reanudar actualizaciones globales del tablero
+  if (typeof resumeDashboardUpdates === "function") resumeDashboardUpdates();
+  else iniciarAutoRefresh();
+
+  slot.innerHTML = "";
+}
+
+// Función para ver video (MEJORADA)
+function verVideo(alertId) {
+  alertItem = allAlertas.find(a => a.id == alertId);
+ log("alertItem",alertItem)
+  // Determinar si es una alerta normal o de persona/vehículo
+  if (alertItem.person_coords_face !== null || alertItem.vehicle_coords_plate !== null) {
+      log("persona")
+    verVideoPersona(alertItem);
+  } else {
+      log("vehiculo")
+    //verVideoNormal(alertItem);
+     showVideoOvlRight(alertItem);
+  }
+}
+
+// Función para ver video de alerta normal
+function verVideoNormal(item) {
+  resetVideoModal('regular');
+  
+  // Actualizar información en el modal
+  //document.getElementById("showcamera").textContent = item.camera_name;
+  //document.getElementById("showUbication").textContent = item.location;
+  document.getElementById("showAlert").textContent = item.type_event_name;
+  document.getElementById("showId").textContent = item.id;
+    const fechaFormateada = item.created_at.substring(0, item.created_at.indexOf('.')).replace('T', ' ');
+
+  document.getElementById("fechahoravideo").textContent = fechaFormateada;//+" (-30 seg. / +30 seg.)";
+  
+
+  let coords_data = null;
+  if(item.coords_zone){
+    try {
+      let poligono = JSON.parse(item.coords_zone);
+      coords_data = [{
+        points: poligono,
+        lineColor: "blue",
+        fillColor: "rgba(0,0,255,0.3)",
+        lineWidth: 3
+      }];
+    } catch (e) {
+      log("Error parsing coords_zone:", e);
+    }
+  }
+  
+  // Mostrar el modal primero
+  showVideoModal();
+  log("callAPI")
+  // Luego cargar el video
+  callAPI({
+    method: 'gestion/dolistimgevents',
+    params: {
+      camid: item.camera_id,
+      date_start: item.init_time_frame,
+      tracking_id: item.tracking_id
+    },
+    ok: function (data) {
+        
+        log("data")
+      const videoContainer = document.querySelector(".video-player-wrapper");
+      if (!videoContainer) return;
+      
+      videoContainer.innerHTML = '';
+      try {
+        videoPlayer = new videoplay(videoContainer);
+      } catch (e) {
+        log("Error al crear video player:", e);
+        return;
+      }
+      
+      const grouped = Object.values(
+        data[1].reduce((acc, item) => {
+          if (!acc[item.foto]) {
+            acc[item.foto] = {
+              foto: item.foto,
+              coords_obj: []
+            };
+          }
+          acc[item.foto].coords_obj.push({
+            categoria: item.category,
+            accuracy_obj: item.accuracy_obj,
+            colorupper: item.color_name_upper,
+            colorlower: item.color_name_lower,
+            plate: item.plate,
+            coords: item.coords_obj.split(","),
+            coordsplate: (item.coords_plate || '').split(",")
+          });
+          return acc;
+        }, {})
+      );
+      
+      try {
+        videoPlayer.update(grouped, "foto", "coords_obj", coords_data);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 500);
+      } catch (e) {
+        log("Error al actualizar video player:", e);
+      }
+    },
+    error: function(error) {
+      log("Error al cargar el video:", error);
+    }
+  });
+}
+
+
+function highlightCameraSlot(cameraNameOrId) {
+  if (!cameraNameOrId) return;
+
+  const slots = document.querySelectorAll('.slot');
+  slots.forEach(slot => {
+    const placeholder = slot.querySelector('.placeholder .name');
+    if (placeholder && (
+      placeholder.textContent === cameraNameOrId ||
+      slot.querySelector('.cam-name')?.textContent === cameraNameOrId
+    )) {
+      // Efecto visual
+      slot.classList.add('alert-highlight');
+
+      // Auto quitar después de 6 s
+      setTimeout(() => slot.classList.remove('alert-highlight'), 120000);
+    }
+  });
+}
+
+
+// Función para ver video de persona
+function verVideoPersona(item) {
+  resetVideoModal('person');
+  
+  // Actualizar información en el modal
+  //document.getElementById("showcamera").textContent = item.camera_name;
+  //document.getElementById("showUbication").textContent = item.location;
+  document.getElementById("showAlert").textContent = item.type_event_name;
+  document.getElementById("showId").textContent = item.id;
+  const fechaFormateada = item.created_at.substring(0, item.created_at.indexOf('.')).replace('T', ' ');
+
+  document.getElementById("fechahoravideo").textContent = fechaFormateada;//+" (-30 seg. / +30 seg.)";
+  
+
+  const personInfoPanel = document.getElementById('person-info-panel');
+  const photoShort = document.getElementById('photo-short');
+  photoShort.style.display = 'none';
+  if (personInfoPanel) {
+    personInfoPanel.style.display = 'block';
+    photoShort.style.display = 'flex';
+    
+    //log("item",item);
+    
+    dataPerson =  document.getElementById('person-data');
+    const personName = item.nombre ? `${item.nombre} ${item.apellido}` : item.vehicle_plate;
+    const personTitle = item.nombre ? "Persona Detectada" : "Vehículo Detectado";
+    const subTitle = item.nombre ? "Nombre:" : "Placa:";
+    const regTime = new Date(item.fecha_registro || item.fecha_robo);
+    const formattedRegTime = regTime.toLocaleString('es-PE');
+    
+    dataPerson.innerHTML = `
+        <div class="detail-item">${subTitle} ${personName}</div>
+          ${item.documento_contacto || item.num_documento ? 
+            `<div class="detail-item">${item.tipo_documento || item.vtipo_documento}: ${item.documento_contacto || item.num_documento}</div>` : ''}
+          <div class="detail-item">Reportado: ${formattedRegTime}</div>
+          <div class="detail-item">Precisión: ${item.person_accuracy || item.vehicle_accuracy}%</div>
+          ${item.persona_contacto || item.nombre_propietario ? 
+            `<div class="detail-item">Persona de Contacto: ${item.parentesco || 'Propietario'} - ${item.persona_contacto || item.nombre_propietario}</div>` : ''}
+          ${item.numero_contacto || item.contacto_propietario ? 
+            `<div class="detail-item">Teléfono de contacto: ${item.numero_contacto || item.contacto_propietario}</div>` : ''}
+        `;
+    
+    const personPhoto = document.getElementById('person-photo');
+    if(item.person_coords_face != null){
+      personPhoto.style.backgroundImage = `url(/personimages/inputs/${item.matched_ident}.jpg)`;
+    } else {
+      // Lógica para vehicle photo
+      const containerW = 90;
+      const containerH = 100;
+      const [xf1, yf1, xf2, yf2] = (item.vehicle_coords_plate || "0,0,1,1").split(",").map(Number);
+      const [xb1, yb1] = (item.vehicle_coords_obj || "0,0").split(",").map(Number);
+      
+      const x1 = xf1 + xb1;
+      const y1 = yf1 + yb1;
+      const w = xf2 - xf1;
+      const h = yf2 - yf1;
+
+      const [xo1, yo1, xo2, yo2] = (item.vehicle_coords_obj || "0,0,1,1").split(",").map(Number);
+      const w_obj = xo2 - xo1;
+      const h_obj = yo2 - yo1;
+      
+      const img = new Image();
+      img.src = item.foto;
+      img.onload = () => {
+        const imgW = img.naturalWidth;
+        const imgH = img.naturalHeight;
+        const scale_ = Math.min(containerW / w_obj, containerH / h_obj);
+        const bgW_ = imgW * scale_;
+        const bgH_ = imgH * scale_;
+        const bgX_ = (containerW - w_obj * scale_) / 2 - xo1 * scale_;
+        const bgY_ = (containerH - h_obj * scale_) / 2 - yo1 * scale_;
+    
+        personPhoto.style.backgroundImage = `url(${item.foto})`;
+        personPhoto.style.backgroundSize = `${bgW_}px ${bgH_}px`;
+        personPhoto.style.backgroundPosition = `${bgX_}px ${bgY_}px`;
+      };
+    }   
+    
+    const croppedDetection = document.getElementById('cropped-detection');
+    croppedDetection.innerHTML = '';
+    
+    createCroppedImage(croppedDetection, item.foto, 
+                      (item.person_coords_face||item.vehicle_coords_plate), 
+                      'Detección', 
+                      (item.person_coords_obj||item.vehicle_coords_obj),
+                      90, 100);
+  } else {
+    if (personInfoPanel) personInfoPanel.style.display = 'none';
+  }
+
+  // Mostrar el modal primero
+  showVideoModal();
+  
+  // Luego cargar el video según el tipo
+  if(item.person_coords_face != null){
+    callAPI({
+      method: 'gestion/getframesperson',
+      params: {
+        camara: item.camera_id,
+        tracking_id: item.tracking_id,
+        documento: item.matched_ident,
+      },
+      ok: function (data) {
+        const videoContainer = document.querySelector(".video-player-wrapper");
+        if (!videoContainer) return;
+        
+        videoContainer.innerHTML = '';
+        videoPlayer = new videoplay(videoContainer);
+        
+        const frames = data;
+        const grouped = Object.values(
+          frames.reduce((acc, frame) => {
+            if (!acc[frame.foto]) {
+              acc[frame.foto] = { foto: frame.foto, coords_obj: [] };
+            }
+            acc[frame.foto].coords_obj.push({
+              categoria: frame.category,
+              accuracy_obj: frame.acc_parecido,
+              colorupper: frame.color_name_upper,
+              colorlower: frame.color_name_lower,
+              coords: (frame.coords_obj || '').split(","),
+              coordsplate: (frame.coords_face || '').split(","),
+              plate: item.nombre + " " + item.apellido
+            });
+            return acc;
+          }, {})
+        ).sort((a, b) => a.foto.localeCompare(b.foto));
+        
+        videoPlayer.update(grouped, "foto", "coords_obj", null);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 100);
+      },
+      error: function(error) {
+        log("Error al cargar video de persona:", error);
+      }
+    });
+  } else {
+    callAPI({
+      method: 'gestion/dolistimgbytrackid',
+      params: { 
+        cameraid: item.camera_id,
+        tracking_id: item.tracking_id
+      },
+      ok: function(data) {
+        const videoContainer = document.querySelector(".video-player-wrapper");
+        if (!videoContainer) return;
+        
+        videoContainer.innerHTML = '';
+        videoPlayer = new videoplay(videoContainer);
+        
+        const frames = data[2];
+        const grouped = Object.values(
+          frames.reduce((acc, frame) => {
+            if (!acc[frame.foto]) {
+              acc[frame.foto] = { foto: frame.foto, coords_obj: [] };
+            }
+            acc[frame.foto].coords_obj.push({
+              categoria: frame.category,
+              accuracy_obj: frame.accuracy_obj,
+              colorupper: frame.color_name_upper,
+              colorlower: frame.color_name_lower,
+              coords: (frame.coords_obj || '').split(","),
+              coordsplate: (frame.coords_plate || '').split(","),
+              plate: frame.plate
+            });
+            return acc;
+          }, {})
+        ).sort((a, b) => a.foto.localeCompare(b.foto));
+        
+        videoPlayer.update(grouped, "foto", "coords_obj", null);
+        setTimeout(() => { 
+          try {
+            videoPlayer.play();
+          } catch (e) {
+            log("Error al reproducir video:", e);
+          }
+        }, 100);
+      },
+      error: function(error) {
+        log("Error al cargar video por trackid:", error);
+      }
+    });
+  }
+}
+
+function resetVideoModal(type) {
+  const personInfoPanel = document.getElementById('person-info-panel');
+  const photoShort = document.getElementById('photo-short');
+  
+  if (type === 'person') {
+    personInfoPanel.style.display = 'block';
+    photoShort.style.display = 'flex';
+  } else {
+    personInfoPanel.style.display = 'none';
+    photoShort.style.display = 'none';
+  }
+}
+
+function showVideoModal() {
+  document.getElementById('videoOvl').style.display = 'flex';
+}
+
+function closeVideoModal() {
+  document.getElementById('videoOvl').style.display = 'none';
+  
+  if (videoPlayer) {
+    try {
+      videoPlayer.stop();
+    } catch (e) {
+      log("Error al detener video player:", e);
+    }
+    videoPlayer = null;
+  }
+}
+
+function showVideoOvlRight(item) {
+  const frameContainer = document.getElementById("modal-frame-container");
+  const videoOvl = document.getElementById("videoOvl");
+
+  if (!frameContainer || !videoOvl) return;
+
+  // Si ya está visible, se reutiliza
+  videoOvl.style.display = "flex";
+  videoOvl.style.position = "absolute";
+  videoOvl.style.top = "0";
+  videoOvl.style.right = "-50%";
+  videoOvl.style.width = "100%";
+  videoOvl.style.height = "100%";
+  videoOvl.style.zIndex = "20";
+  videoOvl.style.background = "rgba(20,20,30,0.95)";
+  videoOvl.style.borderLeft = "1px solid rgba(255,255,255,0.1)";
+  videoOvl.style.borderRadius = "0 6px 6px 0";
+  videoOvl.style.transition = "right 0.4s ease";
+
+  // Anclar dentro del contenedor de video principal
+  frameContainer.style.position = "relative";
+  frameContainer.appendChild(videoOvl);
+
+  // Animar entrada desde la derecha
+  requestAnimationFrame(() => {
+    videoOvl.style.right = "0";
+  });
+
+  // Cargar video dentro del panel lateral
+  verVideoNormal(item);
+
+  // Reemplazar el cierre original para retraer sin cerrar el modal principal
+  const closeBtn = document.getElementById("closeVideoModal");
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      videoOvl.style.right = "-50%";
+      setTimeout(() => {
+        videoOvl.style.display = "none";
+      }, 400);
+      try { if (window.videoPlayer) window.videoPlayer.stop(); } catch(e){}
+    };
+  }
+}
+
+document.getElementById('videoOvl').addEventListener('click', e => {
+  if (e.target.id === 'videoOvl') {
+    e.currentTarget.classList.remove('show');
+  }
+});
+function toggleExtraPhotos(id) {
+  const box = document.getElementById("extra-photos-" + id);
+  if (!box) return;
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+
+</script>
+

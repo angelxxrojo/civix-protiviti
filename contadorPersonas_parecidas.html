@@ -1,0 +1,879 @@
+<!-- ====== CONTROLES (Cámara, Búsqueda, Refrescar, Exportar CSV) ====== -->
+<style>
+  .cam-ctrl {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin: 8px 0 10px;
+    padding:10px 12px;
+    border-radius:12px;
+    background: rgba(255,123,0,0.06);
+    border:1px solid rgba(255,123,0,0.25);
+    box-shadow: 0 8px 24px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.03);
+  }
+  .cam-ctrl label {
+    font-weight:800;
+    color:#fff;
+    opacity:.9;
+    white-space: nowrap;
+  }
+  .cam-ctrl select,
+  .cam-ctrl input[type="text"] {
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid rgba(255,123,0,.35);
+    background: rgba(20,20,20,.85);
+    color:#fff;
+    outline:none;
+    font-weight:700;
+    min-width: 180px;
+  }
+  .cam-ctrl input[type="text"] {
+    min-width: 220px;
+  }
+  .cam-ctrl button {
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid rgba(255,123,0,.45);
+    background: linear-gradient(180deg, rgba(255,123,0,.25), rgba(0,0,0,.35));
+    color:#fff;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space: nowrap;
+  }
+  .cam-ctrl button span.icon {
+    font-size:13px;
+    opacity:.9;
+  }
+
+  @media (max-width: 768px) {
+    .cam-ctrl {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .cam-ctrl label {
+      margin-left:0 !important;
+    }
+    .cam-ctrl > * {
+      width: 100%;
+    }
+    .cam-ctrl button {
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="cam-ctrl">
+  <label style="margin-left:8px">Cámara:</label>
+  <select id="selCam"><option value="">Todas</option></select>
+
+  <input id="txtSearch" type="text" placeholder="Buscar cámara o código…" />
+
+  <button id="btnRefresh" title="Refrescar (actualiza datos)">
+    <span class="icon">🔄</span> <span>Refrescar</span>
+  </button>
+
+  <button id="btnExportCsv" title="Exportar históricos 24h a CSV">
+    <span class="icon">📥</span> <span>Exportar CSV (24h)</span>
+  </button>
+</div>
+
+<!-- ====== TABLA (24h) ====== -->
+<style>
+  #cams-table-wrap {
+    margin-top: 8px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,123,0,0.25);
+    background:
+      radial-gradient(1200px 400px at 10% -20%, rgba(255,123,0,.08), transparent 40%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.4));
+    box-shadow: 0 12px 36px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
+    overflow: hidden;
+  }
+  #cams-table-wrap .panel-heading{
+    position: relative;
+    padding: 12px 16px;
+    font-weight: 900;
+    letter-spacing:.3px;
+    color:#fff;
+    background:
+      linear-gradient(90deg, rgba(255,123,0,.95), rgba(255,123,0,.55) 60%, rgba(255,123,0,.2)),
+      linear-gradient(180deg, rgba(0,0,0,.1), rgba(0,0,0,.35));
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  }
+  #cams-table { width:100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  #cams-table th, #cams-table td {
+    border:1px solid rgba(255,255,255,.12);
+    padding:10px 8px;
+    text-align:center;
+    color:#ddd;
+  }
+  #cams-table thead th{
+    position: sticky;
+    top:0;
+    z-index:2;
+    background: linear-gradient(180deg, rgba(255,123,0,.22), rgba(255,123,0,.08));
+    color:#fff;
+    text-align:center;
+    font-weight:800;
+    letter-spacing:.25px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    padding:12px 8px;
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,.06), 0 2px 8px rgba(0,0,0,.35);
+    backdrop-filter: blur(2px);
+    cursor: pointer;
+  }
+  #cams-table td:nth-child(1){
+    text-align:left;
+    font-weight:700;
+    color:#fff;
+  }
+  #cams-table tbody tr:hover td{
+    background:
+      radial-gradient(600px 120px at 20% 50%, rgba(255,123,0,.08), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.2));
+    box-shadow: inset 0 0 0 1px rgba(255,123,0,.18);
+  }
+
+  .num {
+    font-weight:700;
+    color:#ffffff;
+  }
+
+  .spark {
+    height:42px;
+    width:160px;
+    display:block;
+    color:#ff7b00;
+    filter: drop-shadow(0 0 6px rgba(255,123,0,.25));
+  }
+  #spark-tip {
+    position: fixed;
+    pointer-events: none;
+    padding:6px 8px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:700;
+    background: rgba(0,0,0,.85);
+    color:#fff;
+    border:1px solid rgba(255,123,0,.4);
+    box-shadow: 0 6px 18px rgba(0,0,0,.5);
+    z-index: 9999;
+    display:none;
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  .trend {
+    font-weight: 700;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .trend-up   { color: #4caf50; }
+  .trend-down { color: #f44336; }
+  .trend-flat { color: #aaaaaa; }
+</style>
+
+<div id="cams-table-wrap" class="panel panel-filled panel-c-accent">
+  <div class="panel-heading">Últimas 24h — Cámaras</div>
+  <div class="panel-body" style="padding:0">
+    <table id="cams-table">
+      <thead>
+        <tr>
+          <th data-key="camera_id">Cámara_ID</th>
+          <th data-key="camera_code">Código_Camara</th>
+          <th data-key="obj_total">Total objetos detectados</th>
+          <th data-key="veh">Total vehículos</th>
+          <th data-key="with_plate">Veh. con placa visible</th>
+          <th data-key="conf_legibles">Veh. con placas legibles</th>
+          <th data-key="ppl">Total personas</th>
+          <th data-key="proc">Personas analizadas</th>
+          <th data-key="face2">Rostros detectados</th>
+          <th data-key="matches">Coincidencias con parecidos</th>
+          <!-- NUEVOS CAMPOS ENTRE MATCHES E IMÁGENES TOTALES -->
+          <th data-key="ppl_emotion">Personas con emoción detectada</th>
+          <th data-key="ppl_age">Personas con edad detectada</th>
+          <th data-key="ppl_sex">Personas con género detectado</th>
+          <!-- FIN NUEVOS CAMPOS -->
+          <th data-key="frames">Imagenes Totales</th>
+          <th data-key="fpm_avg">Imagenes/min</th>
+          <th data-key="series">Tendencia de objetos detectados (24h)</th>
+        </tr>
+      </thead>
+      <tbody id="cams-tbody">
+        <tr><td colspan="16" style="padding:16px">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="spark-tip"></div>
+
+<script>
+(() => {
+  const $   = (sel) => document.querySelector(sel);
+  const fmt = (n) => (Number(n)||0).toLocaleString('es-PE');
+  const now = () => Date.now();
+  const SERIES_LABEL = 'Objetos detectados';
+
+  let SORT_BY  = 'fpm_avg';
+  let SORT_DIR = 'desc';
+  let SELECTED_CAM = '';
+  let SEARCH_TEXT = '';
+  let LAST_ROWS = [];
+
+  const P = (method, params) => new Promise((resolve) => {
+    callAPI({ method, params, ok: d => resolve({ok:true, d}), error: e => resolve({ok:false, e}) });
+  });
+
+  // ---------- Helpers ----------
+  function prettyBucket(b){
+    const s = String(b||'').trim();
+    try {
+      if (/^\d{12}$/.test(s)) {
+        const y = +s.slice(0,4), mo = +s.slice(4,6)-1, d = +s.slice(6,8),
+              h = +s.slice(8,10), m = +s.slice(10,12);
+        const dt = new Date(y, mo, d, h, m);
+        return dt.toLocaleString('es-PE', {
+          day:'2-digit', month:'short', year:'numeric',
+          hour:'2-digit', minute:'2-digit', hour12:false
+        });
+      }
+      else if (/^\d{10}$/.test(s)) {
+        const y = +s.slice(0,4), mo = +s.slice(4,6)-1, d = +s.slice(6,8),
+              h = +s.slice(8,10);
+        const dt = new Date(y, mo, d, h + 1, 0);
+        return dt.toLocaleString('es-PE', {
+          day:'2-digit', month:'short', year:'numeric',
+          hour:'2-digit', minute:'2-digit', hour12:false
+        });
+      }
+      else if (/^\d{8}$/.test(s)) {
+        const y = +s.slice(0,4), mo = +s.slice(4,6)-1, d = +s.slice(6,8);
+        const dt = new Date(y, mo, d);
+        return dt.toLocaleDateString('es-PE', {
+          day:'2-digit', month:'short', year:'numeric'
+        });
+      }
+      else if (/^\d{13}$/.test(s) || /^\d{10}$/.test(s)) {
+        const ms = s.length === 13 ? +s : (+s)*1000;
+        const dt = new Date(ms);
+        return dt.toLocaleString('es-PE', {
+          day:'2-digit', month:'short', year:'numeric',
+          hour:'2-digit', minute:'2-digit', hour12:false
+        });
+      }
+    } catch(_){}
+    return s;
+  }
+
+  function sparklineSVG(points, buckets, w=160, h=42, pad=4){
+    const N = points.length || 1;
+    const max = points.reduce((m,x)=>Math.max(m, x||0), 0);
+    const min = points.reduce((m,x)=>Math.min(m, x||0), max);
+    const range = (max - min) || 1;
+    const dx = (w - 2*pad) / Math.max(1, N-1);
+    const mapY = v => h - pad - ((v - min) / range) * (h - 2*pad);
+    let d = '';
+    for (let i=0;i<N;i++){ d += (i===0? 'M':'L') + (pad + i*dx) + ' ' + mapY(points[i]||0) + ' '; }
+    const mid = mapY((max+min)/2);
+    const dataPts = encodeURIComponent(JSON.stringify(points));
+    const dataBks = encodeURIComponent(JSON.stringify(buckets));
+    return `<svg viewBox="0 0 ${w} ${h}" class="spark" xmlns="http://www.w3.org/2000/svg"
+              data-points="${dataPts}" data-buckets="${dataBks}">
+      <path d="${d}" fill="none" stroke="currentColor" stroke-opacity="0.85" stroke-width="1.6"/>
+      <line x1="${pad}" y1="${mid}" x2="${w-pad}" y2="${mid}" stroke="currentColor" stroke-opacity="0.25" stroke-dasharray="3 4"/>
+      <rect x="0" y="0" width="${w}" height="${h}" fill="transparent"/>
+    </svg>`;
+  }
+
+  function buildPointsMapFrom(items, bucketField, valueField){
+    const m = new Map();
+    for (const p of (items || [])){
+      const key = String(p?.[bucketField] || '');
+      if (!key) continue;
+      const val = Number(p?.[valueField] || 0);
+      m.set(key, (m.get(key)||0) + (Number.isFinite(val) ? val : 0));
+    }
+    return m;
+  }
+
+  // --- Tendencia última hora vs anterior ---
+  function computeHourTrend(points, field) {
+    if (!Array.isArray(points) || points.length < 2) {
+      return { dir: 0, pct: 0, current: 0, prev: 0, lastBucket: null, prevBucket: null };
+    }
+
+    const sorted = [...points].slice().sort(
+      (a, b) => String(a.bucket || '').localeCompare(String(b.bucket || ''))
+    );
+
+    const last = sorted[sorted.length - 1];
+    const prev = sorted[sorted.length - 2];
+
+    const curVal  = Number(last?.[field] || 0);
+    const prevVal = Number(prev?.[field] || 0);
+
+    let dir = 0;
+    if (curVal > prevVal) dir = 1;
+    else if (curVal < prevVal) dir = -1;
+
+    const diff = curVal - prevVal;
+    let pct = 0;
+    if (prevVal > 0) {
+      pct = (diff / prevVal) * 100;
+    } else if (prevVal === 0 && curVal > 0) {
+      pct = 100;
+    }
+
+    return {
+      dir,
+      pct,
+      current: curVal,
+      prev: prevVal,
+      lastBucket: last.bucket || null,
+      prevBucket: prev.bucket || null
+    };
+  }
+
+  function trendCell(t) {
+    if (!t) return '';
+    const dir = t.dir || 0;
+    const pct = Number.isFinite(t.pct) ? t.pct : 0;
+    const txt = `${pct.toFixed(1)}%`;
+
+    if (dir > 0) {
+      return `<span class="trend trend-up">▲ ${txt}</span>`;
+    }
+    if (dir < 0) {
+      return `<span class="trend trend-down">▼ ${txt}</span>`;
+    }
+    return `<span class="trend trend-flat">■ 0.0%</span>`;
+  }
+
+  function populateCameraSelect(cams){
+    const sel = $('#selCam'); if (!sel) return;
+    const current = sel.value;
+    const list = Array.from(cams).sort((a,b)=> String(a).localeCompare(String(b), 'es', {numeric:true}));
+    sel.innerHTML = `<option value="">Todas</option>` + list.map(id => `<option value="${id}">${id}</option>`).join('');
+    sel.value = current && cams.has(current) ? current : (SELECTED_CAM || '');
+  }
+
+  function renderRows(allRows){
+    const tbody = $('#cams-tbody'); if (!tbody) return;
+
+    let rows = allRows.slice();
+
+    if (SELECTED_CAM) {
+      rows = rows.filter(r => String(r.camera_id) === String(SELECTED_CAM));
+    }
+
+    if (SEARCH_TEXT) {
+      const term = SEARCH_TEXT.toLowerCase();
+      rows = rows.filter(r => {
+        const cid = String(r.camera_id || '').toLowerCase();
+        const ccode = String(r.camera_code || '').toLowerCase();
+        return cid.includes(term) || ccode.includes(term);
+      });
+    }
+
+    rows.sort((a,b) => {
+      const key = SORT_BY;
+      if (key === 'camera_id' || key === 'camera_code'){
+        return SORT_DIR === 'asc'
+          ? String(a[key]||'').localeCompare(String(b[key]||''), 'es', {numeric:true})
+          : String(b[key]||'').localeCompare(String(a[key]||''), 'es', {numeric:true});
+      } else {
+        const A = Number(a[key] ?? 0), B = Number(b[key] ?? 0);
+        return SORT_DIR === 'asc' ? (A - B) : (B - A);
+      }
+    });
+
+    if (!rows.length){
+      tbody.innerHTML = `<tr><td colspan="16" style="padding:16px">Sin datos en la ventana</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => {
+      const svg = sparklineSVG(r.objSeries || [], r.objBuckets || []);
+      return `<tr>
+        <td>${r.camera_id}</td>
+        <td>${r.camera_code || ''}</td>
+
+        <td class="num">
+          ${fmt(r.obj_total)}
+          <br>${trendCell(r.obj_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.veh)}
+          <br>${trendCell(r.veh_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.with_plate)}
+          <br>${trendCell(r.with_plate_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.conf_legibles)}
+          <br>${trendCell(r.conf_legibles_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.ppl)}
+          <br>${trendCell(r.ppl_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.proc)}
+          <br>${trendCell(r.proc_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.face2)}
+          <br>${trendCell(r.face2_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.matches)}
+          <br>${trendCell(r.matches_trend)}
+        </td>
+
+        <!-- NUEVOS CAMPOS: ahora con tendencia -->
+        <td class="num">
+          ${fmt(r.ppl_emotion)}
+          <br>${trendCell(r.ppl_emotion_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.ppl_age)}
+          <br>${trendCell(r.ppl_age_trend)}
+        </td>
+
+        <td class="num">
+          ${fmt(r.ppl_sex)}
+          <br>${trendCell(r.ppl_sex_trend)}
+        </td>
+        <!-- FIN NUEVOS CAMPOS -->
+
+        <td class="num">
+          ${fmt(r.frames)}
+          <br>${trendCell(r.frames_trend)}
+        </td>
+
+        <td class="num">
+          ${(r.fpm_avg ?? 0).toFixed(1)}
+        </td>
+
+        <td style="color:#ff7b00">${svg}</td>
+      </tr>`;
+    }).join('');
+
+    attachSparkHandlers();
+  }
+
+  function attachSparkHandlers(){
+    const tip = $('#spark-tip');
+    const MARGIN = 12;
+    const PADDING_VIEW = 8;
+
+    const svgs = document.querySelectorAll('svg.spark');
+    svgs.forEach(svg => {
+      const pts = JSON.parse(decodeURIComponent(svg.dataset.points || '[]'));
+      const bks = JSON.parse(decodeURIComponent(svg.dataset.buckets || '[]'));
+      const pad = 4, w = svg.viewBox.baseVal.width || 160;
+      const N = Math.max(pts.length, 1);
+      const dx = (w - 2*pad) / Math.max(1, N-1);
+
+      function positionTip(clientX, clientY){
+        tip.style.display = 'block';
+        const tipW = tip.offsetWidth;
+        const tipH = tip.offsetHeight;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        let x = clientX + MARGIN;
+        let y = clientY + MARGIN;
+
+        if (x + tipW + PADDING_VIEW > vw){
+          x = clientX - tipW - MARGIN;
+        }
+        x = Math.max(PADDING_VIEW, Math.min(x, vw - tipW - PADDING_VIEW));
+
+        if (y + tipH + PADDING_VIEW > vh){
+          y = clientY - tipH - MARGIN;
+        }
+        y = Math.max(PADDING_VIEW, Math.min(y, vh - tipH - PADDING_VIEW));
+
+        tip.style.left = x + 'px';
+        tip.style.top  = y + 'px';
+      }
+
+      function showTip(e){
+        if (!pts.length) return;
+
+        const rect = svg.getBoundingClientRect();
+        const xRel = Math.max(0, Math.min(e.clientX - rect.left - pad, w - 2*pad));
+        const idx = Math.round(xRel / dx);
+
+        const val = pts[idx] ?? 0;
+        const buckRaw = bks[idx] ?? '';
+        const buck = prettyBucket(buckRaw);
+
+        tip.innerHTML = `
+          <div style="white-space:nowrap">
+            🕒 ${buck}<br>
+            🔸 <b>${SERIES_LABEL}:</b> ${fmt(val)}
+          </div>
+        `;
+        positionTip(e.clientX, e.clientY);
+      }
+
+      function hideTip(){ tip.style.display = 'none'; }
+
+      svg.addEventListener('mousemove', showTip);
+      svg.addEventListener('mouseleave', hideTip);
+    });
+  }
+
+  function bucketToMinuteRange(b) {
+    const s = String(b || '');
+    if (!/^\d{12}$/.test(s)) return [0, 0];
+    const y  = +s.slice(0, 4);
+    const mo = +s.slice(4, 6) - 1;
+    const d  = +s.slice(6, 8);
+    const h  = +s.slice(8,10);
+    const m  = +s.slice(10,12);
+    const dt0 = new Date(y, mo, d, h, m, 0, 0);
+    const t0  = dt0.getTime();
+    const t1  = t0 + 60*1000 - 1;
+    return [t0, t1];
+  }
+
+  function computeFpmFromMinutePoints(points, nowMs = Date.now()) {
+    if (!Array.isArray(points) || !points.length) return 0;
+
+    const vals = [];
+    for (const p of points) {
+      const bucket = String(p?.bucket || '');
+      const cnt    = Number(p?.count || 0);
+      if (!bucket || !Number.isFinite(cnt)) continue;
+
+      const [, t1] = bucketToMinuteRange(bucket);
+      if (!t1 || t1 > nowMs) continue;
+
+      vals.push(cnt);
+    }
+
+    if (!vals.length) return 0;
+    const sum = vals.reduce((a, b) => a + b, 0);
+    return Math.min(60, sum / vals.length);
+  }
+
+  // ---------- Exportación CSV ----------
+  function csvEscape(v) {
+    const s = String(v ?? '');
+    if (s.includes('"') || s.includes(';') || s.includes('\n') || s.includes('\r')) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  }
+
+  function pctFromTrend(t) {
+    if (!t || !Number.isFinite(t.pct)) return '0.0';
+    return t.pct.toFixed(1);
+  }
+
+  function exportCsv24h() {
+    const rows = LAST_ROWS || [];
+    if (!rows.length) {
+      alert('No hay datos para exportar (verifique la ventana de 24h).');
+      return;
+    }
+
+    const headers = [
+      'camera_id',
+      'camera_code',
+      'obj_total',
+      'veh_total',
+      'with_plate',
+      'conf_legibles',
+      'ppl_total',
+      'personas_analizadas',
+      'face2',
+      'matches',
+      'ppl_emotion',
+      'ppl_age',
+      'ppl_sex',
+      'frames_total',
+      'fpm_avg',
+      'obj_trend_pct',
+      'veh_trend_pct',
+      'with_plate_trend_pct',
+      'conf_legibles_trend_pct',
+      'ppl_trend_pct',
+      'proc_trend_pct',
+      'face2_trend_pct',
+      'matches_trend_pct',
+      'ppl_emotion_trend_pct',
+      'ppl_age_trend_pct',
+      'ppl_sex_trend_pct',
+      'frames_trend_pct'
+    ];
+
+    const lines = [];
+    lines.push(headers.join(';'));
+
+    for (const r of rows) {
+      const line = [
+        r.camera_id,
+        r.camera_code || '',
+        r.obj_total,
+        r.veh,
+        r.with_plate,
+        r.conf_legibles,
+        r.ppl,
+        r.proc,
+        r.face2,
+        r.matches,
+        r.ppl_emotion,
+        r.ppl_age,
+        r.ppl_sex,
+        r.frames,
+        (r.fpm_avg ?? 0).toFixed(1),
+
+        pctFromTrend(r.obj_trend),
+        pctFromTrend(r.veh_trend),
+        pctFromTrend(r.with_plate_trend),
+        pctFromTrend(r.conf_legibles_trend),
+        pctFromTrend(r.ppl_trend),
+        pctFromTrend(r.proc_trend),
+        pctFromTrend(r.face2_trend),
+        pctFromTrend(r.matches_trend),
+        pctFromTrend(r.ppl_emotion_trend),
+        pctFromTrend(r.ppl_age_trend),
+        pctFromTrend(r.ppl_sex_trend),
+        pctFromTrend(r.frames_trend)
+      ].map(csvEscape);
+
+      lines.push(line.join(';'));
+    }
+
+    const csvContent = lines.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    const ts = new Date();
+    const tsStr = ts.toISOString().slice(0,19).replace(/[:T]/g, '-');
+    const fileName = `unificado_24h_${tsStr}.csv`;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------- Carga principal ----------
+  async function loadTopTable(){
+    const to   = now();
+    const from = to - 24*60*60*1000;
+
+    const uniHour = await P('dashboards/unificado', {
+      granularity: 'hour',
+      from,
+      to,
+      with_meta: 1,
+      include_active: 1
+    });
+
+    const tbody = $('#cams-tbody');
+    if (!tbody) return;
+    if (!uniHour.ok){
+      tbody.innerHTML = `<tr><td colspan="16" style="padding:16px">Sin datos</td></tr>`;
+      return;
+    }
+
+    const uniMin = await P('dashboards/unificado', {
+      granularity: 'minute',
+      from,
+      to,
+      with_meta: 0,
+      include_active: 1
+    });
+
+    const fpmByCam = new Map();
+    if (uniMin.ok) {
+      const minItems = Array.isArray(uniMin.d?.items) ? uniMin.d.items : [];
+      for (const it of minItems) {
+        const cid = String(it?.camera_id ?? '');
+        if (!cid) continue;
+        const frmPts = Array.isArray(it?.frames?.points) ? it.frames.points : [];
+        const fpm = computeFpmFromMinutePoints(frmPts);
+        fpmByCam.set(cid, fpm);
+      }
+    }
+
+    const items = Array.isArray(uniHour.d?.items) ? uniHour.d.items : [];
+
+    const rows = items.map(it => {
+      const cam = String(it?.camera_id ?? '');
+      const camCode = String(it?.meta?.camera_code ?? it?.meta?.cameraId ?? it?.camera_code ?? '');
+
+      const vehTotal = Number((it?.veh?.total ?? it?.totals?.veh ?? 0));
+      const confU    = Number((it?.veh?.conf_u ?? it?.totals?.conf_u ?? 0));
+      const candU    = Number((it?.veh?.cand_u ?? it?.totals?.cand_u ?? 0));
+      const withPlate = confU + candU;
+
+      const pplTotal   = Number(it?.ppl?.ppl || 0);
+      const analyzed   = Number(it?.ppl?.processed_any_u || 0);
+      const facesDet   = Number(it?.ppl?.status_face_2 || 0);
+      const matchesI   = Number(it?.ppl?.matches_items || 0);
+
+      // NUEVOS CAMPOS LEÍDOS DEL BACK
+      const pplEmotion = Number(it?.ppl?.emotion || 0);
+      const pplAge     = Number(it?.ppl?.edad || 0);
+      const pplSex     = Number(it?.ppl?.sexo || 0);
+      // FIN NUEVOS CAMPOS
+
+      const framesTotal = Number(it?.frames?.total || 0);
+
+      const fpmFromHour = Math.min(60, Number(it?.frames?.fpm_avg || 0));
+      const fpmFromMin  = fpmByCam.has(cam) ? fpmByCam.get(cam) : null;
+      const fpmToUse    = (fpmFromMin != null ? fpmFromMin : fpmFromHour);
+
+      const vehPoints   = Array.isArray(it?.veh?.points || it?.points) ? (it.veh?.points || it.points) : [];
+      const pplPoints   = Array.isArray(it?.ppl?.points) ? it.ppl.points : [];
+      const frmPtsHour  = Array.isArray(it?.frames?.points) ? it.frames.points : [];
+
+      const vehTrend        = computeHourTrend(vehPoints, 'veh');
+      const confTrend       = computeHourTrend(vehPoints, 'conf_u');
+      const candTrend       = computeHourTrend(vehPoints, 'cand_u');
+
+      const pplTrend        = computeHourTrend(pplPoints, 'ppl');
+      const procTrend       = computeHourTrend(pplPoints, 'processed_any_u');
+      const face2Trend      = computeHourTrend(pplPoints, 'status_face_2');
+      const matchesTrend    = computeHourTrend(pplPoints, 'matches_items');
+
+      // NUEVOS: tendencias de emoción, edad, sexo
+      const emoTrend        = computeHourTrend(pplPoints, 'emotion');
+      const ageTrend        = computeHourTrend(pplPoints, 'edad');
+      const sexTrend        = computeHourTrend(pplPoints, 'sexo');
+
+      const framesTrend     = computeHourTrend(frmPtsHour, 'count');
+
+      const vehMap = buildPointsMapFrom(vehPoints, 'bucket', 'veh');
+      const pplMap = buildPointsMapFrom(pplPoints, 'bucket', 'ppl');
+      const unionBuckets = new Set([ ...vehMap.keys(), ...pplMap.keys() ]);
+      const sortedBuckets = Array.from(unionBuckets).sort();
+      const objSeries = sortedBuckets.map(k => (vehMap.get(k)||0) + (pplMap.get(k)||0));
+      const objPoints = sortedBuckets.map((b, idx) => ({ bucket: b, value: objSeries[idx] || 0 }));
+      const objTrend   = computeHourTrend(objPoints, 'value');
+
+      const withPlatePoints = vehPoints.map(p => ({
+        bucket: p.bucket,
+        value: Number(p.conf_u || 0) + Number(p.cand_u || 0)
+      }));
+      const withPlateTrend = computeHourTrend(withPlatePoints, 'value');
+
+      return {
+        camera_id: cam,
+        camera_code: camCode,
+        obj_total: vehTotal + pplTotal,
+
+        veh: vehTotal,
+        with_plate: withPlate,
+        conf_legibles: confU,
+
+        ppl: pplTotal,
+        proc: analyzed,
+        face2: facesDet,
+        matches: matchesI,
+
+        ppl_emotion: pplEmotion,
+        ppl_age: pplAge,
+        ppl_sex: pplSex,
+
+        frames: framesTotal,
+        fpm_avg: fpmToUse,
+
+        obj_trend: objTrend,
+        veh_trend: vehTrend,
+        with_plate_trend: withPlateTrend,
+        conf_legibles_trend: confTrend,
+        ppl_trend: pplTrend,
+        proc_trend: procTrend,
+        face2_trend: face2Trend,
+        matches_trend: matchesTrend,
+        frames_trend: framesTrend,
+
+        // NUEVOS TRENDS
+        ppl_emotion_trend: emoTrend,
+        ppl_age_trend: ageTrend,
+        ppl_sex_trend: sexTrend,
+
+        objSeries,
+        objBuckets: sortedBuckets
+      };
+    });
+
+    LAST_ROWS = rows;
+    const cameras = new Set(rows.map(r => r.camera_id));
+    populateCameraSelect(cameras);
+    renderRows(LAST_ROWS);
+  }
+
+  // ---------- Eventos UI ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    const selCam = $('#selCam');
+    const txtSearch = $('#txtSearch');
+    const btnRefresh = $('#btnRefresh');
+    const btnExportCsv = $('#btnExportCsv');
+
+    const ths = document.querySelectorAll('#cams-table thead th');
+    ths.forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.key || null;
+        if (!key || key === 'series') return;
+        if (SORT_BY === key){
+          SORT_DIR = (SORT_DIR === 'asc') ? 'desc' : 'asc';
+        } else {
+          SORT_BY  = key;
+          SORT_DIR = (key === 'camera_id' || key === 'camera_code') ? 'asc' : 'desc';
+        }
+        renderRows(LAST_ROWS);
+      });
+    });
+
+    if (selCam){
+      selCam.addEventListener('change', () => {
+        SELECTED_CAM = selCam.value || '';
+        renderRows(LAST_ROWS);
+      });
+    }
+
+    if (txtSearch){
+      txtSearch.addEventListener('input', () => {
+        SEARCH_TEXT = txtSearch.value.trim();
+        renderRows(LAST_ROWS);
+      });
+    }
+
+    if (btnRefresh){ btnRefresh.addEventListener('click', () => loadTopTable()); }
+    if (btnExportCsv){ btnExportCsv.addEventListener('click', () => exportCsv24h()); }
+
+    loadTopTable();
+  });
+})();
+</script>

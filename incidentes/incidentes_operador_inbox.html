@@ -1,0 +1,324 @@
+<div id="incidentes-inbox" class="civix-view">
+    <style>
+        /* Scoped styles to avoid leaking into the app */
+        #incidentes-inbox { font-family: system-ui, -apple-system, sans-serif; }
+        #incidentes-inbox .list-container { padding: 1.25rem; max-width: 1400px; margin: 0 auto; }
+        /* Align vertical rhythm so spacing above/below button matches */
+        #incidentes-inbox .kpi-section { margin-bottom: 1.25rem; }
+        #incidentes-inbox .kpi-section h2 { font-size: 1.4rem; margin-bottom: 1rem; text-align: left; }
+        #incidentes-inbox .kpi-header { display:flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        #incidentes-inbox .kpi-header h2 { margin: 0; }
+        /* KPI styles adapted from aglomeracionPersona.html */
+        #incidentes-inbox .kpis { display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+        @media(min-width:1100px){ #incidentes-inbox .kpis{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+        #incidentes-inbox .kpi { background:#171a21; border:1px solid #262b36; border-radius:12px; padding:12px; }
+        #incidentes-inbox .kpi .label{ font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:#a6adbb }
+        #incidentes-inbox .kpi .value{ font-size:26px; font-weight:900; margin-top:6px; color:#ffd7b0 }
+        #incidentes-inbox .hint{ font-size:12px; color:#a6adbb }
+        #incidentes-inbox .delta{ font-weight:800 }
+
+        #incidentes-inbox .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0; justify-content: center; align-items: center; }
+        #incidentes-inbox .btn { padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
+        #incidentes-inbox .btn:disabled { opacity: .6; cursor: not-allowed; }
+        /* Updated time info */
+        #incidentes-inbox .update-info { text-align: right; }
+        /* Primary action button ~25% larger than current */
+        #incidentes-inbox #btnRegister { font-size: 1.78rem; padding: 0.75rem 1.5rem; min-width: 338px; border-radius: 12px; }
+        @media (max-width: 768px) {
+          #incidentes-inbox #btnRegister { font-size: 1rem; padding: 0.6rem 1rem; min-width: 70%; }
+        }
+
+        /* panels come from global CSS (.panel, .panel-filled, .panel-heading, .panel-body) */
+
+        #incidentes-inbox .filters { display: grid; gap: 0.75rem; grid-template-columns: 1fr; margin-bottom: 0.75rem; }
+        #incidentes-inbox .filter-input, #incidentes-inbox .filter-select { width: 100%; padding: 0.6rem; border-radius: 6px; font-size: 0.95rem; }
+        /* Specific adjustments for the combo box */
+        #incidentes-inbox #typeFilter { width: auto; min-width: 220px; font-size: 1.25rem; }
+        #incidentes-inbox .type-filter-wrap { display: flex; justify-content: flex-end; }
+        /* Emphasize search input */
+        #incidentes-inbox #searchInput { font-size: 1rem; }
+        @media (max-width: 768px) { #incidentes-inbox #searchInput { font-size: 1rem; } }
+
+        #incidentes-inbox .table-wrap { overflow-x: auto; }
+        #incidentes-inbox table { width: 100%; border-collapse: collapse; }
+        #incidentes-inbox th, #incidentes-inbox td { padding: 0.75rem; text-align: left; }
+        #incidentes-inbox th { cursor: pointer; }
+        #incidentes-inbox tr:hover { filter: brightness(0.98); }
+        #incidentes-inbox .sla-semaphore { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+        #incidentes-inbox .sla-green { background:#16a34a; }
+        #incidentes-inbox .sla-yellow { background:#f59e0b; }
+        #incidentes-inbox .sla-orange { background:#f97316; }
+        #incidentes-inbox .sla-red { background:#ef4444; }
+
+        #incidentes-inbox .pagination { display: flex; align-items: center; gap: 0.5rem; justify-content: center; padding: 0.75rem; }
+        #incidentes-inbox .pagination-info { }
+        @media (max-width: 768px) { #incidentes-inbox .list-container { padding: .75rem; } }
+    </style>
+
+    <div class="list-container">
+        <section class="kpi-section">
+            <div class="kpi-header">
+                <h2>KPIs del operador</h2>
+                <div class="update-info slight">
+                    <i class="fa fa-clock-o"> </i> Actualización: <span class="c-white time">17:29:22 pm</span>
+                </div>
+            </div>
+            <div class="kpis" id="kpiGrid"></div>
+        </section>
+
+        <div class="actions">
+            <button class="btn btn-accent btn-rounded" id="btnRegister">Registrar nuevo incidente</button>
+        </div>
+
+        <div class="panel panel-filled">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                </div>
+                Incidentes asignados
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-9 mb-2">
+                        <input type="text" class="form-control filter-input" id="searchInput" placeholder="Búsqueda por DNI o denunciante" />
+                    </div>
+                    <div class="col-md-3 mb-2 type-filter-wrap">
+                        <select class="form-control filter-select" id="typeFilter">
+                            <option value="">Todos los tipos</option>
+                            <option value="Robo">Robo</option>
+                            <option value="Accidente de tránsito">Accidente de tránsito</option>
+                            <option value="Disturbio">Disturbio</option>
+                            <option value="Vandalismo">Vandalismo</option>
+                            <option value="Emergencia médica">Emergencia médica</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="incidentsTable" class="table table-hover-1">
+                        <thead>
+                            <tr>
+                                <th data-col="id">Número (ID)</th>
+                                <th data-col="fecha">Fecha y hora</th>
+                                <th data-col="denunciante">Denunciante</th>
+                                <th data-col="tipo">Tipo</th>
+                                <th data-col="subtipo">Subtipo</th>
+                                <th data-col="slaPct">SLA %</th>
+                                <th>Agentes</th>
+                                <th>Último mensaje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button class="btn btn-default btn-rounded" id="prevBtn">Anterior</button>
+                    <span class="pagination-info" id="paginationInfo">Mostrando 1-10 de 0</span>
+                    <button class="btn btn-default btn-rounded" id="nextBtn">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+    (function(){
+        // Local state (scoped)
+        const root = document.getElementById('incidentes-inbox');
+        if (!root) return;
+        let incidents = [];
+        let filteredIncidents = [];
+        let currentPage = 1;
+        const incidentsPerPage = 10;
+        let sortKey = 'id';
+        let sortDir = 'asc';
+
+        // Demo data (replace with API wiring later)
+        const testIncidents = [
+            { id: 'INC-2024-001', fecha: '05/11/2024 08:30', denunciante: 'María González', tipo: 'Robo', subtipo: 'Hurto', slaPct: 22, agentes: 2, mensaje: '05/11/2024 14:45' },
+            { id: 'INC-2024-002', fecha: '05/11/2024 09:15', denunciante: 'Carlos Ramírez', tipo: 'Accidente de tránsito', subtipo: 'Choque', slaPct: 58, agentes: 3, mensaje: '05/11/2024 14:30' },
+            { id: 'INC-2024-003', fecha: '05/11/2024 10:00', denunciante: 'Ana Morales', tipo: 'Disturbio', subtipo: 'Manifestación', slaPct: 84, agentes: 4, mensaje: '05/11/2024 14:50' },
+            { id: 'INC-2024-004', fecha: '05/11/2024 11:30', denunciante: 'Luis Herrera', tipo: 'Vandalismo', subtipo: 'Destrucción', slaPct: 95, agentes: 1, mensaje: '05/11/2024 14:55' },
+            { id: 'INC-2024-005', fecha: '05/11/2024 12:15', denunciante: 'Carmen Díaz', tipo: 'Emergencia médica', subtipo: 'Lesiones', slaPct: 33, agentes: 3, mensaje: '05/11/2024 14:40' },
+            { id: 'INC-2024-006', fecha: '05/11/2024 13:00', denunciante: 'Roberto Silva', tipo: 'Robo', subtipo: 'Asalto', slaPct: 12, agentes: 2, mensaje: '05/11/2024 14:52' },
+            { id: 'INC-2024-007', fecha: '05/11/2024 13:45', denunciante: 'Elena Castro', tipo: 'Accidente de tránsito', subtipo: 'Lesiones', slaPct: 67, agentes: 4, mensaje: '05/11/2024 14:35' },
+            { id: 'INC-2024-008', fecha: '05/11/2024 14:20', denunciante: 'Fernando López', tipo: 'Disturbio', subtipo: 'Riña', slaPct: 41, agentes: 1, mensaje: '05/11/2024 14:58' }
+        ];
+
+        function updateKPIs() {
+            const kpiData = [
+                { value: incidents.length, label: 'Incidentes asignados hoy' },
+                { value: 5, label: 'En atención' },
+                { value: 12, label: 'Cerrados hoy' },
+                { value: 2, label: 'Mensajes nuevos' },
+                { value: 18, label: 'Agentes asignados' },
+                { value: 8, label: 'En vehicular' },
+                { value: 6, label: 'A pie' },
+                { value: 4, label: 'En motocicleta' }
+            ];
+
+            const kpiGrid = root.querySelector('#kpiGrid');
+            kpiGrid.innerHTML = kpiData.map(kpi => `
+                <div class="panel min-b-height panel-filled panel-c-accent">
+                    <div class="panel-heading">${kpi.label}</div>
+                    <div class="panel-body">
+                        <h1 class="m-b-none">${kpi.value}</h1>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTable() {
+            const startIndex = (currentPage - 1) * incidentsPerPage;
+            const endIndex = startIndex + incidentsPerPage;
+            const pageIncidents = filteredIncidents.slice(startIndex, endIndex);
+
+            const tableBody = root.querySelector('#tableBody');
+            tableBody.innerHTML = pageIncidents.map(incident => `
+                <tr>
+                    <td>${incident.id}</td>
+                    <td>${incident.fecha}</td>
+                    <td>${incident.denunciante}</td>
+                    <td>${incident.tipo}</td>
+                    <td>${incident.subtipo}</td>
+                    <td>
+                        <span class="sla-semaphore ${slaClass(incident.slaPct)}" title="SLA ${incident.slaPct || 0}%"></span>
+                        <span style="margin-left:8px;">${(incident.slaPct ?? 0)}%</span>
+                    </td>
+                    <td>${incident.agentes}</td>
+                    <td>${incident.mensaje}</td>
+                </tr>
+            `).join('');
+
+            updatePagination();
+        }
+
+        function slaClass(pct){
+            if (pct == null || isNaN(pct)) return 'sla-green';
+            if (pct <= 30) return 'sla-green';
+            if (pct <= 60) return 'sla-yellow';
+            if (pct <= 90) return 'sla-orange';
+            return 'sla-red';
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredIncidents.length / incidentsPerPage);
+            const startIndex = (currentPage - 1) * incidentsPerPage + 1;
+            const endIndex = Math.min(currentPage * incidentsPerPage, filteredIncidents.length);
+            root.querySelector('#paginationInfo').textContent = `Mostrando ${startIndex}-${endIndex} de ${filteredIncidents.length}`;
+            root.querySelector('#prevBtn').disabled = currentPage === 1;
+            root.querySelector('#nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        function applyFilters() {
+            const searchTerm = root.querySelector('#searchInput').value.toLowerCase();
+            const typeFilter = root.querySelector('#typeFilter').value;
+            filteredIncidents = incidents.filter(incident => {
+                const matchesSearch = !searchTerm || incident.id.toLowerCase().includes(searchTerm) || incident.denunciante.toLowerCase().includes(searchTerm);
+                const matchesType = !typeFilter || incident.tipo === typeFilter;
+                return matchesSearch && matchesType;
+            });
+            currentPage = 1;
+            renderTable();
+        }
+
+        function sortBy(key) {
+            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            filteredIncidents.sort((a,b)=>{
+                const av = (a[key]||'').toString().toLowerCase();
+                const bv = (b[key]||'').toString().toLowerCase();
+                if (av < bv) return sortDir==='asc' ? -1 : 1;
+                if (av > bv) return sortDir==='asc' ? 1 : -1;
+                return 0;
+            });
+            renderTable();
+        }
+
+        function nextPage() { const total = Math.ceil(filteredIncidents.length / incidentsPerPage); if (currentPage < total) { currentPage++; renderTable(); } }
+        function prevPage() { if (currentPage > 1) { currentPage--; renderTable(); } }
+
+        
+
+        function bindEvents() {
+            root.querySelector('#searchInput').addEventListener('input', applyFilters);
+            root.querySelector('#typeFilter').addEventListener('change', applyFilters);
+            root.querySelector('#nextBtn').addEventListener('click', nextPage);
+            root.querySelector('#prevBtn').addEventListener('click', prevPage);
+            
+            root.querySelectorAll('th[data-col]').forEach(th=> th.addEventListener('click', ()=>{ sortKey = th.dataset.col; sortBy(sortKey); }));
+            // Open the "Nuevo Incidente" modal
+            function ensureLeaflet(cb){
+                if (typeof L !== 'undefined') { cb && cb(); return; }
+                // load CSS once
+                if (!document.querySelector('link[data-leaflet]')){
+                    var l = document.createElement('link'); l.rel='stylesheet'; l.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; l.setAttribute('data-leaflet','1'); document.head.appendChild(l);
+                }
+                // load JS once
+                var existing = document.querySelector('script[data-leaflet]');
+                if (existing){ existing.addEventListener('load', function(){ cb && cb(); }); return; }
+                var s = document.createElement('script'); s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; s.defer=true; s.setAttribute('data-leaflet','1'); s.onload=function(){ cb && cb(); }; document.head.appendChild(s);
+            }
+
+            function initNuevoIncidenteMap(){
+                var modal = document.getElementById('modalIncidenteNuevo');
+                if (!modal) return;
+                var mapEl = modal.querySelector('#incn-inline-map');
+                if (!mapEl || mapEl.dataset.leaflet==='1') return;
+                var hint = modal.querySelector('#incn-map-hint');
+                ensureLeaflet(function(){
+                    try{
+                        var latInput = modal.querySelector('#incn-lat');
+                        var lngInput = modal.querySelector('#incn-lng');
+                        var map = L.map(mapEl, { zoomControl:true, attributionControl:true });
+                        // Match operator chat defaults (Av. Primavera area)
+                        var center = [-12.1175, -76.9990];
+                        map.setView(center, 14);
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:20, attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+                        var marker;
+                        function placeMarker(latlng){
+                            if (marker) marker.setLatLng(latlng); else marker = L.marker(latlng).addTo(map);
+                            if (latInput) latInput.value = latlng.lat.toFixed(6);
+                            if (lngInput) lngInput.value = latlng.lng.toFixed(6);
+                            if (hint) hint.style.display = 'none';
+                        }
+                        // Hide hint on first hover
+                        if (hint) mapEl.addEventListener('mouseenter', function(){ hint.style.display='none'; }, { once:true });
+                        map.on('click', function(e){ placeMarker(e.latlng); });
+                        // Default marker and popup like chat
+                        var defaultLatLng = L.latLng(center[0], center[1]);
+                        marker = L.marker(defaultLatLng).addTo(map).bindPopup('<b>Incidente</b><br>Av. Primavera 123').openPopup();
+                        if (latInput) latInput.value = defaultLatLng.lat.toFixed(6);
+                        if (lngInput) lngInput.value = defaultLatLng.lng.toFixed(6);
+                        setTimeout(function(){ map.invalidateSize(); }, 60);
+                        mapEl.dataset.leaflet='1';
+                        mapEl._leafletMap = map;
+                    }catch(e){ console.error('Leaflet init error', e); }
+                });
+            }
+
+            root.querySelector('#btnRegister').addEventListener('click', ()=>{
+                if (window.$ && typeof $('#modalIncidenteNuevo').modal === 'function') {
+                    $('#modalIncidenteNuevo').one('shown.bs.modal', function(){ initNuevoIncidenteMap(); }).modal('show');
+                } else {
+                    const m = document.getElementById('modalIncidenteNuevo');
+                    if (m) { m.style.display = 'block'; m.classList.add('in'); setTimeout(initNuevoIncidenteMap, 50); }
+                }
+            });
+        }
+
+        function init(){
+            incidents = [...testIncidents];
+            filteredIncidents = [...incidents];
+            updateKPIs();
+            renderTable();
+            bindEvents();
+        }
+
+        // Initialize immediately when fragment is inserted
+        init();
+    })();
+    </script>
+    {{modal_nuevo_incidente}}
+</div>

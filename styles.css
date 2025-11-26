@@ -1,0 +1,224 @@
+.modal{
+    max-height: 300px;
+    overflow-y:auto;
+    height:500px;
+    scrollbar-width: thin;
+    scrollbar-color: #666 #222;
+}
+
+.btn-activated{
+    height: 38px;
+    width: 38px;
+    color: white;
+    padding: 4px;
+    font-size: x-large;
+    background-color: #f67200;
+}
+.btn-deactivated{
+    height: 38px;
+    color: white;
+    padding: 4px;
+    width: 38px;
+    font-size: x-large;
+    background-color: #4B5675;
+}
+.divider{
+    width: 100%;
+    height: 1px;
+    background: #3d404c;
+}
+.right-elements{
+    justify-content: right; 
+    margin-top:1em;
+    display: flex;
+    width: 100%;
+}
+.mb-2{
+    margin-bottom: 8px;
+}
+.metricsContainer{
+    padding: 0px 1em;
+}
+.inputSelector{
+    display: flex;
+    gap: 10px;
+    input{
+        min-width: 20px;
+    }
+    select{
+        min-width: 100px;
+    }
+}
+
+.main-list{
+
+    padding: 20px 2px;
+    border-radius: 16px;
+    margin: 0px 2px;
+}
+th{
+    padding: 16px !important;
+}
+td{
+    padding: 16px !important;
+}
+tbody{
+    tr{
+        border-radius: 10px;
+        cursor: pointer;   
+    }
+    tr:hover{
+        border-radius: 10px;
+        background: #585858;
+    }
+}
+input, select, option{
+    border-radius: 10px !important;
+    padding: 16px 20px !important;
+    font-size: 14px !important;
+    height: max-content !important;
+    border-radius: 10px;
+}
+.modal{
+    input, select{
+        padding: 8px !important;    
+    }
+}
+#btn-rownew{
+    padding: 14px 24px !important;
+    font-size: 14px !important;
+    height: 100% !important;
+    border-radius: 10px !important;
+}
+.same-flex{
+   margin-bottom: 8px;
+   display: flex;
+   justify-content: space-between;
+}
+.icon-close{
+   cursor: pointer;
+   border-radius: 20px;
+   font-size: 40px;
+   top: 20px;
+   right: 20px;
+   position: absolute;
+}
+#btnClean, #btnStart{
+   height: max-content;
+    margin: auto;
+}
+
+/*Camara mant styles*/
+:root {
+        /* Set primary switch colors: customize globally */
+        --md-switch-selected-track-color: #f67200 !important;
+        --md-switch-selected-focus-track-color: #f67200 !important;
+        --md-sys-color-primary: #f67200 !important;
+        --md-switch-checked-knob-color: #ffffff !important;
+        --md-switch-unchecked-track-color: #4B5675 !important;
+        --md-switch-unchecked-knob-color: #4B5675 !important;
+        --md-switch-track-color: #4B5675 !important;
+        .selected .track::before{
+            background-color: red !important;
+        }
+     }
+    
+    /*Modal Body F*/
+   .modal-body{
+        max-height: max-content;
+        overflow-y:auto;
+        height:400px;
+        scrollbar-width: thin;
+        scrollbar-color: #666 #222;
+    }
+    
+    /*Estilos S*/
+    /* Estilos de inputs y selects */
+    .rounded-input {
+      border-radius: 10px;
+      border: 1px solid #252525;
+    }
+    
+    .full-width-nowrap {
+      white-space: nowrap;
+      width: 100%;
+    }
+    
+    .bg-dark {
+      background-color: #111;
+    }
+    
+    /* Paneles y tarjetas */
+    .card-radius {
+      border-radius: 15px;
+      padding: 0 5px;
+    }
+    
+    .panel-accent {
+      border-radius: 0 15px 15px 0;
+      background: #252525 !important;
+    }
+    
+    /* Imágenes en tarjeta */
+    .card-img {
+      width: auto;
+      height: 144px;
+      border-radius: 5px;
+      max-width: 100%;
+    }
+    
+    /* Tablas simuladas */
+    .sim-table {
+      display: grid;
+      grid-template-columns: auto 65%;
+      row-gap: 1px;
+      column-gap: 5px;
+      max-width: 100%;
+    }
+    
+    /* Separador */
+    .hr-margin {
+      margin: 0 5px;
+    }
+    
+    /* Footer botones */
+    .btn-radius-important {
+      border-radius: 10px !important;
+    }
+    
+    /* Modal overlay */
+    .modal-dark-bg {
+      background: rgba(0, 0, 0, 0.9);
+    }
+    
+    /* Modal content */
+    .modal-card {
+      overflow: hidden;
+      box-shadow: none;
+      border-radius: 15px;
+    }
+    
+    .modal-header-dark {
+      background-color: #252525;
+    }
+    
+    /* Imagenes de perfil */
+    .img-profile {
+      cursor: pointer;
+      width: auto;
+      height: 100%;
+      border-radius: 15px;
+      max-width: 100%;
+    }
+    
+    /* Paneles internos */
+    .panel-inner-radius {
+      border-radius: 0 15px 15px 0;
+    }
+    
+    /* Textarea no redimensionable */
+    .no-resize {
+      resize: none;
+    }
+
+   

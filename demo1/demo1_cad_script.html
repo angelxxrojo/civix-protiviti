@@ -1,0 +1,983 @@
+<script>
+
+
+(function ($, Swal, L) {
+  'use strict';
+
+  var STORAGE_KEY = 'cad.console.db';
+  var STATE_FLOW = ['Nuevo', 'Clasificado', 'Despachado', 'En ruta', 'En escena', 'Resuelto', 'Cerrado'];
+  var ATTENTION_STATES = ['Despachado', 'En ruta', 'En escena'];
+  var PRIORITY_INFO = {
+    1: { text: 'Crítica', labelClass: 'label label-priority-1' },
+    2: { text: 'Media', labelClass: 'label label-priority-2' },
+    3: { text: 'Baja', labelClass: 'label label-priority-3' }
+  };
+  var AGENT_COLORS = { pie: '#23c6c8', moto: '#f8ac59', vehiculo: '#1ab394' };
+
+  var LS = {
+    get: function (key, def) {
+      try {
+        var raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : def;
+      } catch (err) {
+        console.error('LS.get error', err);
+        return def;
+      }
+    },
+    set: function (key, val) {
+      localStorage.setItem(key, JSON.stringify(val));
+    }
+  };
+
+  var DB = {
+    baseState: function () {
+      return {
+        operators: [
+          { id: 'op-01', nombre: 'Operador 1' },
+          { id: 'op-02', nombre: 'Operador 2' }
+        ],
+        agents: [
+          { id: 'ag-01', nombre: 'Unidad Alfa', tipo: 'pie', lat: -12.095, lng: -77.046, disponible: true },
+          { id: 'ag-02', nombre: 'Unidad Bravo', tipo: 'moto', lat: -12.071, lng: -77.021, disponible: true },
+          { id: 'ag-03', nombre: 'Unidad Charlie', tipo: 'vehiculo', lat: -12.045, lng: -77.07, disponible: true }
+        ],
+        tickets: [],
+        messages: {},
+        ui: {
+          activeTicketId: null,
+          filtros: { q: '', est: '', tip: '', pri: '' },
+          closedTabs: []
+        }
+      };
+    },
+    initIfEmpty: function () {
+      if (!LS.get(STORAGE_KEY)) {
+        LS.set(STORAGE_KEY, DB.baseState());
+      }
+    },
+    load: function () {
+      return LS.get(STORAGE_KEY, DB.baseState());
+    },
+    save: function (payload) {
+      LS.set(STORAGE_KEY, payload);
+    },
+    uuid: function () {
+      return 't-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 4);
+    },
+    seedDemo: function () {
+      var data = DB.baseState();
+      var ticket1 = {
+        id: DB.uuid(),
+        titulo: 'Robo a transeúnte',
+        tipo: 'Seguridad ciudadana',
+        prioridad: 1,
+        estado: 'Despachado',
+        direccion: 'Av. Larco 123, Miraflores',
+        operador: 'Operador 1',
+        sla: '15 min',
+        createdAt: Date.now() - 3600000,
+        location: { lat: -12.1209, lng: -77.0308 },
+        assignedAgents: [{ id: 'ag-01' }, { id: 'ag-02' }],
+        unread: 0,
+        blinkUntil: null
+      };
+      var ticket2 = {
+        id: DB.uuid(),
+        titulo: 'Accidente leve',
+        tipo: 'Tránsito',
+        prioridad: 2,
+        estado: 'En ruta',
+        direccion: 'Av. Universitaria 455, SMP',
+        operador: 'Operador 2',
+        sla: '25 min',
+        createdAt: Date.now() - 7200000,
+        location: { lat: -12.025, lng: -77.077 },
+        assignedAgents: [{ id: 'ag-03' }],
+        unread: 1,
+        blinkUntil: Date.now() + 5000
+      };
+      data.tickets = [ticket1, ticket2];
+      data.messages[ticket1.id] = [
+        { id: 'm1', from: 'system', author: 'Sistema', text: 'Ticket creado.', timestamp: Date.now() - 3500000 },
+        { id: 'm2', from: 'operator', author: 'Operador 1', text: 'Recibida la llamada, se coordina atención.', timestamp: Date.now() - 3400000 },
+        { id: 'm3', from: 'agent', author: 'Unidad Alfa', text: 'Ingresando a la zona.', timestamp: Date.now() - 3300000 }
+      ];
+      data.messages[ticket2.id] = [
+        { id: 'm4', from: 'system', author: 'Sistema', text: 'Ticket creado.', timestamp: Date.now() - 7100000 },
+        { id: 'm5', from: 'agent', author: 'Unidad Charlie', text: 'Atasco en la vía, ETA 5 min.', timestamp: Date.now() - 7000000 }
+      ];
+      data.ui.activeTicketId = ticket1.id;
+      data.ui.closedTabs = [];
+      data.agents = data.agents.map(function (agent) {
+        var isAssigned = ticket1.assignedAgents.concat(ticket2.assignedAgents).some(function (asg) {
+          return asg.id === agent.id;
+        });
+        agent.disponible = !isAssigned;
+        return agent;
+      });
+      DB.save(data);
+    }
+  };
+
+  var MapManager = {
+    map: null,
+    incidentMarker: null,
+    agentLayer: null,
+    init: function () {
+      this.map = L.map('mapCAD', { zoomControl: true, attributionControl: false }).setView([-12.0464, -77.0428], 12);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
+      }).addTo(this.map);
+    },
+    plotTicket: function (ticket, agents) {
+      if (!this.map) {
+        return;
+      }
+      if (!ticket) {
+        this.map.setView([-12.0464, -77.0428], 12);
+        return;
+      }
+      var loc = ticket.location || { lat: -12.0464, lng: -77.0428 };
+      this.map.setView([loc.lat, loc.lng], 13);
+      if (this.incidentMarker) {
+        this.map.removeLayer(this.incidentMarker);
+      }
+      this.incidentMarker = L.marker([loc.lat, loc.lng]).addTo(this.map).bindPopup(ticket.titulo || 'Incidente').openPopup();
+      if (!this.agentLayer) {
+        this.agentLayer = L.layerGroup().addTo(this.map);
+      }
+      this.agentLayer.clearLayers();
+      (ticket.assignedAgents || []).forEach(function (asg) {
+        var agent = App.findAgent(asg.id);
+        if (!agent) {
+          return;
+        }
+        var color = AGENT_COLORS[agent.tipo] || '#ffffff';
+        L.circleMarker([agent.lat, agent.lng], {
+          color: color,
+          fillColor: color,
+          radius: 8,
+          fillOpacity: 0.9,
+          weight: 2
+        }).addTo(MapManager.agentLayer).bindPopup(agent.nombre + ' (' + agent.tipo + ')');
+      });
+    }
+  };
+
+  var App = {
+    data: null,
+    dom: {},
+    init: function () {
+      DB.initIfEmpty();
+      this.data = DB.load();
+      if (!this.data.ui.closedTabs) {
+        this.data.ui.closedTabs = [];
+      }
+      this.cacheDom();
+      this.bindEvents();
+      this.ensureActiveTicket();
+      this.renderAll();
+      MapManager.init();
+      MapManager.plotTicket(this.getActiveTicket(), this.data.agents);
+    },
+    cacheDom: function () {
+      this.dom.tabs = $('#ticketTabs');
+      this.dom.ticketDetails = $('#ticketDetails');
+      this.dom.agentList = $('#agentList');
+      this.dom.chatBody = $('#chatBody');
+      this.dom.chatInput = $('#chatInput');
+      this.dom.kpiPanel = $('#kpiPanel');
+      this.dom.reopenTabsBtn = $('#btnReabrirTab');
+    },
+    bindEvents: function () {
+      var self = this;
+      this.dom.tabs.on('click', 'a[data-ticket]', function (evt) {
+        evt.preventDefault();
+        self.setActiveTicket($(this).data('ticket'));
+      });
+      this.dom.tabs.on('click', '.tab-close', function (evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        self.closeTab($(this).data('close'));
+      });
+      $('#filterSearch').on('input', function () {
+        self.setFilter('q', $(this).val());
+      });
+      $('#filterEstado').on('change', function () {
+        self.setFilter('est', $(this).val());
+      });
+      $('#filterTipo').on('change', function () {
+        self.setFilter('tip', $(this).val());
+      });
+      $('#filterPrioridad').on('change', function () {
+        self.setFilter('pri', $(this).val());
+      });
+      $('#btnClearFilters').on('click', function () {
+        self.clearFilters();
+      });
+      $('#btnNuevoTicket').on('click', function () {
+        self.openTicketDialog();
+      });
+      $('#btnSeedDemo').on('click', function () {
+        DB.seedDemo();
+        self.reload();
+      });
+      $('#btnReabrirTab').on('click', function () {
+        self.reopenTabDialog();
+      });
+      $('#btnAgregarAgente').on('click', function () {
+        self.agregarAgenteDialog();
+      });
+      $('#agentList').on('click', '[data-liberar]', function () {
+        self.liberarAgente($(this).data('liberar'));
+      });
+      $('#btnLiberarTodos').on('click', function () {
+        self.liberarTodosAgentes();
+      });
+      $('#quickActions').on('click', '[data-state]', function () {
+        self.cambiarEstado($(this).data('state'));
+      });
+      $('#btnCerrarTicket').on('click', function () {
+        self.cerrarTicketDialog();
+      });
+      $('#btnEnviarChat').on('click', function () {
+        self.enviarChat();
+      });
+      this.dom.chatInput.on('keypress', function (evt) {
+        if (evt.which === 13 && !evt.shiftKey) {
+          evt.preventDefault();
+          self.enviarChat();
+        }
+      });
+      $('#btnReenviarUltimo').on('click', function () {
+        self.reenviarUltimo();
+      });
+      $('#btnSimularAgente').on('click', function () {
+        self.handleSimularClick();
+      });
+      $('#btnSugerirCercano').on('click', function () {
+        self.sugerirMasCercano();
+      });
+    },
+    ensureActiveTicket: function () {
+      var activeId = this.data.ui.activeTicketId;
+      var openTickets = this.getOpenTickets();
+      if (activeId && this.getTicketById(activeId) && !this.isTabClosed(activeId)) {
+        return;
+      }
+      this.data.ui.activeTicketId = openTickets.length ? openTickets[0].id : null;
+      this.save();
+    },
+    reload: function () {
+      this.data = DB.load();
+      this.ensureActiveTicket();
+      this.renderAll();
+      MapManager.plotTicket(this.getActiveTicket(), this.data.agents);
+    },
+    save: function () {
+      DB.save(this.data);
+    },
+    renderAll: function () {
+      this.renderTabs();
+      this.renderTicketDetails();
+      this.renderAgents();
+      this.renderChat();
+      this.renderKPIs();
+    },
+    renderTabs: function () {
+      var self = this;
+      var ordered = this.getTicketsOrdered();
+      var closedCount = (this.data.ui.closedTabs || []).length;
+      if (!ordered.length) {
+        this.dom.tabs.html('<li class="disabled"><a>Sin pestañas visibles</a></li>');
+      } else {
+        var tabsHtml = ordered.map(function (ticket) {
+          var isActive = ticket.id === self.data.ui.activeTicketId;
+          var classes = [];
+          if (isActive) {
+            classes.push('active');
+          }
+          if (ticket.blinkUntil && ticket.blinkUntil > Date.now()) {
+            classes.push('tab-blink');
+          }
+          var badge = ticket.unread ? '<span class="badge">' + ticket.unread + '</span>' : '';
+          var priority = PRIORITY_INFO[ticket.prioridad] ? '<span class="label label-xs ' + PRIORITY_INFO[ticket.prioridad].labelClass + '">' + PRIORITY_INFO[ticket.prioridad].text + '</span>' : '';
+          var closeBtn = '<button class="tab-close" data-close="' + ticket.id + '">&times;</button>';
+          return '<li class="' + classes.join(' ') + '"><a href="#" data-ticket="' + ticket.id + '">' + closeBtn + ticket.titulo + ' ' + priority + ' ' + badge + '</a></li>';
+        }).join('');
+        this.dom.tabs.html(tabsHtml);
+      }
+      if (this.dom.reopenTabsBtn && this.dom.reopenTabsBtn.length) {
+        this.dom.reopenTabsBtn.text(closedCount ? 'Pestañas archivadas (' + closedCount + ')' : 'Pestañas archivadas');
+        this.dom.reopenTabsBtn.prop('disabled', closedCount === 0);
+      }
+    },
+    renderTicketDetails: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        this.dom.ticketDetails.html('<p class="text-muted">Cree o seleccione un ticket para ver detalles.</p>');
+        return;
+      }
+      var priorityInfo = PRIORITY_INFO[ticket.prioridad] || { text: 'N/A', labelClass: 'label label-default' };
+      var estadoLabel = '<span class="label label-default">' + ticket.estado + '</span>';
+      var html = '' +
+        '<div class="ticket-meta"><strong>Título:</strong><br>' + ticket.titulo + '</div>' +
+        '<div class="ticket-meta"><strong>Tipo:</strong><br>' + ticket.tipo + '</div>' +
+        '<div class="ticket-meta"><strong>Prioridad:</strong><br><span class="' + priorityInfo.labelClass + '">' + priorityInfo.text + '</span></div>' +
+        '<div class="ticket-meta"><strong>Estado:</strong><br>' + estadoLabel + '</div>' +
+        '<div class="ticket-meta"><strong>Dirección:</strong><br>' + ticket.direccion + '</div>' +
+        '<div class="ticket-meta"><strong>Operador:</strong><br>' + ticket.operador + '</div>' +
+        '<div class="ticket-meta"><strong>SLA:</strong><br>' + ticket.sla + '</div>';
+      if (ticket.clasificacion_final) {
+        html += '<div class="ticket-meta"><strong>Clasificación final:</strong><br>' +
+          ticket.clasificacion_final.categoria_general + ' / ' + ticket.clasificacion_final.subcategoria + '</div>';
+      }
+      this.dom.ticketDetails.html(html);
+    },
+    renderAgents: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        this.dom.agentList.html('<p class="text-muted">Sin ticket activo.</p>');
+        return;
+      }
+      if (!ticket.assignedAgents || !ticket.assignedAgents.length) {
+        this.dom.agentList.html('<p class="text-muted">Asigne agentes para iniciar la atención.</p>');
+        return;
+      }
+      var list = ticket.assignedAgents.map(function (asg) {
+        var agent = App.findAgent(asg.id);
+        var badge = agent ? '<span class="label label-info">' + agent.tipo + '</span>' : '';
+        var name = agent ? agent.nombre : 'Agente removido';
+        return '<li class="list-group-item">' +
+          '<div class="clearfix">' +
+          '<span>' + name + ' ' + badge + '</span>' +
+          '<button class="btn btn-xs btn-link text-danger pull-right" data-liberar="' + asg.id + '">Liberar</button>' +
+          '</div>' +
+          '</li>';
+      }).join('');
+      this.dom.agentList.html('<ul class="list-group list-group-condensed">' + list + '</ul>');
+    },
+    renderChat: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        this.dom.chatBody.html('<p class="text-muted">Sin ticket activo.</p>');
+        return;
+      }
+      var msgs = this.data.messages[ticket.id] || [];
+      if (!msgs.length) {
+        this.dom.chatBody.html('<p class="text-muted">Sin mensajes. Usa el campo inferior para iniciar.</p>');
+        return;
+      }
+      var html = msgs.map(function (msg) {
+        var cls = 'msg ';
+        if (msg.from === 'operator') {
+          cls += 'msg-operator';
+        } else if (msg.from === 'agent') {
+          cls += 'msg-agent';
+        } else {
+          cls += 'msg-system';
+        }
+        var reenviadoTag = msg.reenviado ? '<span class="reenviado">Reenviado</span>' : '';
+        return '<div class="' + cls + '">' +
+          msg.text +
+          '<small>' + msg.author + ' · ' + App.formatTime(msg.timestamp) + reenviadoTag + '</small>' +
+          '</div>';
+      }).join('');
+      this.dom.chatBody.html(html);
+      this.dom.chatBody.scrollTop(this.dom.chatBody[0].scrollHeight);
+    },
+    renderKPIs: function () {
+      var abiertos = 0;
+      var atencion = 0;
+      var criticos = 0;
+      this.data.tickets.forEach(function (ticket) {
+        if (ticket.estado !== 'Cerrado') {
+          abiertos += 1;
+        }
+        if (ATTENTION_STATES.indexOf(ticket.estado) !== -1) {
+          atencion += 1;
+        }
+        if (ticket.prioridad === 1 && ticket.estado !== 'Cerrado') {
+          criticos += 1;
+        }
+      });
+      $('[data-kpi="abiertos"]').text(abiertos);
+      $('[data-kpi="atencion"]').text(atencion);
+      $('[data-kpi="criticos"]').text(criticos);
+    },
+    getTicketsOrdered: function () {
+      var filters = this.data.ui.filtros;
+      var matches = [];
+      var others = [];
+      this.getOpenTickets().forEach(function (ticket) {
+        var bucket = App.ticketMatches(ticket, filters) ? matches : others;
+        bucket.push(ticket);
+      });
+      return matches.concat(others);
+    },
+    ticketMatches: function (ticket, filters) {
+      var text = (filters.q || '').toLowerCase();
+      var matchText = !text || (
+        ticket.titulo.toLowerCase().indexOf(text) !== -1 ||
+        ticket.direccion.toLowerCase().indexOf(text) !== -1 ||
+        (ticket.operador || '').toLowerCase().indexOf(text) !== -1
+      );
+      var matchEstado = !filters.est || ticket.estado === filters.est;
+      var matchTipo = !filters.tip || ticket.tipo === filters.tip;
+      var matchPri = !filters.pri || String(ticket.prioridad) === String(filters.pri);
+      return matchText && matchEstado && matchTipo && matchPri;
+    },
+    setFilter: function (key, value) {
+      this.data.ui.filtros[key] = value;
+      this.save();
+      this.renderTabs();
+    },
+    clearFilters: function () {
+      this.data.ui.filtros = { q: '', est: '', tip: '', pri: '' };
+      $('#filterSearch').val('');
+      $('#filterEstado').val('');
+      $('#filterTipo').val('');
+      $('#filterPrioridad').val('');
+      this.save();
+      this.renderTabs();
+    },
+    setActiveTicket: function (ticketId) {
+      if (!ticketId) {
+        return;
+      }
+      if (this.isTabClosed(ticketId)) {
+        this.reopenTab(ticketId);
+        return;
+      }
+      this.data.ui.activeTicketId = ticketId;
+      var ticket = this.getTicketById(ticketId);
+      if (ticket) {
+        ticket.unread = 0;
+        ticket.blinkUntil = null;
+      }
+      this.save();
+      this.renderAll();
+      MapManager.plotTicket(ticket, this.data.agents);
+    },
+    closeTab: function (ticketId) {
+      if (!ticketId) {
+        return;
+      }
+      this.data.ui.closedTabs = this.data.ui.closedTabs || [];
+      if (this.data.ui.closedTabs.indexOf(ticketId) === -1) {
+        this.data.ui.closedTabs.push(ticketId);
+      }
+      if (this.data.ui.activeTicketId === ticketId) {
+        this.data.ui.activeTicketId = null;
+      }
+      this.save();
+      this.ensureActiveTicket();
+      this.renderAll();
+      MapManager.plotTicket(this.getActiveTicket(), this.data.agents);
+    },
+    reopenTabDialog: function () {
+      this.data.ui.closedTabs = this.data.ui.closedTabs || [];
+      if (!this.data.ui.closedTabs.length) {
+        Swal.fire('Sin pestañas archivadas', 'Todas las pestañas están activas.', 'info');
+        return;
+      }
+      var options = this.data.ui.closedTabs.reduce(function (acc, id) {
+        var ticket = App.getTicketById(id);
+        if (ticket) {
+          acc[id] = ticket.titulo;
+        }
+        return acc;
+      }, {});
+      var self = this;
+      Swal.fire({
+        title: 'Reabrir pestaña',
+        input: 'select',
+        inputOptions: options,
+        inputPlaceholder: 'Seleccione ticket',
+        showCancelButton: true,
+        confirmButtonText: 'Reabrir'
+      }).then(function (result) {
+        if (result.isConfirmed && result.value) {
+          self.reopenTab(result.value);
+        }
+      });
+    },
+    reopenTab: function (ticketId) {
+      this.data.ui.closedTabs = this.data.ui.closedTabs || [];
+      var idx = this.data.ui.closedTabs.indexOf(ticketId);
+      if (idx === -1) {
+        return;
+      }
+      this.data.ui.closedTabs.splice(idx, 1);
+      this.data.ui.activeTicketId = ticketId;
+      this.save();
+      this.renderAll();
+      MapManager.plotTicket(this.getActiveTicket(), this.data.agents);
+    },
+    getTicketById: function (id) {
+      return this.data.tickets.find(function (t) { return t.id === id; }) || null;
+    },
+    getOpenTickets: function () {
+      var closed = this.data.ui.closedTabs || [];
+      return this.data.tickets.filter(function (ticket) {
+        return closed.indexOf(ticket.id) === -1;
+      });
+    },
+    isTabClosed: function (ticketId) {
+      return (this.data.ui.closedTabs || []).indexOf(ticketId) !== -1;
+    },
+    getActiveTicket: function () {
+      return this.getTicketById(this.data.ui.activeTicketId);
+    },
+    openTicketDialog: function () {
+      var self = this;
+      Swal.fire({
+        title: 'Nuevo ticket',
+        html: '' +
+          '<input id="sw-titulo" class="swal2-input" placeholder="Título" required>' +
+          '<input id="sw-direccion" class="swal2-input" placeholder="Dirección" required>' +
+          '<select id="sw-tipo" class="swal2-input">' +
+          '<option value="Seguridad ciudadana">Seguridad ciudadana</option>' +
+          '<option value="Tránsito">Tránsito</option>' +
+          '<option value="Asistencia médica">Asistencia médica</option>' +
+          '<option value="Otros">Otros</option>' +
+          '</select>' +
+          '<select id="sw-prioridad" class="swal2-input">' +
+          '<option value="1">Crítica</option>' +
+          '<option value="2">Media</option>' +
+          '<option value="3">Baja</option>' +
+          '</select>' +
+          '<input id="sw-operador" class="swal2-input" placeholder="Operador" value="Operador 1">' +
+          '<input id="sw-sla" class="swal2-input" placeholder="SLA (ej: 15 min)">' +
+          '<input id="sw-lat" class="swal2-input" placeholder="Latitud" value="-12.0464">' +
+          '<input id="sw-lng" class="swal2-input" placeholder="Longitud" value="-77.0428">',
+        focusConfirm: false,
+        preConfirm: function () {
+          var titulo = document.getElementById('sw-titulo').value.trim();
+          var direccion = document.getElementById('sw-direccion').value.trim();
+          var tipo = document.getElementById('sw-tipo').value;
+          var prioridad = parseInt(document.getElementById('sw-prioridad').value, 10);
+          var operador = document.getElementById('sw-operador').value.trim();
+          var sla = document.getElementById('sw-sla').value.trim() || '15 min';
+          var lat = parseFloat(document.getElementById('sw-lat').value);
+          var lng = parseFloat(document.getElementById('sw-lng').value);
+          if (!titulo || !direccion || isNaN(lat) || isNaN(lng)) {
+            Swal.showValidationMessage('Complete los campos obligatorios con datos válidos.');
+            return false;
+          }
+          return { titulo: titulo, direccion: direccion, tipo: tipo, prioridad: prioridad, operador: operador || 'Operador 1', sla: sla, lat: lat, lng: lng };
+        },
+        confirmButtonText: 'Crear',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
+      }).then(function (result) {
+        if (!result.isConfirmed) {
+          return;
+        }
+        self.crearTicket(result.value);
+      });
+    },
+    crearTicket: function (payload) {
+      var ticket = {
+        id: DB.uuid(),
+        titulo: payload.titulo,
+        tipo: payload.tipo,
+        prioridad: payload.prioridad,
+        estado: 'Nuevo',
+        direccion: payload.direccion,
+        operador: payload.operador,
+        sla: payload.sla,
+        createdAt: Date.now(),
+        location: { lat: payload.lat, lng: payload.lng },
+        assignedAgents: [],
+        unread: 0,
+        blinkUntil: null
+      };
+      this.data.tickets.unshift(ticket);
+      this.data.messages[ticket.id] = [
+        { id: DB.uuid(), from: 'system', author: 'Sistema', text: 'Ticket creado.', timestamp: Date.now() }
+      ];
+      this.data.ui.activeTicketId = ticket.id;
+      this.save();
+      this.renderAll();
+      MapManager.plotTicket(ticket, this.data.agents);
+    },
+    agregarAgenteDialog: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        Swal.fire('Atención', 'Seleccione un ticket.', 'warning');
+        return;
+      }
+      var disponibles = this.data.agents.filter(function (a) { return a.disponible; });
+      if (!disponibles.length) {
+        Swal.fire('Sin agentes', 'Todos los agentes están ocupados.', 'info');
+        return;
+      }
+      var options = disponibles.reduce(function (acc, agent) {
+        acc[agent.id] = agent.nombre + ' (' + agent.tipo + ')';
+        return acc;
+      }, {});
+      var self = this;
+      Swal.fire({
+        title: 'Agregar agente',
+        input: 'select',
+        inputOptions: options,
+        inputPlaceholder: 'Seleccione agente disponible',
+        showCancelButton: true,
+        confirmButtonText: 'Asignar'
+      }).then(function (result) {
+        if (!result.isConfirmed || !result.value) {
+          return;
+        }
+        self.asignarAgente(ticket.id, result.value);
+      });
+    },
+    asignarAgente: function (ticketId, agentId) {
+      var ticket = this.getTicketById(ticketId);
+      var agent = this.findAgent(agentId);
+      if (!ticket || !agent) {
+        return;
+      }
+      ticket.assignedAgents.push({ id: agentId });
+      agent.disponible = false;
+      this.addMessage(ticket.id, {
+        from: 'system',
+        author: 'Sistema',
+        text: agent.nombre + ' asignado al ticket.'
+      });
+      this.save();
+      this.renderAgents();
+      this.renderChat();
+      MapManager.plotTicket(ticket, this.data.agents);
+    },
+    liberarAgente: function (agentId) {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        return;
+      }
+      var agent = this.findAgent(agentId);
+      ticket.assignedAgents = (ticket.assignedAgents || []).filter(function (asg) { return asg.id !== agentId; });
+      if (agent) {
+        agent.disponible = true;
+        this.addMessage(ticket.id, {
+          from: 'system',
+          author: 'Sistema',
+          text: agent.nombre + ' quedó libre.'
+        });
+      }
+      this.save();
+      this.renderAgents();
+      this.renderChat();
+      MapManager.plotTicket(ticket, this.data.agents);
+    },
+    liberarTodosAgentes: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket || !ticket.assignedAgents.length) {
+        return;
+      }
+      var self = this;
+      ticket.assignedAgents.forEach(function (asg) {
+        var agent = self.findAgent(asg.id);
+        if (agent) {
+          agent.disponible = true;
+        }
+      });
+      ticket.assignedAgents = [];
+      this.addMessage(ticket.id, { from: 'system', author: 'Sistema', text: 'Todos los agentes fueron liberados.' });
+      this.save();
+      this.renderAgents();
+      this.renderChat();
+      MapManager.plotTicket(ticket, this.data.agents);
+    },
+    cambiarEstado: function (nuevoEstado) {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        Swal.fire('Atención', 'Seleccione un ticket.', 'warning');
+        return;
+      }
+      if (nuevoEstado === 'Cerrado') {
+        this.cerrarTicketDialog();
+        return;
+      }
+      var actualIndex = STATE_FLOW.indexOf(ticket.estado);
+      var nuevoIndex = STATE_FLOW.indexOf(nuevoEstado);
+      if (nuevoIndex === -1 || nuevoIndex < actualIndex) {
+        Swal.fire('Flujo inválido', 'No puede retroceder en el flujo.', 'info');
+        return;
+      }
+      if (nuevoIndex - actualIndex > 1) {
+        Swal.fire('Flujo inválido', 'Siga la secuencia paso a paso.', 'info');
+        return;
+      }
+      var previo = ticket.estado;
+      ticket.estado = nuevoEstado;
+      this.addMessage(ticket.id, {
+        from: 'system',
+        author: 'Sistema',
+        text: 'Estado cambiado: ' + previo + ' → ' + nuevoEstado
+      });
+      this.save();
+      this.renderTicketDetails();
+      this.renderChat();
+      this.renderKPIs();
+    },
+    cerrarTicketDialog: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        Swal.fire('Atención', 'Seleccione un ticket.', 'warning');
+        return;
+      }
+      var html = '' +
+        '<select id="cf-general" class="swal2-input">' +
+        '<option value="Seguridad ciudadana">Seguridad ciudadana</option>' +
+        '<option value="Tránsito">Tránsito</option>' +
+        '<option value="Asistencia médica">Asistencia médica</option>' +
+        '<option value="Otros">Otros</option>' +
+        '</select>' +
+        '<input id="cf-sub" class="swal2-input" placeholder="Subcategoría" value="Robo a transeúnte">' +
+        '<input id="cf-modo" class="swal2-input" placeholder="Modo operandi" value="Raqueteo en moto">' +
+        '<select id="cf-gravedad" class="swal2-input">' +
+        '<option value="Alto">Alto</option>' +
+        '<option value="Medio">Medio</option>' +
+        '<option value="Bajo">Bajo</option>' +
+        '</select>' +
+        '<select id="cf-motivo" class="swal2-input">' +
+        '<option value="Intervención exitosa">Intervención exitosa</option>' +
+        '<option value="Sin evidencia">Sin evidencia</option>' +
+        '<option value="Falsa alarma">Falsa alarma</option>' +
+        '<option value="Remitido a PNP">Remitido a PNP</option>' +
+        '</select>' +
+        '<textarea id="cf-detalle" class="swal2-textarea" placeholder="Detalle del cierre"></textarea>';
+      var self = this;
+      Swal.fire({
+        title: 'Cerrar ticket',
+        html: html,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Cerrar ticket',
+        preConfirm: function () {
+          var general = document.getElementById('cf-general').value;
+          var sub = document.getElementById('cf-sub').value.trim();
+          var modo = document.getElementById('cf-modo').value.trim();
+          var gravedad = document.getElementById('cf-gravedad').value;
+          var motivo = document.getElementById('cf-motivo').value;
+          var detalle = document.getElementById('cf-detalle').value.trim();
+          if (!sub || !modo || !detalle) {
+            Swal.showValidationMessage('Complete subcategoría, modo y detalle.');
+            return false;
+          }
+          return {
+            categoria_general: general,
+            subcategoria: sub,
+            modo_operandi: modo,
+            nivel_gravedad: gravedad,
+            motivo_cierre: motivo,
+            detalle: detalle
+          };
+        }
+      }).then(function (result) {
+        if (!result.isConfirmed) {
+          return;
+        }
+        self.clausurarTicket(ticket, result.value);
+      });
+    },
+    clausurarTicket: function (ticket, clasificacion) {
+      ticket.estado = 'Cerrado';
+      ticket.clasificacion_final = clasificacion;
+      ticket.cierre = {
+        detalle: clasificacion.detalle,
+        fecha: Date.now()
+      };
+      this.addMessage(ticket.id, {
+        from: 'system',
+        author: 'Sistema',
+        text: 'Ticket cerrado. Motivo: ' + clasificacion.motivo_cierre
+      });
+      this.save();
+      this.renderTicketDetails();
+      this.renderChat();
+      this.renderKPIs();
+    },
+    enviarChat: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        Swal.fire('Atención', 'Seleccione un ticket.', 'warning');
+        return;
+      }
+      var text = this.dom.chatInput.val().trim();
+      if (!text) {
+        return;
+      }
+      this.addMessage(ticket.id, {
+        from: 'operator',
+        author: ticket.operador || 'Operador',
+        text: text
+      });
+      this.dom.chatInput.val('');
+      this.save();
+      this.renderChat();
+    },
+    reenviarUltimo: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        Swal.fire('Atención', 'Seleccione un ticket.', 'warning');
+        return;
+      }
+      var mensajes = this.data.messages[ticket.id] || [];
+      var lastAgent = null;
+      for (var i = mensajes.length - 1; i >= 0; i -= 1) {
+        if (mensajes[i].from === 'agent') {
+          lastAgent = mensajes[i];
+          break;
+        }
+      }
+      if (!lastAgent) {
+        Swal.fire('Sin mensajes', 'Aún no hay mensajes de agentes.', 'info');
+        return;
+      }
+      this.addMessage(ticket.id, {
+        from: 'operator',
+        author: ticket.operador || 'Operador',
+        text: lastAgent.text,
+        reenviado: true
+      });
+      this.save();
+      this.renderChat();
+    },
+    handleSimularClick: function () {
+      var self = this;
+      var openTickets = this.getOpenTickets();
+      if (!openTickets.length) {
+        Swal.fire('Sin pestañas activas', 'Abra o cree un ticket antes de simular mensajes.', 'info');
+        return;
+      }
+      if (openTickets.length === 1) {
+        this.simularMensajeAgente(openTickets[0].id);
+        return;
+      }
+      var options = openTickets.reduce(function (acc, ticket) {
+        acc[ticket.id] = ticket.titulo;
+        return acc;
+      }, {});
+      Swal.fire({
+        title: '¿Sobre qué ticket simular?',
+        input: 'select',
+        inputOptions: options,
+        inputValue: this.data.ui.activeTicketId,
+        showCancelButton: true,
+        confirmButtonText: 'Simular'
+      }).then(function (result) {
+        if (!result.isConfirmed || !result.value) {
+          return;
+        }
+        self.simularMensajeAgente(result.value);
+      });
+    },
+    simularMensajeAgente: function (ticketId) {
+      var ticket = this.getTicketById(ticketId);
+      if (!ticket) {
+        Swal.fire('Ticket no encontrado', '', 'error');
+        return;
+      }
+      if (!ticket.assignedAgents.length) {
+        Swal.fire('Sin agentes', 'Asigne agentes antes de simular mensajes.', 'info');
+        return;
+      }
+      var randomAssigned = ticket.assignedAgents[Math.floor(Math.random() * ticket.assignedAgents.length)];
+      var agent = this.findAgent(randomAssigned.id);
+      if (!agent) {
+        return;
+      }
+      var frases = [
+        'En ruta, ETA 4 min.',
+        'Solicito refuerzo en el punto.',
+        'Ciudadano estable, trasladando a posta.',
+        'Sin novedad, patrullando perímetro.',
+        'Se libera la vía, incidente controlado.'
+      ];
+      var texto = frases[Math.floor(Math.random() * frases.length)];
+      this.addMessage(ticket.id, {
+        from: 'agent',
+        author: agent.nombre,
+        text: texto
+      });
+      if (ticket.id !== this.data.ui.activeTicketId) {
+        ticket.unread = (ticket.unread || 0) + 1;
+        ticket.blinkUntil = Date.now() + 5000;
+      }
+      this.save();
+      if (ticket.id === this.data.ui.activeTicketId) {
+        this.renderChat();
+      } else {
+        this.renderTabs();
+      }
+    },
+    sugerirMasCercano: function () {
+      var ticket = this.getActiveTicket();
+      if (!ticket) {
+        Swal.fire('Atención', 'Seleccione un ticket.', 'warning');
+        return;
+      }
+      var disponibles = this.data.agents.filter(function (agent) { return agent.disponible; });
+      if (!disponibles.length) {
+        Swal.fire('Sin agentes', 'No hay agentes disponibles para sugerir.', 'info');
+        return;
+      }
+      var loc = ticket.location || { lat: -12.0464, lng: -77.0428 };
+      var mejor = null;
+      disponibles.forEach(function (agent) {
+        var distancia = App.haversine(loc.lat, loc.lng, agent.lat, agent.lng);
+        if (!mejor || distancia < mejor.distancia) {
+          mejor = { agent: agent, distancia: distancia };
+        }
+      });
+      var texto = mejor.agent.nombre + ' (' + mejor.agent.tipo + ') a ' + mejor.distancia.toFixed(2) + ' km.';
+      var self = this;
+      Swal.fire({
+        title: 'Agente sugerido',
+        html: texto,
+        showCancelButton: true,
+        confirmButtonText: 'Asignar'
+      }).then(function (result) {
+        if (result.isConfirmed) {
+          self.asignarAgente(ticket.id, mejor.agent.id);
+        }
+      });
+    },
+    addMessage: function (ticketId, payload) {
+      if (!this.data.messages[ticketId]) {
+        this.data.messages[ticketId] = [];
+      }
+      payload.id = payload.id || DB.uuid();
+      payload.timestamp = payload.timestamp || Date.now();
+      this.data.messages[ticketId].push(payload);
+    },
+    findAgent: function (agentId) {
+      return this.data.agents.find(function (a) { return a.id === agentId; }) || null;
+    },
+    formatTime: function (timestamp) {
+      var date = new Date(timestamp);
+      var hours = ('0' + date.getHours()).slice(-2);
+      var minutes = ('0' + date.getMinutes()).slice(-2);
+      return hours + ':' + minutes;
+    },
+    haversine: function (lat1, lon1, lat2, lon2) {
+      function toRad(val) { return val * Math.PI / 180; }
+      var R = 6371;
+      var dLat = toRad(lat2 - lat1);
+      var dLon = toRad(lon2 - lon1);
+      var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+  };
+
+  $(function () {
+    App.init();
+  });
+})(jQuery, Swal, L);
+
+
+</script>

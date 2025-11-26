@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración de Usuarios - Luna</title>
+</head>
+<body>
+  <div class="container-fluid" id="user-admin-module">
+    <!-- ======= VIEW HEADER (Luna style) ======= -->
+    <div class="view-header">
+      <div class="pull-right text-right" style="line-height:14px">
+        <small>Seguridad<br>Administración<br> <span class="c-white">Usuarios</span></small>
+      </div>
+      <div class="header-icon">
+        <i class="pe page-header-icon pe-7s-users"></i>
+      </div>
+      <div class="header-title">
+        <h3>Administración de Usuarios</h3>
+        <small>Altas, edición, actividad, roles y permisos (páginas).</small>
+      </div>
+    </div>
+
+    <!-- ======= Toolbar (ícono + texto) ======= -->
+    <div class="row m-b">
+      <div class="col-sm-6">
+        <div class="btn-group">
+          <button id="btnAddUser" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-plus"></span> Nuevo Usuario</button>
+          <button id="btnExportUsers" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-export"></span> Exportar</button>
+          <button id="btnResetDemo" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-refresh"></span> Reset demo</button>
+        </div>
+      </div>
+      <div class="col-sm-6 text-right">
+        <div id="sectionNav" class="btn-group" role="group" aria-label="Navegación de secciones">
+          <button type="button" class="btn btn-accent nav-btn active" data-target="#sec-users" aria-pressed="true">
+            <span class="glyphicon glyphicon-user"></span> Usuarios
+          </button>
+          <button type="button" class="btn btn-accent nav-btn" data-target="#sec-activity">
+            <span class="glyphicon glyphicon-time"></span> Actividad
+          </button>
+          <button type="button" class="btn btn-accent nav-btn" data-target="#sec-pages">
+            <span class="glyphicon glyphicon-file"></span> Páginas
+          </button>
+          <button type="button" class="btn btn-accent nav-btn" data-target="#sec-services">
+            <span class="glyphicon glyphicon-link"></span> Servicios
+          </button>
+          <button type="button" class="btn btn-accent nav-btn" data-target="#sec-roles">
+            <span class="glyphicon glyphicon-lock"></span> Roles
+          </button>
+          <button type="button" class="btn btn-accent nav-btn" data-target="#sec-role-pages">
+            <span class="glyphicon glyphicon-tasks"></span> Rol ↔ Páginas
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== SECCIÓN: USUARIOS ====================== -->
+    <div id="sec-users" class="section-view">
+      <!-- *** Contenedor: solo DIVs sin estilos *** -->
+      <div class="row m-b">
+        <div class="col-md-6">
+          <!-- OBJETO: Panel accent Filtros -->
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Filtros</div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-8 m-b-xs">
+                  <input id="userSearch" class="form-control input-sm" placeholder="Buscar por usuario, nombre, correo…">
+                </div>
+                <div class="col-sm-4 text-right m-b-xs">
+                  <button id="btnOpenCreateUser" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-plus"></span> Nuevo</button>
+                  <button id="btnClearFilters" class="btn btn-default btn-sm">Limpiar</button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-6 m-b-xs">
+                  <select id="userStatusFilter" class="form-control input-sm">
+                    <option value="">Estado: Todos</option>
+                    <option value="activo">Activo</option>
+                    <option value="bloqueado">Bloqueado</option>
+                  </select>
+                </div>
+                <div class="col-sm-6 m-b-xs">
+                  <select id="userRoleFilter" class="form-control input-sm">
+                    <option value="">Rol: Todos</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <!-- OBJETO: Panel accent Métricas -->
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Usuarios</div>
+            <div class="panel-body">
+              <div class="row text-center">
+                <div class="col-xs-3"><div class="small text-muted">Total</div><h3 id="mUsersTotal">0</h3></div>
+                <div class="col-xs-3"><div class="small text-muted">Activos</div><h3 id="mUsersActive">0</h3></div>
+                <div class="col-xs-3"><div class="small text-muted">Bloqueados</div><h3 id="mUsersBlocked">0</h3></div>
+                <div class="col-xs-3"><div class="small text-muted">WithApps</div><h3 id="mUsersWithApps">0</h3></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OBJETO: Panel accent Listado -->
+      <div class="panel panel-filled panel-c-accent">
+        <div class="panel-heading">Listado</div>
+        <div class="panel-body p-sm">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover" id="usersTable">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Perfiles</th>
+                  <th style="width:110px;">Activo</th>
+                  <th style="width:110px;">Bloqueado</th>
+                  <th style="width:120px;">Multisesiones</th>
+                  <th>Apps</th>
+                  <th class="text-right" style="width:160px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== SECCIÓN: ACTIVIDAD ====================== -->
+    <div id="sec-activity" class="section-view" style="display:none;">
+      <div class="row m-b">
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Filtros</div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-6 m-b-xs"><select id="activityUserFilter" class="form-control input-sm"></select></div>
+                <div class="col-sm-3 m-b-xs"><input id="activityDateFrom" type="date" class="form-control input-sm"></div>
+                <div class="col-sm-3 m-b-xs"><input id="activityDateTo" type="date" class="form-control input-sm"></div>
+              </div>
+              <div class="text-right"><button id="btnRefreshActivity" class="btn btn-default btn-sm">Actualizar</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Resumen</div>
+            <div class="panel-body">
+              <div class="row text-center">
+                <div class="col-xs-3"><div class="small text-muted">Accesos</div><h3 id="mActLogins">0</h3></div>
+                <div class="col-xs-3"><div class="small text-muted">Logouts</div><h3 id="mActLogouts">0</h3></div>
+                <div class="col-xs-3"><div class="small text-muted">Sesiones</div><h3 id="mActSessions">0</h3></div>
+                <div class="col-xs-3"><div class="small text-muted">Errores</div><h3 id="mActErrors">0</h3></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-filled panel-c-accent">
+        <div class="panel-heading">Eventos</div>
+        <div class="panel-body p-sm">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover" id="activityTable">
+              <thead><tr><th>Usuario</th><th>Fecha / Hora</th><th>Tipo</th><th>Duración (min)</th><th>Detalle</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== SECCIÓN: PÁGINAS ====================== -->
+    <div id="sec-pages" class="section-view" style="display:none;">
+      <div class="row m-b">
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Filtros</div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-6 m-b-xs"><select id="pagesUserFilter" class="form-control input-sm"></select></div>
+                <div class="col-sm-6 m-b-xs"><input id="pageSearch" class="form-control input-sm" placeholder="Buscar por URL o título"></div>
+              </div>
+              <div class="text-right">
+                <button id="btnRefreshPages" class="btn btn-default btn-sm">Actualizar</button>
+                <button id="btnManagePages" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-cog"></span> Gestionar páginas</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Resumen</div>
+            <div class="panel-body">
+              <div class="row text-center">
+                <div class="col-xs-4"><div class="small text-muted">Páginas</div><h3 id="mPagesTotal">0</h3></div>
+                <div class="col-xs-4"><div class="small text-muted">Usuarios</div><h3 id="mPagesUsers">0</h3></div>
+                <div class="col-xs-4"><div class="small text-muted">Visitas</div><h3 id="mPagesVisits">0</h3></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-filled panel-c-accent">
+        <div class="panel-heading">Uso de páginas</div>
+        <div class="panel-body p-sm">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover" id="pagesTable">
+              <thead><tr><th>Usuario</th><th>Página (título / URL)</th><th>Visitas</th><th>Última visita</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== SECCIÓN: SERVICIOS REST ====================== -->
+    <div id="sec-services" class="section-view" style="display:none;">
+      <div class="row m-b">
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Filtros</div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-4 m-b-xs"><select id="servicesUserFilter" class="form-control input-sm"></select></div>
+                <div class="col-sm-4 m-b-xs"><input id="serviceSearch" class="form-control input-sm" placeholder="Endpoint o ruta"></div>
+                <div class="col-sm-4 m-b-xs"><select id="serviceMethodFilter" class="form-control input-sm"><option value="">Método: Todos</option><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select></div>
+              </div>
+              <div class="text-right"><button id="btnRefreshServices" class="btn btn-default btn-sm">Actualizar</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Resumen</div>
+            <div class="panel-body">
+              <div class="row text-center">
+                <div class="col-xs-4"><div class="small text-muted">Total calls</div><h3 id="mSrvCalls">0</h3></div>
+                <div class="col-xs-4"><div class="small text-muted">Avg ms</div><h3 id="mSrvAvg">0</h3></div>
+                <div class="col-xs-4"><div class="small text-muted">Errores</div><h3 id="mSrvErrors">0</h3></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-filled panel-c-accent">
+        <div class="panel-heading">Llamadas</div>
+        <div class="panel-body p-sm">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover" id="servicesTable">
+              <thead><tr><th>Usuario</th><th>Endpoint</th><th>Método</th><th>Llamadas</th><th>Último uso</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== SECCIÓN: ROLES ====================== -->
+    <div id="sec-roles" class="section-view" style="display:none;">
+      <div class="row m-b">
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Filtros</div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-8 m-b-xs"><input id="roleSearch" class="form-control input-sm" placeholder="Buscar rol por código o nombre"></div>
+                <div class="col-sm-4 text-right m-b-xs"><button id="btnAddRole" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-plus"></span> Nuevo</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Resumen</div>
+            <div class="panel-body">
+              <div class="row text-center">
+                <div class="col-xs-4"><div class="small text-muted">Roles</div><h3 id="mRolesTotal">0</h3></div>
+                <div class="col-xs-4"><div class="small text-muted">Páginas</div><h3 id="mRolesPages">0</h3></div>
+                <div class="col-xs-4"><div class="small text-muted">Usuarios</div><h3 id="mRolesUsers">0</h3></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-filled panel-c-accent">
+        <div class="panel-heading">Listado</div>
+        <div class="panel-body p-sm">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover" id="rolesTable">
+              <thead><tr><th>Código</th><th>Nombre</th><th class="text-right" style="width: 160px;">Acciones</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== SECCIÓN: ROLES ↔ PÁGINAS ====================== -->
+    <div id="sec-role-pages" class="section-view" style="display:none;">
+      <div class="row m-b">
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Filtros</div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-8 m-b-xs"><select id="rpRoleSelect" class="form-control input-sm"></select></div>
+                <div class="col-sm-4 text-right m-b-xs"><button id="btnOpenRolePagesModal" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-cog"></span> Configurar</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="panel panel-filled panel-c-accent">
+            <div class="panel-heading">Resumen</div>
+            <div class="panel-body">
+              <div class="row text-center">
+                <div class="col-xs-6"><div class="small text-muted">Páginas asignadas</div><h3 id="mRPAssigned">0</h3></div>
+                <div class="col-xs-6"><div class="small text-muted">Páginas totales</div><h3 id="mRPTotal">0</h3></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-filled panel-c-accent">
+        <div class="panel-heading">Asignaciones actuales</div>
+        <div class="panel-body p-sm">
+          <div id="rpSummary" class="small text-muted">Selecciona un rol para ver sus páginas.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== MODALES ====================== -->
+    <!-- Role modal -->
+    <div class="modal fade" id="roleModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document"><div class="modal-content">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button><h4 class="modal-title" id="roleModalTitle">Nuevo rol</h4></div>
+        <div class="modal-body">
+          <form id="roleForm" class="form-horizontal">
+            <input type="hidden" id="roleId">
+            <div class="form-group"><label class="col-sm-3 control-label">Código</label><div class="col-sm-4"><input id="roleCode" class="form-control input-sm" required></div></div>
+            <div class="form-group"><label class="col-sm-3 control-label">Nombre</label><div class="col-sm-8"><input id="roleName" class="form-control input-sm" required></div></div>
+          </form>
+        </div>
+        <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal">Cancelar</button><button id="btnSaveRole" class="btn btn-primary">Guardar</button></div>
+      </div></div>
+    </div>
+
+    <!-- Role-Pages modal -->
+    <div class="modal fade" id="rolePagesModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document"><div class="modal-content">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button><h4 class="modal-title">Asignar páginas a rol</h4></div>
+        <div class="modal-body">
+          <div class="form-group"><label>Rol</label><select id="rpRoleSelectModal" class="form-control input-sm"></select></div>
+          <div class="form-group"><label>Páginas autorizadas (Ctrl/⌘ para múltiple)</label><select id="rpPagesSelectModal" class="form-control" multiple size="10"></select></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal">Cancelar</button><button id="btnSaveRolePages" class="btn btn-primary">Guardar asignación</button></div>
+      </div></div>
+    </div>
+
+    <!-- Pages CRUD modal -->
+    <div class="modal fade" id="pagesCrudModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document"><div class="modal-content">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button><h4 class="modal-title">Gestión de páginas</h4></div>
+        <div class="modal-body">
+          <div class="text-right m-b-sm"><button id="btnAddPage" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-plus"></span> Nueva página</button></div>
+          <div class="table-responsive">
+            <table class="table table-striped table-hover" id="pagesCrudTable">
+              <thead><tr><th>ID</th><th>Título</th><th>URL</th><th class="text-right" style="width: 160px;">Acciones</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal">Cerrar</button></div>
+      </div></div>
+    </div>
+
+    <!-- Page Edit modal -->
+    <div class="modal fade" id="pageEditModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document"><div class="modal-content">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button><h4 class="modal-title" id="pageEditModalTitle">Nueva página</h4></div>
+        <div class="modal-body">
+          <form id="pageForm" class="form-horizontal">
+            <input type="hidden" id="pageId">
+            <div class="form-group"><label class="col-sm-3 control-label">Título</label><div class="col-sm-8"><input id="pageTitle" class="form-control input-sm" required></div></div>
+            <div class="form-group"><label class="col-sm-3 control-label">URL</label><div class="col-sm-8"><input id="pageUrl" class="form-control input-sm" required></div></div>
+          </form>
+        </div>
+        <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal">Cancelar</button><button id="btnSavePage" class="btn btn-primary">Guardar</button></div>
+      </div></div>
+    </div>
+
+    <!-- ====================== MODAL: USUARIO (Nuevo / Editar) ====================== -->
+    <div class="modal fade" id="userModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            <h4 class="modal-title" id="userModalTitle">Nuevo Usuario</h4>
+            <small>Este formulario le permite agregar un usuario. Verifique con cuidado las opciones que marque.</small>
+          </div>
+          <div class="modal-body">
+            <!-- Panel Datos Generales -->
+            <div class="panel panel-filled panel-c-accent">
+              <div class="panel-heading">Datos Generales</div>
+              <div class="panel-body">
+                <form id="userForm" class="form-horizontal">
+                  <input type="hidden" id="userId">
+                  <div class="row m-b-sm">
+                    <div class="col-sm-6">
+                      <label>Email address</label>
+                      <input id="f_email" type="email" class="form-control" placeholder="Email" required>
+                    </div>
+                    <div class="col-sm-6">
+                      <label>Nombre completo</label>
+                      <input id="f_fullname" type="text" class="form-control" placeholder="Nombre completo" required>
+                    </div>
+                  </div>
+                  <div class="row m-b-sm">
+                    <div class="col-sm-6">
+                      <label>Teléfono contacto</label>
+                      <input id="f_phone" type="text" class="form-control" placeholder="Teléfono contacto">
+                    </div>
+                    <div class="col-sm-2">
+                      <label>Multi Dispositivo</label>
+                      <div class="form-check abc-checkbox">
+                        <input id="f_multi" type="checkbox">
+                        <label for="f_multi"> Habilitar</label>
+                      </div>
+                    </div>
+                    <div class="col-sm-4">
+                      <label>Estado del usuario</label>
+                      <div class="row">
+                        <div class="col-xs-6">
+                          <div class="form-check abc-checkbox">
+                            <input id="f_active" type="checkbox">
+                            <label for="f_active"> Activo</label>
+                          </div>
+                        </div>
+                        <div class="col-xs-6">
+                          <div class="form-check abc-checkbox">
+                            <input id="f_blocked" type="checkbox">
+                            <label for="f_blocked"> Bloqueado</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Panel Perfiles de la aplicación -->
+            <div class="panel panel-filled panel-c-accent">
+              <div class="panel-heading">Perfiles de la aplicación</div>
+              <div class="panel-body" id="rolesChecklist">
+                <!-- Aquí se inyectan checkboxes de roles vía JS -->
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            <button id="btnSaveUser" class="btn btn-primary">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= Minor CSS tweaks ======= -->
+    <style>
+      #user-admin-module #sectionNav .btn { height:34px; }
+      #user-admin-module #sectionNav .btn .glyphicon { margin-right:6px; }
+      #usersTable .user-cell small { display:block; color:#a4aab0; }
+      .tag { display:inline-block; padding:2px 6px; border-radius:3px; font-size:11px; margin-right:4px; }
+      .tag-rol { background:#0f83c9; color:#fff; }
+      .tag-app { background:#db524b; color:#fff; }
+      .label-pill { border-radius:10px; padding:2px 8px; }
+    </style>
+
+    <!-- ======= JS: navegación, demo data y handlers ======= -->
+    <script>
+      (function(){
+        // ---------- Navegación por secciones ----------
+        $('#sectionNav').on('click', '.nav-btn', function(){
+          var target = $(this).data('target');
+          if(!target) return;
+          $('.nav-btn').removeClass('active').attr('aria-pressed','false');
+          $(this).addClass('active').attr('aria-pressed','true');
+          $('.section-view').hide();
+          $(target).show();
+        });
+
+        // ---------- Datos de prueba ----------
+        var demo = {
+          roles: [
+            { code:'superadmin', name:'SuperAdministrador' },
+            { code:'admin', name:'Administrador' },
+            { code:'config', name:'Configurador' },
+            { code:'gestor', name:'Gestor' },
+            { code:'editor', name:'Editor' },
+            { code:'bi', name:'BI' },
+            { code:'soporte', name:'Soporte' }
+          ],
+          users: [
+            { id:'u1', email:'carlos@win.pe', name:'Carlos Oliveros', phone:'947292081', roles:['admin','bi'], active:true, blocked:false, multi:true, apps:['services1','services2'] },
+            { id:'u2', email:'maria@win.pe', name:'María Rojas', phone:'', roles:['editor'], active:true, blocked:false, multi:true, apps:[] },
+            { id:'u3', email:'jose@win.pe', name:'José Pérez', phone:'', roles:['soporte'], active:false, blocked:true, multi:false, apps:[] }
+          ]
+        };
+
+        // ---------- Render helpers ----------
+        function renderRolesChecklist(selected){
+          var html = '';
+          demo.roles.forEach(function(r){
+            var checked = selected && selected.indexOf(r.code) > -1 ? 'checked' : '';
+            html += '<div class="abc-checkbox m-b-xs">'
+                 +   '<input id="role_'+r.code+'" type="checkbox" value="'+r.code+'" '+checked+'> '
+                 +   '<label for="role_'+r.code+'"><strong>'+r.name+'</strong></label>'
+                 +   '<div class="small">&nbsp;</div>'
+                 + '</div>';
+          });
+          $('#rolesChecklist').html(html);
+        }
+
+        function labelYN(val){
+          return val ? '<span class="label label-success label-pill">Sí</span>'
+                      : '<span class="label label-default label-pill">No</span>';
+        }
+
+        function renderUsers(){
+          var $tb = $('#usersTable tbody');
+          $tb.empty();
+          demo.users.forEach(function(u){
+            var rolesTags = u.roles.map(function(rc){ return '<span class="tag tag-rol">'+rc+'</span>'; }).join(' ');
+            var appsTags = (u.apps||[]).map(function(a){ return '<span class="tag tag-app">'+a+'</span>';}).join(' ');
+            var tr = '<tr>'+
+              '<td class="user-cell"><div>'+u.email+'</div><small>'+u.name+(u.phone? ' · '+u.phone : '')+'</small></td>'+
+              '<td>'+rolesTags+'</td>'+
+              '<td>'+(u.active? '<span class="label label-success">Activo</span>':'<span class="label label-default">Inactivo</span>')+'</td>'+
+              '<td>'+labelYN(u.blocked === true)+'</td>'+
+              '<td>'+labelYN(u.multi === true)+'</td>'+
+              '<td>'+(appsTags||'')+'</td>'+
+              '<td class="text-right">'+
+                '<button class="btn btn-default btn-xs js-view" data-id="'+u.id+'">Ver</button> '+
+                '<button class="btn btn-default btn-xs js-edit" data-id="'+u.id+'">Editar</button> '+
+                '<button class="btn btn-danger btn-xs js-del" data-id="'+u.id+'">Eliminar</button>'+
+              '</td>'+
+            '</tr>';
+            $tb.append(tr);
+          });
+          updateUserMetrics();
+        }
+
+        function updateUserMetrics(){
+          $('#mUsersTotal').text(demo.users.length);
+          $('#mUsersActive').text(demo.users.filter(function(u){return !!u.active;}).length);
+          $('#mUsersBlocked').text(demo.users.filter(function(u){return !!u.blocked;}).length);
+          $('#mUsersWithApps').text(demo.users.filter(function(u){return (u.apps||[]).length>0; }).length);
+        }
+
+        // ---------- Handlers: Nuevo / Editar Usuario ----------
+        function openUserModalNew(){
+          $('#userModalTitle').text('Nuevo Usuario');
+          $('#userId').val('');
+          $('#f_email').val('');
+          $('#f_fullname').val('');
+          $('#f_phone').val('');
+          $('#f_multi').prop('checked', false);
+          $('#f_active').prop('checked', true);
+          $('#f_blocked').prop('checked', false);
+          renderRolesChecklist([]);
+          $('#userModal').modal('show');
+        }
+        function openUserModalEdit(id){
+          var u = demo.users.find(function(x){return x.id===id;});
+          if(!u) return;
+          $('#userModalTitle').text('Editar Usuario');
+          $('#userId').val(u.id);
+          $('#f_email').val(u.email);
+          $('#f_fullname').val(u.name);
+          $('#f_phone').val(u.phone||'');
+          $('#f_multi').prop('checked', !!u.multi);
+          $('#f_active').prop('checked', !!u.active);
+          $('#f_blocked').prop('checked', !!u.blocked);
+          renderRolesChecklist(u.roles||[]);
+          $('#userModal').modal('show');
+        }
+
+        $('#btnAddUser, #btnOpenCreateUser').on('click', openUserModalNew);
+
+        $('#usersTable').on('click','.js-edit', function(){ openUserModalEdit($(this).data('id')); });
+        $('#usersTable').on('click','.js-del', function(){
+          var id = $(this).data('id');
+          demo.users = demo.users.filter(function(u){ return u.id!==id; });
+          renderUsers();
+        });
+
+        // Guardar usuario (crear o editar)
+        $('#btnSaveUser').on('click', function(){
+          var id = $('#userId').val();
+          var newUser = {
+            id: id || ('u'+Date.now()),
+            email: $('#f_email').val().trim(),
+            name: $('#f_fullname').val().trim(),
+            phone: $('#f_phone').val().trim(),
+            multi: $('#f_multi').is(':checked'),
+            active: $('#f_active').is(':checked'),
+            blocked: $('#f_blocked').is(':checked'),
+            roles: $('#rolesChecklist input:checked').map(function(){return this.value;}).get(),
+            apps: []
+          };
+          if(!newUser.email || !newUser.name){ return; }
+          var idx = demo.users.findIndex(function(u){return u.id===id;});
+          if(idx>-1){ demo.users[idx] = newUser; } else { demo.users.push(newUser); }
+          $('#userModal').modal('hide');
+          renderUsers();
+        });
+
+        // Filtros básicos (solo demo)
+        $('#btnClearFilters').on('click', function(){
+          $('#userSearch').val('');
+          $('#userStatusFilter').val('');
+          $('#userRoleFilter').val('');
+          renderUsers();
+        });
+        $('#userSearch, #userStatusFilter, #userRoleFilter').on('input change', function(){
+          var q = ($('#userSearch').val()||'').toLowerCase();
+          var st = $('#userStatusFilter').val();
+          var rl = $('#userRoleFilter').val();
+          var filtered = demo.users.filter(function(u){
+            var matchQ = !q || (u.email+u.name).toLowerCase().indexOf(q)>-1;
+            var matchS = !st || (st==='activo'? u.active : u.blocked);
+            var matchR = !rl || (u.roles||[]).indexOf(rl)>-1;
+            return matchQ && matchS && matchR;
+          });
+          // Pintar con filtro sin perder demo.users
+          var $tb = $('#usersTable tbody').empty();
+          filtered.forEach(function(u){
+            var rolesTags = u.roles.map(function(rc){ return '<span class="tag tag-rol">'+rc+'</span>'; }).join(' ');
+            var appsTags = (u.apps||[]).map(function(a){ return '<span class="tag tag-app">'+a+'</span>';}).join(' ');
+            var tr = '<tr>'+
+              '<td class="user-cell"><div>'+u.email+'</div><small>'+u.name+(u.phone? ' · '+u.phone : '')+'</small></td>'+
+              '<td>'+rolesTags+'</td>'+
+              '<td>'+(u.active? '<span class="label label-success">Activo</span>':'<span class="label label-default">Inactivo</span>')+'</td>'+
+              '<td>'+labelYN(u.blocked === true)+'</td>'+
+              '<td>'+labelYN(u.multi === true)+'</td>'+
+              '<td>'+(appsTags||'')+'</td>'+
+              '<td class="text-right">'+
+                '<button class="btn btn-default btn-xs js-view" data-id="'+u.id+'">Ver</button> '+
+                '<button class="btn btn-default btn-xs js-edit" data-id="'+u.id+'">Editar</button> '+
+                '<button class="btn btn-danger btn-xs js-del" data-id="'+u.id+'">Eliminar</button>'+
+              '</td>'+
+            '</tr>';
+            $tb.append(tr);
+          });
+          $('#mUsersTotal').text(filtered.length);
+          $('#mUsersActive').text(filtered.filter(function(u){return !!u.active;}).length);
+          $('#mUsersBlocked').text(filtered.filter(function(u){return !!u.blocked;}).length);
+          $('#mUsersWithApps').text(filtered.filter(function(u){return (u.apps||[]).length>0; }).length);
+        });
+
+        // --------- Inicialización ---------
+        // Rellenar select de roles del filtro
+        var $roleSel = $('#userRoleFilter');
+        demo.roles.forEach(function(r){ $roleSel.append('<option value="'+r.code+'">'+r.name+'</option>'); });
+        renderUsers();
+      })();
+    </script>
+  </div>
+</body>
+</html>

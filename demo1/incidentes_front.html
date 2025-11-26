@@ -1,0 +1,184 @@
+<!-- SweetAlert2 (requerido por la consola CAD) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Leaflet -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Tu app CAD -->
+
+
+
+<div class="row">
+    <div class="col-md-12" >
+        
+         <div class="panel panel-filled0 panel-c-accent">
+            <div class="panel-heading">
+                Basic panel with header, body and footer
+            </div>
+            <div class="panel-body">
+                <div id="listTickets">
+                    <button class="btn btn-danger " id="addticket" style="float:right" type="button"><i class="pe-7s-plus"></i> <span class="bold">Nuevo Ticket</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-3">
+                    <div class="tabs-container">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" href="#tab-3" aria-expanded="true"> <i class="fa fa-laptop"></i> General</a></li>
+                            <li class=""><a data-toggle="tab" href="#tab-4" aria-expanded="false"><i class="fa fa-desktop"></i> Agentes</a></li>
+                            <li class=""><a data-toggle="tab" href="#tab-5" aria-expanded="false"><i class="fa fa-database"></i> Personas</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="tab-3" class="tab-pane active"   style="height:656px; ">
+                                 <div class="panel panel-filled  panel-c-accent">
+                        <div class="panel-heading">
+                            <div class="panel-tools">
+                            </div>
+                            Supported controls
+                        </div>
+                        <div class="panel-body">
+
+                            <p>Most common form control, text-based input fields. Includes support for all HTML5 types: <code>text</code>, <code>password</code>, <code>datetime</code>, <code>datetime-local</code>, <code>date</code>, <code>month</code>, <code>time</code>, <code>week</code>, <code>number</code>, <code>email</code>, <code>url</code>, <code>search</code>, <code>tel</code>, and <code>color</code>.</p>
+
+
+                            <div class="row">
+                                <div class="col-lg-6">
+
+                                    <form>
+                                        <div class="form-group">
+                                            <label>Basic input</label>
+                                            <input type="text" class="form-control" placeholder="Text input">
+                                        </div>
+                                    </form>
+
+                                </div>
+                                <div class="col-lg-6">
+                                    <form>
+                                        <div class="form-group">
+                                            <label>Textarea</label>
+                                            <textarea class="form-control" rows="3" placeholder="Textarea example text"></textarea>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+
+                                    <form>
+                                        <div class="form-group">
+                                            <label>Checkbox</label>
+                                        </div>
+                                        <div class="checkbox"><label> <input type="checkbox" value=""> Option one is this and that—be sure to include why it's great </label></div>
+                                        <div class="checkbox disabled"><label> <input type="checkbox" value="" disabled="disabled"> Option two is disabled </label></div>
+
+                                        <div class="radio"><label> <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked="checked"> Option one is this and that—be sure to include why it's great </label></div>
+                                        <div class="radio"><label> <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2"> Option two can be something else and selecting it will deselect option one </label></div>
+                                        <div class="radio disabled"><label> <input type="radio" name="optionsRadios" id="optionsRadios3" value="option3" disabled="disabled"> Option three is disabled </label></div>
+                                    </form>
+
+                                </div>
+                                <div class="col-lg-6">
+                                    <form>
+                                        <div class="form-group">
+                                            <label>Selects</label>
+                                        </div>
+                                        <select class="form-control">
+                                            <option>1</option>
+                                            <option>2</option>
+                                            <option>3</option>
+                                            <option>4</option>
+                                            <option>5</option>
+                                        </select>
+                                        <br>
+                                        <select multiple="" class="form-control">
+                                            <option>1</option>
+                                            <option>2</option>
+                                            <option>3</option>
+                                            <option>4</option>
+                                            <option>5</option>
+                                        </select>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                            </div>
+                            <div id="tab-4" class="tab-pane">
+                                <div class="panel-body">
+                                    <strong class="c-white">Donec quam felis</strong>
+
+                                    <p>Thousand unknown plants are noticed by me: when I hear the buzz of the little world among the stalks, and grow familiar with the countless indescribable forms of the insects
+                                        and flies, then I feel the presence of the Almighty, who formed us in his own image, and the breath </p>
+
+                                    <p>I am alone, and feel the charm of existence in this spot, which was created for the bliss of souls like mine. I am so happy, my dear friend, so absorbed in the exquisite
+                                        sense of mere tranquil existence, that I neglect my talents. I should be incapable of drawing a single stroke at the present moment; and yet.</p>
+                                </div>
+                            </div>
+                            <div id="tab-5" class="tab-pane">
+                                <div class="panel-body">
+                                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+    
+    
+
+    <div class="col-md-3" >
+
+        <div class="panel panel-filled panel-c-success">
+            <div class="panel-heading">
+                <div class="panel-tools">
+                </div>
+                Filled panel with custom color
+            </div>
+            <div class="panel-body" style="height:450px; ">
+                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever.
+            </div>
+            <div class="panel-footer">
+                <div class="form-group">
+                    <label>Textarea</label>
+                    <textarea class="form-control" rows="3" placeholder="Textarea example text"></textarea>
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>                
+                
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="col-md-6">
+
+        <div class="panel panel-filled panel-c-success">
+            <div class="panel-body" style="height:656px; ">
+                <div class="panel-body" style="height:630px; padding:0;">
+                    <div id="mapCAD" style="width:100%; height:100%;"></div>
+                </div>
+                
+            </div>
+        </div>
+
+    </div>                    
+    
+</div>
+
+
+
+{{mymodal}}
+
+
+{{myscript}}
+

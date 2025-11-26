@@ -1,0 +1,722 @@
+<style>
+    .border-accent {
+        border-left: 5px solid #f67200 !important;
+    }
+    
+    .border-warning {
+        border-left: 5px solid #ffc107 !important;
+    }
+    
+    .border-info {
+        border-left: 5px solid #17a2b8 !important;
+    }
+</style>
+<div class="list-container" style="padding:12px">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="panel panel-filled panel-c-accent">
+                <div class="panel-heading">
+                    <div class="panel-tools">
+                        <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>                    
+                    </div>
+                    Filtros
+                </div>
+                <div class="panel-body">
+                            <input id="txtCameraName" type="text" class="form-control" placeholder="Busca la cámara" oninput="filterAndRenderAlertas()">
+                </div>
+            </div>
+            <div class="panel panel-filled  panel-c-accent">
+                <div class="panel-heading">
+                    <div class="panel-tools">
+                        <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>                    
+                    </div>
+                    Total de Alertas <b> (Últimas 3 horas) </b>
+                </div>
+                <div class="panel-body text-center">
+                    <h2 class="m-b-none " id="totalAlertas"></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="panel panel-filled panel-c-accent">
+                <div class="panel-heading">
+                    <div class="panel-tools">
+                        <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    </div>
+                    <span>
+                        <div class="" style="display:flex; margin-right:2em; justify-content:space-between;">
+                            <p class="">
+                                Top Cámaras con Alertas
+                            </p>
+                            <div class="">
+                                <button type="button" id="clearCamarasBtn" class="btn btn-accent btn-rounded">
+                                    Limpiar filtros
+                                </button>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+                <div class="panel-body">
+                    <div class="">
+                        <table class="table table-condensed">
+                            <thead style="border-radius:20px; overflow:hidden;">
+                                <tr>
+                                    <th style="width: 30px;"></th>
+                                    <th>Cámaras</th>
+                                    <th>Cantidad de Alertas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="camarasAll">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-5">
+            <div class="panel panel-filled panel-c-accent">
+                <div class="panel-heading">
+                    <div class="panel-tools">
+                        <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                    </div>
+                    <span>
+                        <div class="" style="display:flex; margin-right:2em; justify-content:space-between;">
+                            <p class="">
+                                Top Alertas por Tipo
+                            </p>
+                            <div class="">
+                                <button type="button" id="clearAlertasBtn" class="btn btn-accent btn-rounded">
+                                    Limpiar filtros
+                                </button>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+                <div class="panel-body">
+                    <div class="">
+                        <table class="table table-condensed">
+                            <thead style="border-radius:20px; overflow:hidden;">
+                                <tr>
+                                    <th style="width: 30px;"></th>
+                                    <th>Tipo de Alertas</th>
+                                    <th>Cantidad de Alertas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertaResults">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover-1">
+            <thead>
+            <tr>
+                <th>Identificador</th>
+                <th>Alerta</th>
+                <th>Cámara</th>
+                <th>Ubicación</th>
+                <th>Fecha</th>
+                <th>Detección</th>
+                <th>Nombre o Placa</th>
+                <th>Foto</th>
+
+            </tr>
+            </thead>
+            <tbody id="alertasAll">
+            
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="showVideoModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            
+            <div class="modal-header text-left">
+                <span class="c-white" style="float:right" id="showtime"></span>
+                <h3>
+                    Identificador : <span class="c-white" id="showId"></span>
+                </h3>
+                <h5>
+                    Alerta : <span class="c-white" id="showAlert"></span>
+                </h5>
+                <h5>
+                    Cámara : <span class="c-white" id="showcamera"></span>
+                </h5>
+                <h5>
+                    Ubicación : <span class="c-white" id="showUbication"></span>
+                </h5>
+                <div id="showlocation"></div>
+            </div>
+            
+            <div class="modal-body" style="height:400px">                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  var videoPlayer=null;
+  
+  // MODIFICADO: Ahora maneja el caso de no tener color de fondo
+  function getAlertColor(alertTimestamp) {
+      const now = new Date();
+      const alertDate = new Date(alertTimestamp);
+      const minutesDiff = (now.getTime() - alertTimestamp.getTime()) / (1000 * 60);
+      if (minutesDiff > 30) {
+          return ''; // No background color
+      } else if (minutesDiff <= 5) {
+          return `rgba(246, 114, 0, 1.0)`;
+      } else if (minutesDiff <= 10) {
+          return `rgba(246, 114, 0, 0.8)`;
+      } else if (minutesDiff <= 15) {
+          return `rgba(246, 114, 0, 0.6)`;
+      } else if (minutesDiff <= 20) {
+          return `rgba(246, 114, 0, 0.4)`;
+      } else if (minutesDiff <= 30) {
+          return `rgba(246, 114, 0, 0.2)`;
+      }
+  }
+  
+    function getAlertas(){
+        var camera_id = $('#txtCameraName').val();
+        var tipoAlerta = $('#tipo_alerta').val();
+        var location = $('#txtLocation').val();
+        callAPI({
+            method: 'gestion/geteventsbytype',
+            params: {
+            },
+            ok: function (vals) {
+                $("#totalAlertas").html(vals.length);
+                listaAlertas = vals;
+                
+                topCameras = top5ByFieldAsAmount("camera_name");
+                topEvents = top5ByFieldAsAmount("type_event_name");
+        
+                // No se llama a render_alertas() aquí. 
+                // En su lugar, se llama a la función que aplica todos los filtros.
+                filterAndRenderAlertas();
+            },
+            error: function () {
+                console.error("Error al obtener las alertas");
+            }
+        });
+    }
+    
+    var topCameras = []
+    var topEvents = []
+    
+    function top5ByFieldAsAmount(fieldName) {
+      // Count occurrences
+      const freq = listaAlertas.reduce((acc, item) => {
+        const val = item[fieldName] ?? '';
+        acc[val] = (acc[val] || 0) + 1;
+        return acc;
+      }, {});
+      // Map counts to an array of objects, sort and pick top 5
+      return Object.entries(freq)
+        .map(([value, count]) => ({
+          value,
+          count
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    }
+  
+  var listaAlertas = [];
+  var listaNotificaciones = [];
+
+var tiposSeleccionados = new Set();
+var tipoAlertas = []
+ 
+function getTipoAlertas(){
+  callAPI({
+    method: 'gestion/getTypeAlerts',
+        params: {
+        mode: 1
+    },
+    ok: function (data) {
+      tipoAlertas=data;
+      getAlertas();
+    }
+  });
+}
+ 
+// filtro en el input
+$('#alertaSearchInput').on('input', function () {
+  const text = $(this).val().toLowerCase();
+  $('#alertaResults tr').each(function () {
+    const tipoAlerta = $(this).text().toLowerCase();
+    $(this).toggle(tipoAlerta.includes(text));
+  });
+});
+
+function abrirModalSelector(){
+    $('#modalSelector').attr('aria-hidden', 'false').modal('show');
+}
+
+function getAlertClass(alertTimestamp) {
+    const now = new Date();
+    const alertDate = new Date(alertTimestamp);
+    const minutesDiff = (now.getTime() - alertDate.getTime()) / (1000 * 60);
+
+    if (minutesDiff <= 5) {
+        return 'border-warning';
+    } else if (minutesDiff <= 10) {
+        return 'border-accent';
+    } else if (minutesDiff <= 15) {
+        return 'border-info';
+    } else {
+        return ''; // No class for older alerts
+    }
+}
+
+function render_alertas(loc, data) {
+    let html = "";
+    let i = 0;
+    for (let r of data) {
+        const fecha = new Date(r.init_time_frame);
+        const fechaFormateada = fecha.toLocaleString('es-PE', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+
+        const rowClass = getAlertClass(fecha);
+        
+        const containerW = 70; // ancho de la celda de la tabla
+        const containerH = 80; // alto de la celda de la tabla
+
+        // Calcular coordenadas como en showresultsearch
+        const [xf1, yf1, xf2, yf2] = (r.person_coords_face?r.person_coords_face:r.vehicle_coords_plate || "0,0,1,1").split(",").map(Number);
+        const [xb1, yb1] = (r.person_coords_obj?r.person_coords_obj:r.vehicle_coords_obj || "0,0").split(",").map(Number);
+        
+
+        const x1 = xf1 + xb1;
+        const y1 = yf1 + yb1;
+        const w = xf2 - xf1;
+        const h = yf2 - yf1;
+
+
+        const [xo1, yo1, xo2, yo2] = (r.person_coords_obj?r.person_coords_obj:r.vehicle_coords_obj || "0,0,1,1").split(",").map(Number);
+        const w_obj = xo2 - xo1;
+        const h_obj = yo2 - yo1;
+
+
+        // Generamos un ID único para luego aplicar el fondo
+        const cropId_obj = `crop-${i}-${Date.now()}-obj`;
+        const cropId = `crop-${i}-${Date.now()}`;
+
+        let row = `<tr class="${rowClass}" onclick="${r.foto?(`verVideoPersona(${r.epoch_frame} || '', ${r.camera_id} || '','${r.camera_name}','${r.tracking_id}', '${r.location}', '${r.type_event_name}', '${r.id}','${r.coords_zone}','${r.final_time_frame}','${r.matched_ident}','${r.nombre?(r.nombre +" "+ r.apellido):(r.vehicle_plate)}','${r.person_coords_face}')`):(`verVideo(${r.epoch_frame} || '', ${r.camera_id} || '','${r.camera_name}','${r.tracking_id}', '${r.location}', '${r.type_event_name}', '${r.id}','${r.coords_zone}')`)}">
+            <th>` + r.id + `</th>
+            <td>` + r.type_event_name + `</th>
+            <td>` + r.camera_name + `</td>
+            <td>` + r.location + `</td>
+            <td>` + fechaFormateada + `</td>
+            <td>`+(r.foto?(` <div id="${cropId_obj}" style="width:${containerW}px; height:${containerH}px; border-radius:5px; overflow:hidden; background:#000;"></div>`):``)+ `</td>>
+            <td>` + (r.nombre && r.apellido ? r.nombre + ' ' + r.apellido : r.vehicle_plate || '') + `</td>
+            <td>`+(r.foto?(`<div id="${cropId}" style="width:${containerW}px; height:${containerH}px; border-radius:5px; overflow:hidden; background:#000;">`):``)+`</div> </td>
+            </tr>`;
+        html += row;
+            const img = new Image();
+            img.src = r.foto;
+            img.onload = () => {
+                const imgW = img.naturalWidth;
+                const imgH = img.naturalHeight;
+                
+                if (r.matched_category == "persona"){
+                    var scale = Math.min(containerW / w, containerH / h);
+                    var bgW = imgW * scale;
+                    var bgH = imgH * scale;
+        
+                    var bgX = (containerW - w * scale) / 2 - x1 * scale;
+                    var bgY = (containerH - h * scale) / 2 - y1 * scale;
+        
+                    document.getElementById(cropId_obj).style.backgroundImage = `url(${r.foto})`;
+                    document.getElementById(cropId_obj).style.backgroundSize = `${bgW}px ${bgH}px`;
+                    document.getElementById(cropId_obj).style.backgroundPosition = `${bgX}px ${bgY}px`;
+                    document.getElementById(cropId_obj).style.backgroundRepeat = "no-repeat";
+                    let string = String(r.matched_ident);
+                    document.getElementById(cropId).style.backgroundImage =  `url(/personimages/inputs/${string}.jpg)`;
+                    //document.getElementById(cropId).style.backgroundSize = `${containerW}px ${containerH}px`;
+                    document.getElementById(cropId).style.backgroundSize = `${containerW}px ${containerH}px`;
+                    
+                }else{
+                    
+                    var scale = Math.min(containerW / w, containerH / h);
+                    var bgW = imgW * scale;
+                    var bgH = imgH * scale;
+        
+                    var bgX = (containerW - w * scale) / 2 - x1 * scale;
+                    var bgY = (containerH - h * scale) / 2 - y1 * scale;
+        
+                    document.getElementById(cropId).style.backgroundImage = `url(${r.foto})`;
+                    document.getElementById(cropId).style.backgroundSize = `${bgW}px ${bgH}px`;
+                    document.getElementById(cropId).style.backgroundPosition = `${bgX}px ${bgY}px`;
+                    document.getElementById(cropId).style.backgroundRepeat = "no-repeat";
+                    
+                    var scale_ = Math.min(containerW / w_obj, containerH / h_obj);
+                    var bgW_ = imgW * scale_;
+                    var bgH_ = imgH * scale_;
+            
+                    var bgX_ = (containerW - w_obj * scale_) / 2 - xo1 * scale_;
+                    var bgY_ = (containerH - h_obj * scale_) / 2 - yo1 * scale_;
+        
+                    document.getElementById(cropId_obj).style.backgroundImage = `url(${r.foto})`;
+                    document.getElementById(cropId_obj).style.backgroundSize = `${bgW_}px ${bgH_}px`;
+                    document.getElementById(cropId_obj).style.backgroundPosition = `${bgX_}px ${bgY_}px`;
+                    document.getElementById(cropId_obj).style.backgroundRepeat = "no-repeat";
+                    
+                }
+            };
+        
+        i++;
+    }
+
+    loc.html(html);
+    rows_data = data;
+    render_top_camaras(topCameras, []);
+    render_tipo_alertas(topEvents, []);
+}
+
+function clearCameraCheckboxes() {
+  $('.chk-camera').prop('checked', false);
+  filterAndRenderAlertas(); // Re-render the full list
+}
+
+// Handles clearing the alert type checkboxes
+function clearTipoAlertasCheckboxes() {
+  $('.chk-tipoAlerta').prop('checked', false);
+  filterAndRenderAlertas(); // Re-render the full list
+}
+
+$(document).ready(function() {
+  // Attach click event to the "Limpiar filtros" button for cameras
+  $('#clearCamarasBtn').on('click', function() {
+    clearCameraCheckboxes();
+  });
+
+  // Attach click event to the "Limpiar filtros" button for alert types
+  $('#clearAlertasBtn').on('click', function() {
+    clearTipoAlertasCheckboxes();
+  });
+});
+function render_top_camaras(topCameras, selectedCameras) {
+  const tbody = $('#camarasAll').empty();
+  topCameras.forEach(item => {
+    const isChecked = selectedCameras.includes(item.value);
+    // Change: Use item.count instead of item.percent
+    const countText = item.count != null ? item.count : '';
+    tbody.append(`
+      <tr>
+        <td><input type="checkbox" class="chk-camera" value="${item.value}" ${isChecked ? 'checked' : ''}></td>
+        <td>${item.value}</td>
+        <td>
+            <div class="row">
+        
+                <p class="col-sm-2">${countText}</p>
+                <div class="col-sm-9">
+                
+                    <div class="progress m-t-xs full progress-small">
+                        <div style="width: ${countText*100/listaAlertas.length}%" aria-valuemax="${listaAlertas.length}" aria-valuemin="0" aria-valuenow="${countText}" role="progressbar" class=" progress-bar progress-bar-warning">
+                            <span class="sr-only">${countText} Complete (success)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </td>
+      </tr>`);
+});
+}
+
+    function render_tipo_alertas(topEvents, selectedTypes) {
+        const tbody = $('#alertaResults').empty();
+    
+        // 1. Contar la frecuencia de todos los tipos de alerta.
+        const allEventsCount = listaAlertas.reduce((acc, item) => {
+            const val = item.type_event_name ?? '';
+            acc[val] = (acc[val] || 0) + 1;
+            return acc;
+        }, {});
+    
+        // 2. Crear una lista y ordenarla de mayor a menor, tomando solo el Top 5.
+        const top5Events = Object.entries(allEventsCount)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5); // Limitar a los 5 primeros
+    
+        // 3. Renderizar la tabla con el Top 5 de tipos de alerta.
+        top5Events.forEach(item => {
+            const isChecked = selectedTypes.includes(item.name);
+            const countText = item.count;
+            const totalAlertsCount = listaAlertas.length;
+            const widthPercentage = (countText * 100 / totalAlertsCount) || 0;
+    
+            tbody.append(`
+                <tr>
+                    <td><input type="checkbox" class="chk-tipoAlerta" value="${item.name}" ${isChecked ? 'checked' : ''}></td>
+                    <td>${item.name}</td>
+                    <td>
+                        <div class="row">
+                            <p class="col-sm-2">${countText}</p>
+                            <div class="col-sm-9">
+                                <div class="progress m-t-xs full progress-small">
+                                    <div style="width: ${widthPercentage}%" aria-valuemax="${totalAlertsCount}" aria-valuemin="0" aria-valuenow="${countText}" role="progressbar" class=" progress-bar progress-bar-warning">
+                                        <span class="sr-only">${countText} Complete (success)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`);
+        });
+    }
+
+    function filterAndRenderAlertas() {
+        const selectedCameras = $('.chk-camera:checked').map((_, cb) => cb.value).get();
+        const selectedTypes = $('.chk-tipoAlerta:checked').map((_, cb) => cb.value).get();
+        const textFilter = $('#txtCameraName').val().trim().toLowerCase();
+        
+        const filtered = listaAlertas.filter(alerta => {
+            const matchesCamera = selectedCameras.length === 0 ||
+              selectedCameras.includes(alerta.camera_name);
+            const matchesType = selectedTypes.length === 0 ||
+              selectedTypes.includes(alerta.type_event_name);
+            const matchesText = !textFilter ||
+              [alerta.camera_name, alerta.location, alerta.type_event_name]
+                .some(val => String(val || '').toLowerCase().includes(textFilter));
+                
+            return matchesCamera && matchesType && matchesText;
+        });
+    
+        filtered.sort((a, b) => b.init_time_frame - a.init_time_frame);
+        render_alertas($('#alertasAll'), filtered);
+        render_top_camaras(topCameras, selectedCameras);
+        render_tipo_alertas(topEvents, selectedTypes);
+    }
+    
+    
+    
+function verVideo(date_start,cam_id,camera_name,tracking_id, location, message, id, polygon_coords){
+    $("#showcamera").text(camera_name);
+    $("#showUbication").text(location);
+    $("#showAlert").text(message);
+    $("#showId").text(id);
+
+    if(polygon_coords){
+        let poligono = JSON.parse(polygon_coords)
+        
+        var coords_data = [{
+            points:poligono
+            , // pentágono
+            lineColor: "blue",
+            fillColor: "rgba(0,0,255,0.3)",
+            lineWidth: 3
+        }];
+    }
+        
+        callAPI({
+            method: 'gestion/dolistimgevents',
+            params: { 
+                camid: cam_id ,
+                date_start: date_start,
+                tracking_id: tracking_id
+         
+            },                                                                                                 
+                 
+            ok: function(data) {                  
+                videoPlayer=new videoplay("#showVideoModal .modal-body".qs());
+                
+                setTimeout(()=>{
+                    $('#showVideoModal').modal('show');   
+                    const grouped = Object.values(
+                    data[1].reduce((acc, item) => {
+                        if (!acc[item.foto]) {
+                            acc[item.foto] = { 
+                            foto: item.foto, 
+                            coords_obj: [] 
+                    
+                };
+                        }
+                        acc[item.foto].coords_obj.push({
+                        categoria: item.category,
+                        accuracy_obj: item.accuracy_obj,
+                        colorupper: item.color_name_upper,
+                        colorlower: item.color_name_lower,
+                        plate: item.plate,
+                        coords: item.coords_obj.split(","),
+                        coordsplate: (item.coords_plate||'').split(",")
+                        });
+                        
+                        return acc;
+                    }, {})
+                    );
+                    videoPlayer.update(grouped,"foto","coords_obj",coords_data);
+                    setTimeout(()=>{videoPlayer.play()},500)
+                },100)
+            }
+        });
+    
+}
+
+function verVideoPersona(date_start,cam_id,camera_name,tracking_id, location, message, id, polygon_coords,date_end,documento,nombre_completo,matched_coords_face){
+    $("#showcamera").text(camera_name);
+    $("#showUbication").text(location);
+    $("#showAlert").text(message);
+    $("#showId").text(id);
+    let coords = JSON.parse(polygon_coords);
+    
+    poligono = coords;
+    
+    var coords_data = [{
+                        points:coords
+                        , // pentágono
+                        lineColor: "blue",
+                        fillColor: "rgba(0,0,255,0.3)",
+                            lineWidth: 0
+                        }];
+    // debe de añadirse lógica para comparar la categoría del objeto, cuando se compare con listas de vehiculos. if(category=="persona") else
+    if(matched_coords_face != "null"){
+        callAPI({
+            method: 'gestion/getframesperson',
+            params: { 
+                documento:  documento,
+                fechaini: date_start,
+                fechafin: date_end,
+                tracking_id: tracking_id
+         
+            },                                                                                                 
+                 
+            ok: function (data) {
+                log(data)
+                videoPlayer = new videoplay("#showVideoModal .modal-body".qs());
+                setTimeout(() => {
+                    $('#showVideoModal').modal('show');
+                    
+                    const frames = data;
+                    const grouped = Object.values(
+                        frames.reduce((acc, item) => {
+                            
+                            if (!item.coords_obj) return data;
+    
+                            if (!acc[item.foto]) {
+                                acc[item.foto] = {
+                                    foto: item.foto,
+                                    coords_obj: []
+                                };
+                            }
+    
+                            acc[item.foto].coords_obj.push({
+                                categoria: item.category,
+                                
+                                accuracy_obj: item.acc_parecido,
+                                colorupper: item.color_name_upper,
+                                colorlower: item.color_name_lower,
+                                coords: (item.coords_obj || '').split(","),
+                                coordsplate: (item.coords_face || '').split(","),
+                                plate: nombre_completo
+                            });
+    
+                            return acc;
+                        }, {})
+                    ).sort((a, b) => a.foto.localeCompare(b.foto));
+    
+                    videoPlayer.update(grouped, "foto", "coords_obj",null)
+                    setTimeout(() => { videoPlayer.play() }, 100)
+    
+                }, 100)
+            }
+        });
+    }else{
+        callAPI({
+            method: 'gestion/dolistimgbytrackid',
+            params: { 
+                cameraid: cam_id ,
+                tracking_id: tracking_id
+            },                                                                                                                 
+            ok: function(data) {     
+                log(data)                        
+                videoPlayer=new videoplay("#showVideoModal .modal-body".qs());
+                setTimeout(()=>{
+                    $('#showVideoModal').modal('show');                    
+                    //log("DATA")
+                    //log(data[1])
+                    
+                    const frames = data[2];
+
+                    // Reducimos SOLO ese array
+                    const grouped = Object.values(
+                        frames.reduce((acc, item) => {
+                            // si no hay coords, lo ignoramos
+                            if (!item.coords_obj) return data[2];
+        
+                            if (!acc[item.foto]) {
+                                acc[item.foto] = {
+                                    foto: item.foto,
+                                    coords_obj: []
+                                };
+                            }
+        
+                            acc[item.foto].coords_obj.push({
+                                categoria:   item.category,
+                                colorupper:  item.color_name_upper,
+                                colorlower:  item.color_name_lower,
+                                plate:       item.plate,
+                                accuracy_obj: item.accuracy_plate,
+                                coords:      item.coords_obj.split(","),
+                                coordsplate: item.coords_plate
+                                              ? item.coords_plate.split(",")
+                                              : ['']
+                            });
+                            return acc;
+                        }, {})
+                    ).sort((a, b) => a.foto.localeCompare(b.foto));
+                    videoPlayer.update(grouped,"foto","coords_obj")
+                    setTimeout(()=>{videoPlayer.play()},100)
+                },100)
+            }
+        });
+    }
+}
+
+    
+    $("#showVideoModal").on("hidden.bs.modal", function () {
+        videoPlayer.stop();  
+    });
+    
+    $(document).ready(function() {
+        // Delegar el evento 'change' a los checkboxes de cámaras
+        $(document).on('change', '.chk-camera', function() {
+            filterAndRenderAlertas();
+        });
+    
+        // Delegar el evento 'change' a los checkboxes de tipos de alerta
+        $(document).on('change', '.chk-tipoAlerta', function() {
+            filterAndRenderAlertas();
+        });
+    
+        // Delegar el evento 'input' al campo de búsqueda de cámaras
+        $('#txtCameraName').on('input', function() {
+            filterAndRenderAlertas();
+        });
+    
+        // Obtener los tipos de alerta al cargar la página
+        getTipoAlertas();
+        
+        // NUEVO CÓDIGO: Temporizador para refrescar las alertas
+        setInterval(function() {
+            if (!$('#showVideoModal').is(':visible')) {
+                log("Refrescando alertas...");
+                getAlertas();
+            }
+        }, 120000); // 120000 milisegundos = 2 minutos
+        
+    });
+</script>

@@ -1,0 +1,65 @@
+
+<script>
+    
+function prueba1() {
+   alert("Prueba 1");
+}
+
+
+    const _listTickets=[
+        {"id":156545},
+        {"id":156546},
+        {"id":156547},
+        {"id":156548,"isactive":1},
+        {"id":156549},
+        {"id":156550},
+        
+    ];
+    
+
+function initMap() {
+  const map = L.map('mapCAD').setView([-12.09, -77.03], 13); // centro inicial (Lima)
+
+  // Capa base (puedes cambiarla por otra si prefieres)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 18
+  }).addTo(map);
+
+  // Ejemplo: marcador central
+  const marker = L.marker([-12.09, -77.03]).addTo(map);
+  marker.bindPopup('<b>Incidente</b><br>Av. Primavera 123').openPopup();
+
+  // Guarda la referencia global (si quieres reutilizarla)
+  window.cadMap = map;
+}
+
+function boot() {
+  initMap(); // <── agrega esta línea
+}
+
+    
+$('#addticket').on('click', function() {
+  console.log('¡Botón clickeado!');
+  $('#myModal').modal('show');
+  prueba1()
+  // aquí va tu lógica
+});
+
+
+ (function () {
+        _listTickets.map((e)=>{
+            console.log(e)
+            let btntype="btn-default";
+            if( e.isactive) btntype="btn-danger";
+            var mybtn=$('<button type="button" style="margin-right:5px" class="btn '+btntype+' btn-sm">'+e.id+'</button>;');
+            $("#listTickets").append(mybtn)
+            
+        })
+        
+        boot();
+        
+})();
+    
+    
+</script>

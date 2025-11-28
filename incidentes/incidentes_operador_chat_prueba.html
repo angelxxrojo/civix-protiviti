@@ -89,23 +89,152 @@
   }
 
   .chat-message {
-    padding: 12px;
+    padding: 12px 16px;
     border-radius: 10px;
+    margin-bottom: 12px;
+    border-left: 3px solid transparent;
+  }
+
+  .chat-message.from-operator {
+    background: #1a2332;
+    border-left-color: #3b82f6;
+    margin-right: 40px;
+  }
+
+  .chat-message.from-agent {
+    background: #1e3a1e;
+    border-left-color: #22c55e;
+    margin-left: 40px;
+  }
+
+  .chat-message-author {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #e5e7eb;
+  }
+
+  .chat-message-role {
+    font-size: 12px;
+    font-weight: 400;
+    color: #9ca3af;
+  }
+
+  .chat-message-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #e5e7eb;
+    margin-bottom: 6px;
+  }
+
+  .chat-message-meta {
+    font-size: 11px;
+    color: #6b7280;
+    text-align: right;
+  }
+
+  .chat-attachments {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chat-attachment {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 6px;
+    color: #60a5fa;
+    display: inline-block;
+  }
+
+  .chat-event {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
     margin-bottom: 10px;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #1e293b;
   }
 
-  .chat-message.agent {
-    background: #e8f5e9;
-    margin-left: auto;
-    margin-right: 0;
-    max-width: 75%;
+  .event-icon {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e293b;
+    border-radius: 6px;
+    flex-shrink: 0;
   }
 
-  .chat-message.citizen {
-    background: #f3f4f6;
-    margin-right: auto;
-    margin-left: 0;
-    max-width: 75%;
+  .event-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin-bottom: 4px;
+  }
+
+  .event-detail {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .event-meta {
+    font-size: 11px;
+    color: #6b7280;
+  }
+
+  /* Badge parpadeante para mensajes no leídos */
+  @keyframes pulse-badge {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.1);
+    }
+  }
+
+  .badge-unread {
+    animation: pulse-badge 2s infinite;
+    background: #ef4444 !important;
+    color: white !important;
+    font-weight: 700;
+  }
+
+  /* Estilos para botones de ticket con mensajes sin leer */
+  .ticket-has-unread {
+    position: relative;
+  }
+
+  .ticket-has-unread::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 4px;
+    height: 60%;
+    background: #ef4444;
+    border-radius: 0 2px 2px 0;
+    transform: translateY(-50%);
+    animation: pulse-indicator 1.5s infinite;
+  }
+
+  @keyframes pulse-indicator {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 
   .btn{
@@ -565,21 +694,46 @@
               </div>
             </div>
           </div>
-    
+
+          <!-- Panel: Agentes Asignados -->
+          <div class="panel panel-filled panel-inner-radius mb-2">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Agentes con Tickets Asignados</h5>
+            </div>
+            <div class="panel-body" style="padding: 0;">
+              <div id="assignedAgentsList" style="max-height: 300px; overflow-y: auto;">
+                <!-- Los agentes asignados se renderizarán aquí -->
+              </div>
+            </div>
+          </div>
+
         </div>
     </div>
-    
+
     <!-- COLUMNA 2: Chat del Ticket -->
     <div class="col-md-4">
     <div class="panel panel-filled  " style="display: flex; flex-direction: column; height: calc(100vh - 200px);">
 
       <!-- Header del Chat -->
       <div class="panel-heading">
-        <h5 class="m-b-none">Chat del ticket</h5>
-        <div style="font-size: 12px; margin-top: 8px;">
-          <div>Ticket: <strong id="chatTicketId">#3242</strong></div>
-          <div>Agente: <strong id="chatAgentName">Agente Rodríguez</strong></div>
-          <div>Estado: <span style="color: #f67200;" id="chatTicketStatus">En atención</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h5 class="m-b-none">Chat del ticket</h5>
+            <div style="font-size: 12px; margin-top: 8px;">
+              <div>Ticket: <strong id="chatTicketId">#3242</strong></div>
+              <div>Agente: <strong id="chatAgentName">Agente Rodríguez</strong></div>
+              <div>Estado: <span style="color: #f67200;" id="chatTicketStatus">En atención</span></div>
+            </div>
+          </div>
+          <button
+            type="button"
+            id="closeTicketBtn"
+            class="btn btn-danger btn-sm"
+            style="margin-top: 5px;"
+            title="Cerrar ticket"
+          >
+            <i class="pe-7s-close-circle" aria-hidden="true"></i> Cerrar Ticket
+          </button>
         </div>
       </div>
 
@@ -685,1019 +839,6 @@
     </div>
 </div>
 
-<div class="row three-pane-row">
-    <div class="col-lg-3 col-md-3 pane">
-                    <div class="tabs-container">
-                        <div class="tabs-context-text">Contexto del incidente</div>
-                        <ul class="nav nav-tabs">
-                            <li class="active"><a data-toggle="tab" href="#tab-3" aria-expanded="true"> <i class="fa fa-laptop"></i> Datos</a></li>
-                            <li class=""><a data-toggle="tab" href="#tab-4" aria-expanded="false"><i class="fa fa-desktop"></i> Agentes</a></li>
-                            <li class=""><a data-toggle="tab" href="#tab-5" aria-expanded="false"><i class="fa fa-database"></i> Personas</a></li>
-                            <li class=""><a data-toggle="tab" href="#tab-6" aria-expanded="false"><i class="pe-7s-hammer"></i> Gestión</a></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div id="tab-3" class="tab-pane active">
-                                <div class="panel panel-filled  " style="height:100%; display:flex; flex-direction:column;">
-                                    <div class="panel-body" style="overflow:visible;">
-                                        <style>
-                                          #tab-3 .panel,
-                                          #tab-4 .panel,
-                                          #tab-5 .panel {
-                                            background: transparent;
-                                            border: none;
-                                            box-shadow: none;
-                                            border-radius: 0;
-                                          }
-                                          #tab-3 .panel-heading,
-                                          #tab-4 .panel-heading,
-                                          #tab-5 .panel-heading {
-                                            background: transparent;
-                                            border-bottom: 1px solid #2a3140;
-                                            color: #ffffff;
-                                          }
-                                          #tab-3 .panel-body,
-                                          #tab-4 .panel-body,
-                                          #tab-5 .panel-body {
-                                            background: transparent;
-                                          }
-                                          #tab-5 .panel-body {
-                                            padding: 0;
-                                          }
-                                          #tab-3 .item {
-                                            display:flex;
-                                            flex-direction:column;
-                                            align-items:flex-start;
-                                            margin-bottom:14px;
-                                            width:100%;
-                                          }
-                                          #tab-3 .label {
-                                            display:block;
-                                            color:#ffffff;
-                                            font-weight:600;
-                                            font-size:1.05rem;
-                                            width:100%;
-                                            text-align:left;
-                                            padding:0;
-                                            line-height:1.3;
-                                            background:none;
-                                            border-radius:0;
-                                          }
-                                          #tab-3 .sep {
-                                            width:100%;
-                                            height:1px;
-                                            background:#3a3f4b;
-                                            margin:4px 0 6px;
-                                          }
-                                          #tab-3 .value-box {
-                                            display:block;
-                                            background:transparent;
-                                            border:none;
-                                            color:#a6adbb;
-                                            border-radius:0;
-                                            padding:0;
-                                            font-weight:500;
-                                            font-size:1.05rem;
-                                            width:100%;
-                                            text-align:left;
-                                          }
-                                          #tab-3 .value-chart {
-                                            display:flex;
-                                            flex-direction:column;
-                                            align-items:center;
-                                            justify-content:center;
-                                            gap:0.4rem;
-                                            text-align:center;
-                                          }
-                                          #tab-3 .value-chart canvas {
-                                            width:70px;
-                                            height:70px;
-                                          }
-                                          #tab-3 #cg-sla-text {
-                                            color:#f87171;
-                                            font-weight:600;
-                                          }
-                                          #tab-3 #cg-desc { white-space:pre-wrap; }
-                                          #tab-5 .personas-tab {
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:1.5rem;
-                                            color:#f3f4f6;
-                                          }
-                                          #tab-5 .personas-section {
-                                            background:transparent;
-                                            border:none;
-                                            border-radius:0;
-                                            padding:0.25rem 0 0.75rem;
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.75rem;
-                                          }
-                                          #tab-5 .personas-section.personas-editor {
-                                            background:transparent;
-                                            border:none;
-                                            border-radius:0;
-                                            padding:0.25rem 0 0.75rem;
-                                            gap:0.75rem;
-                                          }
-                                          #tab-5 .personas-section .section-label {
-                                            color:#ffffff;
-                                            font-size:1rem;
-                                            font-weight:600;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.04em;
-                                            border-bottom:1px solid #2a3140;
-                                            padding-bottom:0.35rem;
-                                            margin:0;
-                                          }
-                                          #tab-5 .personas-section.personas-editor .section-label {
-                                            border-bottom:1px solid #2a3140;
-                                            padding-bottom:0.35rem;
-                                          }
-                                          #tab-5 .personas-section.denunciante {
-                                            gap:0.5rem;
-                                            padding-bottom:0.75rem;
-                                            border-bottom:1px solid #262626;
-                                          }
-                                          #tab-5 .denunciante-name {
-                                            font-size:1.1rem;
-                                            font-weight:600;
-                                            color:#ffffff;
-                                          }
-                                          #tab-5 .denunciante-meta {
-                                            display:flex;
-                                            flex-wrap:wrap;
-                                            gap:1rem 2rem;
-                                            margin-top:0.25rem;
-                                          }
-                                          #tab-5 .denunciante-field {
-                                            min-width:160px;
-                                          }
-                                          #tab-5 .field-label {
-                                            text-transform:uppercase;
-                                            font-size:0.7rem;
-                                            color:#9ca3af;
-                                            letter-spacing:0.05em;
-                                            margin-bottom:0.2rem;
-                                          }
-                                          #tab-5 .field-value {
-                                            font-size:1rem;
-                                            color:#f3f4f6;
-                                            font-weight:500;
-                                          }
-                                          #tab-5 .personas-list {
-                                            list-style:none;
-                                            padding:0;
-                                            margin:0;
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0;
-                                          }
-                                          #tab-5 .persona-row {
-                                            display:flex;
-                                            align-items:flex-start;
-                                            justify-content:space-between;
-                                            gap:1rem;
-                                            padding:0.75rem 0;
-                                            border-bottom:1px solid #262626;
-                                          }
-                                          #tab-5 .persona-row:last-child {
-                                            border-bottom:none;
-                                          }
-                                          #tab-5 .persona-info-block {
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.35rem;
-                                            flex:1;
-                                          }
-                                          #tab-5 .persona-info-block .persona-name {
-                                            font-weight:600;
-                                            color:#ffffff;
-                                            font-size:1.05rem;
-                                          }
-                                          #tab-5 .persona-meta-row {
-                                            display:flex;
-                                            flex-wrap:wrap;
-                                            gap:0.35rem 0.85rem;
-                                            align-items:center;
-                                          }
-                                          #tab-5 .persona-role-chip {
-                                            font-size:0.8rem;
-                                            letter-spacing:0.08em;
-                                            text-transform:uppercase;
-                                            color:#a3aed0;
-                                          }
-                                          #tab-5 .persona-meta {
-                                            font-size:0.85rem;
-                                            color:#9ca3af;
-                                            font-weight:500;
-                                          }
-                                         
-                                          #tab-5 .persona-form-grid {
-                                            display:grid;
-                                            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-                                            gap:0.85rem 1.25rem;
-                                          }
-                                          #tab-5 .persona-form-field {
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.35rem;
-                                          }
-                                          #tab-5 .persona-form-field label {
-                                            font-size:0.8rem;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.05em;
-                                            color:#9ca3af;
-                                            font-weight:600;
-                                          }
-                                          #tab-5 .persona-form-field input,
-                                          #tab-5 .persona-form-field select {
-                                            width:100%;
-                                            border:1px solid #374151;
-                                            background:#0f0f0f;
-                                            color:#f3f4f6;
-                                            border-radius:6px;
-                                            padding:0.45rem 0.6rem;
-                                            font-size:0.95rem;
-                                          }
-                                          #tab-5 .persona-form-field input:focus,
-                                          #tab-5 .persona-form-field select:focus {
-                                            outline:none;
-                                            border-color:#22c55e;
-                                            box-shadow:0 0 0 1px #22c55e33;
-                                          }
-                                          #tab-5 .persona-actions {
-                                            display:flex;
-                                            flex-wrap:wrap;
-                                            justify-content:center;
-                                            gap:0.75rem;
-                                            margin-top:1rem;
-                                          }
-                                          #tab-5 .persona-actions .btn {
-                                            flex:none;
-                                            min-width:150px;
-                                          }
-                                          #tab-5 .persona-actions .persona-clear-btn {
-                                            background:transparent;
-                                            border-color:#374151;
-                                            color:#9ca3af;
-                                          }
-                                          #tab-5 .persona-actions .persona-clear-btn:hover {
-                                            color:#f3f4f6;
-                                            border-color:#4b5563;
-                                          }
-                                          #tab-5 .persona-submit-btn {
-                                            color:#ffffff;
-                                            text-transform:none;
-                                            letter-spacing:0.02em;
-                                          }
-                                          #tab-5 .persona-form-message {
-                                            margin-top:0.5rem;
-                                            font-size:0.85rem;
-                                            color:#f59e0b;
-                                          }
-                                          .incident-tabs-container {
-                                            margin:0.5rem 0 1rem 0;
-                                            padding:0.75rem 0.25rem 0;
-                                          }
-                                          @media (min-width:992px){
-                                            .incident-tabs-container {
-                                              padding:0.75rem 0.5rem 0;
-                                            }
-                                          }
-                                          .incident-tabs {
-                                            display:flex;
-                                            gap:0.65rem;
-                                            padding:0.65rem;
-                                            flex-wrap:wrap;
-                                            background:#111111;
-                                            border:1px solid #262626;
-                                            border-radius:12px;
-                                          }
-                                          .incident-tab {
-                                            background:#0f0f0f;
-                                            border:1px solid #2f2f2f;
-                                            border-radius:10px;
-                                            padding:0.75rem 1rem;
-                                            min-width:200px;
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.25rem;
-                                            color:#f3f4f6;
-                                            cursor:pointer;
-                                            transition:border 0.2s ease, background 0.2s ease, transform 0.2s ease;
-                                            position:relative;
-                                            text-align:left;
-                                            font-size:0.95rem;
-                                          }
-                                          .incident-tab:hover {
-                                            border-color:#22c55e;
-                                            background:#151515;
-                                            transform:translateY(-1px);
-                                          }
-                                          .incident-tab.active {
-                                            border-color:#22c55e;
-                                            background:#1d1d1d;
-                                            box-shadow:0 0 0 1px #22c55e33;
-                                          }
-                                          .incident-tab .incident-id {
-                                            font-weight:700;
-                                            font-size:0.9rem;
-                                            letter-spacing:0.05em;
-                                            color:#9ca3af;
-                                            text-transform:uppercase;
-                                          }
-                                          .incident-tab .incident-title {
-                                            font-weight:600;
-                                            color:#f3f4f6;
-                                            font-size:1.05rem;
-                                            line-height:1.3;
-                                          }
-                                          .incident-tab .incident-meta {
-                                            font-size:0.85rem;
-                                            color:#9ca3af;
-                                          }
-                                          .incident-tab .unread {
-                                            position:absolute;
-                                            top:0.5rem;
-                                            right:0.5rem;
-                                            background:#22c55e;
-                                            color:#0b0b0b;
-                                            font-weight:700;
-                                            font-size:0.75rem;
-                                            border-radius:999px;
-                                            padding:0.1rem 0.5rem;
-                                          }
-                                          .chat-toolbar-context {
-                                            font-size:0.85rem;
-                                            color:#9ca3af;
-                                            letter-spacing:0.04em;
-                                            text-transform:uppercase;
-                                            margin-top:0.15rem;
-                                          }
-                                          .chat-panel {
-                                            background:#0f0f0f;
-                                            border:1px solid #262626;
-                                            border-left:4px solid #22c55e;
-                                            border-radius:0;
-                                            padding:1.25rem 1.5rem;
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:1rem;
-                                            height:var(--pane-height);
-                                          }
-                                          .chat-toolbar {
-                                            display:flex;
-                                            align-items:center;
-                                            justify-content:space-between;
-                                            gap:1rem;
-                                            padding-bottom:0.5rem;
-                                            border-bottom:1px solid #1d1d1f;
-                                          }
-                                          .chat-toolbar-title {
-                                            font-size:1.1rem;
-                                            font-weight:600;
-                                            color:#f3f4f6;
-                                          }
-                                          .chat-search {
-                                            background:#111111;
-                                            border:1px solid #333333;
-                                            border-radius:0;
-                                            display:flex;
-                                            align-items:center;
-                                            padding:0.2rem 0.8rem;
-                                            width:100%;
-                                            flex:1;
-                                          }
-                                          .chat-search input {
-                                            background:transparent;
-                                            border:none;
-                                            color:#e5e7eb;
-                                            font-size:0.9rem;
-                                            flex:1;
-                                            width:100%;
-                                          }
-                                          .chat-search input:focus {
-                                            outline:none;
-                                          }
-                                          .chat-stream {
-                                            flex:1;
-                                            border:1px solid #1f1f1f;
-                                            border-radius:0;
-                                            padding:1rem;
-                                            background:#090909;
-                                            overflow-y:auto;
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.85rem;
-                                          }
-                                          .chat-stream-day {
-                                            text-align:center;
-                                          }
-                                          .chat-stream-pill {
-                                            display:inline-flex;
-                                            padding:0.15rem 0.85rem;
-                                            border-radius:999px;
-                                            border:1px solid #2f2f2f;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.05em;
-                                            color:#9ca3af;
-                                            font-size:0.75rem;
-                                          }
-                                          .chat-stream-empty {
-                                            text-align:center;
-                                            color:#9ca3af;
-                                            font-style:italic;
-                                            padding:1rem 0;
-                                          }
-                                          .chat-scroll-cta {
-                                            display:none;
-                                            justify-content:center;
-                                            margin-top:auto;
-                                          }
-                                          .chat-scroll-cta .btn {
-                                            border-radius:0;
-                                            padding:0.4rem 1.25rem;
-                                          }
-                                          .chat-event {
-                                            display:flex;
-                                            gap:0.75rem;
-                                            background:#111111;
-                                            border:1px dashed #2f2f2f;
-                                            border-radius:0;
-                                            padding:0.65rem 0.85rem;
-                                            align-items:flex-start;
-                                          }
-                                          .chat-event .event-icon {
-                                            font-size:1.1rem;
-                                            width:32px;
-                                            height:32px;
-                                            border-radius:999px;
-                                            background:#1d1d1d;
-                                            display:flex;
-                                            align-items:center;
-                                            justify-content:center;
-                                          }
-                                          .chat-event .event-title {
-                                            font-weight:600;
-                                            color:#f3f4f6;
-                                          }
-                                          .chat-event .event-detail {
-                                            font-size:0.9rem;
-                                            color:#d1d5db;
-                                          }
-                                          .chat-event .event-meta {
-                                            font-size:0.75rem;
-                                            color:#9ca3af;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.05em;
-                                          }
-                                          .chat-message {
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.3rem;
-                                            border-radius:0;
-                                            padding:0.85rem;
-                                            position:relative;
-                                          }
-                                          .chat-message.from-operator {
-                                            background:#101828;
-                                            border:1px solid #1d2a44;
-                                            align-self:flex-end;
-                                            max-width:80%;
-                                          }
-                                          .chat-message.from-agent {
-                                            background:#111111;
-                                            border:1px solid #1f1f1f;
-                                            align-self:flex-start;
-                                            max-width:80%;
-                                          }
-                                          .chat-message-author {
-                                            font-weight:600;
-                                            color:#f3f4f6;
-                                            display:flex;
-                                            gap:0.3rem;
-                                            align-items:center;
-                                          }
-                                          .chat-message-role {
-                                            font-size:0.8rem;
-                                            color:#9ca3af;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.05em;
-                                          }
-                                          .chat-message-text {
-                                            font-size:0.95rem;
-                                            line-height:1.45;
-                                            color:#e5e7eb;
-                                          }
-                                          .chat-attachments {
-                                            display:flex;
-                                            flex-wrap:wrap;
-                                            gap:0.35rem;
-                                          }
-                                          .chat-attachment {
-                                            font-size:0.78rem;
-                                            border:1px solid #3a3a3a;
-                                            border-radius:0;
-                                            padding:0.2rem 0.65rem;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.05em;
-                                            color:#d1d5db;
-                                            background:#141414;
-                                          }
-                                          .chat-message-meta {
-                                            font-size:0.75rem;
-                                            color:#9ca3af;
-                                            text-align:right;
-                                            letter-spacing:0.05em;
-                                          }
-                                          .chat-composer {
-                                            display:flex;
-                                            gap:0.75rem;
-                                            align-items:flex-end;
-                                            border-top:1px solid #1e1e1e;
-                                            padding-top:0.75rem;
-                                          }
-                                          .chat-composer textarea {
-                                            flex:1;
-                                            background:#0f0f0f;
-                                            border:1px solid #333333;
-                                            border-radius:0;
-                                            resize:vertical;
-                                            min-height:68px;
-                                            max-height:140px;
-                                            padding:0.75rem 0.85rem;
-                                            color:#f3f4f6;
-                                          }
-                                          .chat-composer textarea:focus {
-                                            outline:none;
-                                            border-color:#22c55e;
-                                            box-shadow:0 0 0 1px #22c55e33;
-                                          }
-                                          .chat-send-btn {
-                                            align-self:stretch;
-                                            min-width:110px;
-                                          }
-                                          .agents-section {
-                                            background:transparent;
-                                            border:none;
-                                            border-radius:0;
-                                            padding:0.5rem 0 0.75rem;
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:1rem;
-                                          }
-                                          .agents-section .section-label {
-                                            color:#ffffff;
-                                            font-size:1rem;
-                                            font-weight:600;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.04em;
-                                            border-bottom:1px solid #2a3140;
-                                            padding-bottom:0.35rem;
-                                            margin-bottom:0;
-                                          }
-                                          .agents {
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0;
-                                          }
-                                          .agent-tag {
-                                            background:transparent;
-                                            border:none;
-                                            border-bottom:1px solid #262626;
-                                            color:#f3f4f6;
-                                            padding:0.65rem 0;
-                                            font-size:1.05rem;
-                                            display:flex;
-                                            align-items:flex-start;
-                                            justify-content:space-between;
-                                          }
-                                          .agent-tag:last-child {
-                                            border-bottom:none;
-                                          }
-                                          .agent-tag:hover {
-                                            background:none;
-                                          }
-                                          .agent-info-block {
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.25rem;
-                                            flex:1;
-                                          }
-                                          .agents .agent-name {
-                                            font-weight:600;
-                                            color:#ffffff;
-                                            font-size:1.05rem;
-                                          }
-                                          .agent-meta-chip {
-                                            color:#a3aed0;
-                                            font-size:0.85rem;
-                                            letter-spacing:0.05em;
-                                            text-transform:uppercase;
-                                          }
-                                          .release-agent-btn,
-                                          #tab-5 .persona-action-btn {
-                                            background:#0f0f0f;
-                                            border:1px solid #343a40;
-                                            color:#f3f4f6;
-                                            cursor:pointer;
-                                            padding:0.45rem 1.35rem;
-                                            font-size:0.9rem;
-                                            border-radius:999px;
-                                            text-transform:uppercase;
-                                            letter-spacing:0.04em;
-                                            font-weight:600;
-                                          }
-                                          .release-agent-btn:hover,
-                                          #tab-5 .persona-action-btn:hover {
-                                            background:#1c1c1c;
-                                            border-color:#4b5563;
-                                            color:#ffffff;
-                                          }
-                                          .btn-assign-agent {
-                                            width:100%;
-                                            margin-top:0.5rem;
-                                            display:inline-flex;
-                                            justify-content:center;
-                                            align-items:center;
-                                            gap:0.35rem;
-                                            font-weight:600;
-                                            font-size:1rem;
-                                          }
-                                          .btn-release-all {
-                                            margin-top:0;
-                                            background:#0f0f0f;
-                                            border:1px solid #343a40;
-                                            color:#f3f4f6;
-                                            border-radius:999px;
-                                            padding:0.75rem 1.5rem;
-                                          }
-                                          .btn-release-all:hover {
-                                            background:#1c1c1c;
-                                            border-color:#4b5563;
-                                            color:#ffffff;
-                                          }
-                                          .modal-overlay {
-                                            position:fixed;
-                                            top:0;
-                                            left:0;
-                                            width:100%;
-                                            height:100%;
-                                            background-color:rgba(0,0,0,0.75);
-                                            display:none;
-                                            z-index:1000;
-                                            align-items:center;
-                                            justify-content:center;
-                                          }
-                                          .modal-overlay.active {
-                                            display:flex;
-                                          }
-                                          .agent-modal {
-                                            background-color:#0f0f0f;
-                                            border:1px solid #2b2b2b;
-                                            border-radius:14px;
-                                            width:90%;
-                                            max-width:520px;
-                                            max-height:80vh;
-                                            overflow:hidden;
-                                            box-shadow:0 25px 80px rgba(0,0,0,0.65);
-                                            color:#f3f4f6;
-                                          }
-                                          .agent-modal-header {
-                                            padding:1.4rem 1.65rem;
-                                            border-bottom:1px solid #262626;
-                                            display:flex;
-                                            justify-content:space-between;
-                                            align-items:center;
-                                          }
-                                          .agent-modal-title {
-                                            font-size:1.1rem;
-                                            font-weight:600;
-                                            color:#f3f4f6;
-                                          }
-                                          .agent-modal-close {
-                                            background:none;
-                                            border:none;
-                                            font-size:1.25rem;
-                                            cursor:pointer;
-                                            color:#9ca3af;
-                                            padding:0.25rem;
-                                            transition:color 0.2s ease;
-                                          }
-                                          .agent-modal-close:hover {
-                                            color:#ffffff;
-                                          }
-                                          .agent-modal-body {
-                                            padding:1.25rem 1.65rem;
-                                            max-height:60vh;
-                                            overflow-y:auto;
-                                          }
-                                         .agent-modal-body::-webkit-scrollbar {
-                                            width:8px;
-                                          }
-                                          .agent-modal-body::-webkit-scrollbar-thumb {
-                                            background:#333;
-                                            border-radius:4px;
-                                          }
-                                          .modal-search {
-                                            margin-bottom:1rem;
-                                          }
-                                          .modal-search input {
-                                            width:100%;
-                                            padding:0.75rem 0.85rem;
-                                            border:1px solid #333333;
-                                            border-radius:10px;
-                                            font-size:1rem;
-                                            background:#141414;
-                                            color:#f3f4f6;
-                                            transition:border-color 0.2s ease,box-shadow 0.2s ease;
-                                          }
-                                          .modal-search input:focus {
-                                            outline:none;
-                                            border-color:#ff3600;
-                                            box-shadow:0 0 0 1px #ff360033;
-                                          }
-                                          .agent-list-item {
-                                            padding:0.85rem 1.1rem;
-                                            margin-bottom:0.75rem;
-                                            background:#111111;
-                                            border:1px solid #2b2b2b;
-                                            border-radius:12px;
-                                            cursor:pointer;
-                                            transition:background 0.2s ease,border 0.2s ease,transform 0.2s ease;
-                                            display:flex;
-                                            justify-content:space-between;
-                                            align-items:center;
-                                          }
-                                          .agent-list-item:hover {
-                                            background:#1f1f1f;
-                                            border-color:#ff3600;
-                                            transform:translateY(-1px);
-                                          }
-                                          .agent-info {
-                                            display:flex;
-                                            flex-direction:column;
-                                            gap:0.25rem;
-                                          }
-                                          .agent-list-name {
-                                            font-weight:600;
-                                            color:#ffffff;
-                                            font-size:1.05rem;
-                                          }
-                                          .agent-list-role {
-                                            font-size:0.85rem;
-                                            color:#a3aed0;
-                                            letter-spacing:0.05em;
-                                            text-transform:uppercase;
-                                          }
-                                          .agent-list-item:hover .agent-list-role {
-                                            color:#d1d5db;
-                                          }
-                                          .agent-list-item.ocupado {
-                                            opacity:0.55;
-                                            cursor:default;
-                                          }
-                                          .agent-list-item.ocupado:hover {
-                                            background:#111111;
-                                            border-color:#2b2b2b;
-                                          }
-                                          .agent-list-item.ocupado .agent-list-role {
-                                            color:#7c7c7c;
-                                          }
-                                          .agent-incident-tag {
-                                            font-size:0.75rem;
-                                            color:#9ca3af;
-                                            font-style:italic;
-                                          }
-                                          .agent-distance {
-                                            font-size:0.82rem;
-                                            color:#e5e7eb;
-                                            font-weight:600;
-                                          }
-                                          .no-results {
-                                            text-align:center;
-                                            padding:2rem;
-                                            color:#9ca3af;
-                                            font-style:italic;
-                                          }
-                                        </style>
-
-                                        <div class="item">
-                                          <div class="label">ID del incidente</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-id">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Título</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-title">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Descripción</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-desc">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Dirección</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-direccion">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Estado</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-estado">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Clasificación</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box"><span id="cg-clasificacion">—</span></div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Tipo</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-tipo">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Subtipo</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-subtipo">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Fecha y hora de creación</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-creacion">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Tiempo transcurrido en horas</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box" id="cg-tiempo">—</div>
-                                        </div>
-                                        <div class="item">
-                                          <div class="label">Porcentaje del tiempo del SLA</div>
-                                          <div class="sep"></div>
-                                          <div class="value-box value-chart">
-                                            <canvas id="cg-sla-pie" width="80" height="80" aria-hidden="true"></canvas>
-                                            <div id="cg-sla-text">—</div>
-                                          </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="tab-4" class="tab-pane">
-                                <div class="panel-body">
-                                        <div class="agents-section">
-                                            <div class="section-label">Agentes asignados</div>
-                                            <div class="agents" id="assignedAgentsContainer"></div>
-                                            <button type="button" class="btn btn-default btn-rounded btn-release-all" onclick="releaseAllAgents()">Liberar a todos</button>
-                                        <button type="button" class="btn btn-success btn-rounded btn-assign-agent" onclick="openAssignAgentModal()">+ Asignar agente</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            <div id="tab-5" class="tab-pane">
-                                <div class="panel-body personas-tab" id="personas-tab">
-                                    <div class="personas-section denunciante" id="denunciante-section">
-                                        <div class="section-label">Denunciante</div>
-                                        <div class="denunciante-name" id="denunciante-nombre">—</div>
-                                        <div class="denunciante-meta">
-                                            <div class="denunciante-field">
-                                                <div class="field-label">Teléfono</div>
-                                                <div class="field-value" id="denunciante-telefono">—</div>
-                                            </div>
-                                            <div class="denunciante-field">
-                                                <div class="field-label">Documento</div>
-                                                <div class="field-value" id="denunciante-documento">—</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="personas-section" id="personas-section">
-                                        <div class="section-label">Personas involucradas</div>
-                                        <ul class="personas-list" id="personas-list">
-                                            <li class="persona-row">
-                                                <div class="persona-info-block">
-                                                    <div class="persona-name">Juan Pérez</div>
-                                                    <div class="persona-meta-row">
-                                                        <span class="persona-role-chip">Afectado • DNI 45678901</span>
-                                                        <span class="persona-meta">Masculino</span>
-                                                    </div>
-                                                </div>
-                                                <button type="button" class="btn btn-default btn-rounded persona-action-btn" aria-label="Quitar a Juan Pérez">Quitar</button>
-                                            </li>
-                                            <li class="persona-row">
-                                                <div class="persona-info-block">
-                                                    <div class="persona-name">María López</div>
-                                                    <div class="persona-meta-row">
-                                                        <span class="persona-role-chip">Testigo • CE X123456</span>
-                                                        <span class="persona-meta">Femenino</span>
-                                                    </div>
-                                                </div>
-                                                <button type="button" class="btn btn-default btn-rounded persona-action-btn" aria-label="Quitar a María López">Quitar</button>
-                                            </li>
-                                      </ul>
-                                      <div class="personas-section personas-editor">
-                                        <div class="section-label">Registrar persona involucrada</div>
-                                        <div class="persona-form-grid">
-                                            <div class="persona-form-field">
-                                                <label for="persona-nombre">Nombre completo</label>
-                                                <input type="text" id="persona-nombre" placeholder="Ej. Juan Pérez">
-                                            </div>
-                                            <div class="persona-form-field">
-                                                <label for="persona-genero">Género</label>
-                                                <select id="persona-genero">
-                                                    <option value="">Seleccionar</option>
-                                                    <option value="Masculino">Masculino</option>
-                                                    <option value="Femenino">Femenino</option>
-                                                    <option value="Otro">Otro</option>
-                                                </select>
-                                            </div>
-                                            <div class="persona-form-field">
-                                                <label for="persona-tipo-doc">Tipo documento</label>
-                                                <select id="persona-tipo-doc">
-                                                    <option value="">Seleccionar</option>
-                                                    <option value="DNI">DNI</option>
-                                                    <option value="CE">Carnet de Extranjería</option>
-                                                    <option value="Pasaporte">Pasaporte</option>
-                                                </select>
-                                            </div>
-                                            <div class="persona-form-field">
-                                                <label for="persona-numero-doc">Número</label>
-                                                <input type="text" id="persona-numero-doc" placeholder="Documento">
-                                            </div>
-                                            <div class="persona-form-field">
-                                                <label for="persona-rol">Rol en el incidente</label>
-                                                <input type="text" id="persona-rol" placeholder="Ej. Testigo, afectado">
-                                            </div>
-                                        </div>
-                                        <div class="persona-actions">
-                                            <button type="button" class="btn btn-default btn-rounded persona-clear-btn">Limpiar</button>
-                                            <button type="button" class="btn btn-w-md btn-success btn-rounded persona-submit-btn">Registrar persona</button>
-                                        </div>
-                                        <div class="persona-form-message"></div>
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="tab-6" class="tab-pane">
-                                <div class="gestion-tab-content">
-                                    <div class="gestion-section">
-                                        <div class="section-label">CIERRE DE INCIDENTE</div>
-                                        <div class="section-sep"></div>
-                                        <div class="gestion-form">
-                                            <div class="form-grid">
-                                                <div class="form-field">
-                                                    <label for="cierre-clasificacion">Clasificación</label>
-                                                    <select id="cierre-clasificacion">
-                                                        <option value="tránsito" selected>Tránsito</option>
-                                                        <option value="seguridad">Seguridad</option>
-                                                        <option value="servicios">Servicios públicos</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-field">
-                                                    <label for="cierre-tipo">Tipo</label>
-                                                    <select id="cierre-tipo">
-                                                        <option value="accidente" selected>Accidente</option>
-                                                        <option value="incidente">Incidente</option>
-                                                        <option value="emergencia">Emergencia</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-field">
-                                                    <label for="cierre-subtipo">Subtipo</label>
-                                                    <select id="cierre-subtipo">
-                                                        <option value="choque" selected>Choque</option>
-                                                        <option value="alcance">Alcance</option>
-                                                        <option value="peaton">Peatón</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-field">
-                                                    <label for="cierre-severidad">Nivel de severidad</label>
-                                                    <select id="cierre-severidad">
-                                                        <option value="critica">Crítica</option>
-                                                        <option value="alta">Alta</option>
-                                                        <option value="media" selected>Media</option>
-                                                        <option value="baja">Baja</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="form-field">
-                                                <label for="cierre-detalle">Detalles del cierre</label>
-                                                <textarea id="cierre-detalle" placeholder="Describe las acciones finales, responsables y evidencias de cierre."></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="gestion-close-wrapper">
-                                        <button class="btn btn-accent btn-rounded btn-close-incident" type="button">
-                                            Cerrar incidente
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-      
-    
-</div>
-
 <!-- Modal para asignar agente -->
 <div class="modal-overlay" id="assignAgentModal">
   <div class="agent-modal">
@@ -1723,31 +864,349 @@
  {{modal_nuevo_incidente}}
 
 <script>
+  // ============================================
+  // MAPA INTERACTIVO CON AGENTES
+  // ============================================
+
+  var cadMap = null;
+  var agentMarkers = [];
+  var currentLocationMarker = null;
+
+  // Lista de agentes disponibles
+  var agentsData = [
+    { id: 'ramirez', name: 'Agente Ramírez', shortName: 'A. Ramírez', transporte: 'Camioneta', status: 'Disponible', distancia: '0.8 km', coords: [-12.117, -76.998], assignedTicket: null },
+    { id: 'vega', name: 'Agente Vega', shortName: 'C. Vega', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.2 km', coords: [-12.118, -76.999], assignedTicket: null },
+    { id: 'suarez', name: 'Agente Suárez', shortName: 'D. Suárez', transporte: 'Camioneta', status: 'Disponible', distancia: '2.3 km', coords: [-12.119, -77.000], assignedTicket: null },
+    { id: 'torres', name: 'Agente Torres', shortName: 'E. Torres', transporte: 'Motocicleta', status: 'Disponible', distancia: '1.7 km', coords: [-12.116, -76.997], assignedTicket: null },
+    { id: 'lopez', name: 'Agente López', shortName: 'F. López', transporte: 'A pie', status: 'Disponible', distancia: '2.1 km', coords: [-12.115, -76.996], assignedTicket: null },
+    { id: 'garcia', name: 'Agente García', shortName: 'G. García', transporte: 'Camioneta', status: 'Disponible', distancia: '0.5 km', coords: [-12.120, -77.001], assignedTicket: null },
+    { id: 'martinez', name: 'Agente Martínez', shortName: 'H. Martínez', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.8 km', coords: [-12.114, -76.995], assignedTicket: null },
+    { id: 'fernandez', name: 'Agente Fernández', shortName: 'I. Fernández', transporte: 'Camioneta', status: 'Disponible', distancia: '3.2 km', coords: [-12.113, -76.994], assignedTicket: null }
+  ];
+
   // Initialize Leaflet map for the operator chat view
   document.addEventListener('DOMContentLoaded', function () {
     var el = document.getElementById('mapCAD');
     if (!el || typeof L === 'undefined') return;
 
-    var map = L.map('mapCAD', { zoomControl: true, attributionControl: true });
+    cadMap = L.map('mapCAD', { zoomControl: true, attributionControl: true });
     // Center near Av. Primavera; adjust as needed
     var primavera = [-12.1175, -76.9990];
-    map.setView(primavera, 14);
+    cadMap.setView(primavera, 14);
 
-    // Mid-gray basemap for better contrast with overlays
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    // Dark theme basemap
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 20,
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-    }).addTo(map);
+    }).addTo(cadMap);
 
-    // Incident marker and popup
-    L.marker(primavera)
-      .addTo(map)
-      .bindPopup('<b>Incidente</b><br>Av. Primavera 123')
-      .openPopup();
+    // Icono personalizado para agentes
+    var agentIcon = L.divIcon({
+      className: 'agent-marker-icon',
+      html: '<div style="background: #22c55e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">👮</div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    // Icono para ubicación del incidente
+    var incidentIcon = L.divIcon({
+      className: 'incident-marker-icon',
+      html: '<div style="background: #ef4444; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">📍</div>',
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+
+    // Marcar ubicación de ejemplo del incidente
+    currentLocationMarker = L.marker(primavera, { icon: incidentIcon })
+      .addTo(cadMap)
+      .bindPopup('<b>Ubicación del incidente</b><br>Av. Primavera 123');
+
+    // Renderizar agentes en el mapa
+    renderAgentsOnMap();
 
     // Ensure correct sizing in case of late layout/visibility changes
-    setTimeout(function () { map.invalidateSize(); }, 300);
+    setTimeout(function () { cadMap.invalidateSize(); }, 300);
+
+    // Event listeners para los tabs del mapa
+    initializeMapTabs();
+
+    // Inicializar búsqueda en el mapa
+    initMapSearchForCAD();
+
+    // Inicializar lista de agentes asignados
+    renderAssignedAgentsList();
   });
+
+  // Función para inicializar búsqueda en el mapa CAD
+  function initMapSearchForCAD() {
+    var input = document.getElementById('mapSearchInput');
+    var btn = document.getElementById('mapSearchBtn');
+
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var query = input ? input.value.trim() : '';
+        if (query) {
+          searchAddress(query);
+        }
+      });
+    }
+
+    if (input) {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          var query = input.value.trim();
+          if (query) {
+            searchAddress(query);
+          }
+        }
+      });
+    }
+  }
+
+  // Función para renderizar agentes en el mapa
+  function renderAgentsOnMap() {
+    if (!cadMap) return;
+
+    // Limpiar marcadores anteriores
+    agentMarkers.forEach(function(marker) {
+      cadMap.removeLayer(marker);
+    });
+    agentMarkers = [];
+
+    // Crear icono para agentes disponibles
+    var agentIcon = L.divIcon({
+      className: 'agent-marker-icon',
+      html: '<div style="background: #22c55e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">👮</div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    // Agregar marcadores para agentes disponibles (sin ticket asignado)
+    agentsData.forEach(function(agent) {
+      if (agent.status === 'Disponible' && !agent.assignedTicket) {
+        var marker = L.marker(agent.coords, { icon: agentIcon })
+          .addTo(cadMap)
+          .bindPopup(
+            '<div style="min-width: 180px;">' +
+              '<strong>' + agent.name + '</strong><br>' +
+              '<span style="color: #6b7280;">🚗 ' + agent.transporte + '</span><br>' +
+              '<span style="color: #22c55e;">● Disponible</span><br>' +
+              '<span style="color: #6b7280;">📍 ' + agent.distancia + '</span><br>' +
+              '<button onclick="assignAgentFromMap(\'' + agent.id + '\')" class="btn btn-accent btn-sm" style="margin-top: 8px; width: 100%;">Asignar Ticket</button>' +
+            '</div>'
+          );
+
+        agentMarkers.push(marker);
+      }
+    });
+  }
+
+  // Función para asignar un ticket desde el mapa
+  function assignAgentFromMap(agentId) {
+    if (!ticketsState.activeTicketId) {
+      showNotification('Debe seleccionar un ticket primero', 'warning');
+      return;
+    }
+
+    var agent = agentsData.find(function(a) { return a.id === agentId; });
+    if (!agent) return;
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    // Asignar ticket al agente
+    agent.assignedTicket = ticket.id;
+    agent.status = 'Ocupado';
+
+    // Agregar evento al chat del ticket
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    var assignEvent = {
+      type: 'event',
+      icon: '👮',
+      title: 'Agente asignado',
+      detail: agent.name + ' • ' + agent.transporte,
+      timestamp: timeString
+    };
+
+    if (!ticket.chatMessages) {
+      ticket.chatMessages = [];
+    }
+    ticket.chatMessages.push(assignEvent);
+
+    // Actualizar estado del ticket
+    ticket.status = 'asignado';
+
+    // Recargar chat y mapa
+    loadTicketChat(ticket);
+    renderAgentsOnMap();
+    renderAssignedAgentsList();
+
+    showNotification('Agente ' + agent.name + ' asignado al ticket ' + ticket.id, 'success');
+  }
+
+  // Hacer función global
+  window.assignAgentFromMap = assignAgentFromMap;
+
+  // Función para inicializar tabs del mapa
+  function initializeMapTabs() {
+    var mapTabs = document.querySelectorAll('.map-tab');
+
+    mapTabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var tabType = this.getAttribute('data-tab');
+
+        // Actualizar estilos de tabs
+        mapTabs.forEach(function(t) {
+          t.classList.remove('active');
+          t.style.background = 'transparent';
+          t.style.opacity = '0.6';
+        });
+
+        this.classList.add('active');
+        this.style.background = '#252525';
+        this.style.opacity = '1';
+
+        // Cambiar vista del mapa según el tab
+        if (tabType === 'agents') {
+          renderAgentsOnMap();
+        } else if (tabType === 'cameras') {
+          // Implementar vista de cámaras en el futuro
+          showNotification('Vista de cámaras próximamente', 'info');
+        }
+      });
+    });
+  }
+
+  // Función para renderizar lista de agentes asignados
+  function renderAssignedAgentsList() {
+    var container = document.getElementById('assignedAgentsList');
+    if (!container) return;
+
+    // Filtrar agentes que tienen tickets asignados
+    var assignedAgents = agentsData.filter(function(agent) {
+      return agent.assignedTicket !== null;
+    });
+
+    // Limpiar contenedor
+    container.innerHTML = '';
+
+    if (assignedAgents.length === 0) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px;">No hay agentes asignados</div>';
+      return;
+    }
+
+    // Renderizar cada agente asignado
+    assignedAgents.forEach(function(agent) {
+      var ticket = ticketsState.tickets.find(function(t) { return t.id === agent.assignedTicket; });
+      var ticketInfo = ticket ? ticket.id : agent.assignedTicket;
+      var ticketStatus = ticket ? ticket.status : 'desconocido';
+
+      var agentCard = document.createElement('div');
+      agentCard.style.cssText = 'padding: 12px 15px; border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.2s;';
+      agentCard.onmouseenter = function() { this.style.background = '#0f172a'; };
+      agentCard.onmouseleave = function() { this.style.background = 'transparent'; };
+
+      agentCard.innerHTML =
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+          '<strong style="font-size: 14px; color: #e5e7eb;">' + agent.name + '</strong>' +
+          '<span style="font-size: 11px; padding: 2px 6px; background: #1e3a1e; border-radius: 4px; color: #22c55e;">Ocupado</span>' +
+        '</div>' +
+        '<div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">🚗 ' + agent.transporte + '</div>' +
+        '<div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">📋 Ticket: <span style="color: #f67200; font-weight: 600;">' + ticketInfo + '</span></div>' +
+        '<div style="font-size: 11px; color: #6b7280;">Estado: ' + ticketStatus + '</div>' +
+        '<button onclick="releaseAgentFromTicket(\'' + agent.id + '\')" class="btn btn-sm" style="margin-top: 8px; width: 100%; padding: 6px; font-size: 11px; background: #dc2626; color: white; border: none;">Liberar Agente</button>';
+
+      agentCard.addEventListener('click', function(e) {
+        // No hacer nada al hacer click en el botón
+        if (e.target.tagName === 'BUTTON') return;
+
+        // Ir al ticket del agente
+        if (ticket) {
+          selectTicket(ticket.id);
+        }
+      });
+
+      container.appendChild(agentCard);
+    });
+  }
+
+  // Función para liberar un agente de su ticket
+  function releaseAgentFromTicket(agentId) {
+    var agent = agentsData.find(function(a) { return a.id === agentId; });
+    if (!agent) return;
+
+    var ticketId = agent.assignedTicket;
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: '¿Liberar agente?',
+        text: '¿Está seguro que desea liberar a ' + agent.name + ' del ticket ' + ticketId + '?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, liberar',
+        cancelButtonText: 'Cancelar'
+      }).then(function(result) {
+        if (result.isConfirmed) {
+          // Liberar agente
+          agent.assignedTicket = null;
+          agent.status = 'Disponible';
+
+          // Actualizar ticket si existe
+          var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketId; });
+          if (ticket) {
+            ticket.status = 'abierto';
+
+            // Agregar evento al chat
+            var now = new Date();
+            var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            var releaseEvent = {
+              type: 'event',
+              icon: '🔓',
+              title: 'Agente liberado',
+              detail: agent.name + ' fue liberado del ticket',
+              timestamp: timeString
+            };
+
+            if (!ticket.chatMessages) {
+              ticket.chatMessages = [];
+            }
+            ticket.chatMessages.push(releaseEvent);
+
+            // Recargar chat si es el ticket activo
+            if (ticketsState.activeTicketId === ticketId) {
+              loadTicketChat(ticket);
+            }
+          }
+
+          // Actualizar mapa y lista
+          renderAgentsOnMap();
+          renderAssignedAgentsList();
+
+          showNotification('Agente ' + agent.name + ' liberado exitosamente', 'success');
+        }
+      });
+    } else {
+      if (confirm('¿Está seguro que desea liberar a ' + agent.name + ' del ticket ' + ticketId + '?')) {
+        // Liberar agente
+        agent.assignedTicket = null;
+        agent.status = 'Disponible';
+
+        // Actualizar mapa y lista
+        renderAgentsOnMap();
+        renderAssignedAgentsList();
+
+        showNotification('Agente ' + agent.name + ' liberado exitosamente', 'success');
+      }
+    }
+  }
+
+  // Hacer función global
+  window.releaseAgentFromTicket = releaseAgentFromTicket;
 </script>
 <script>
   // General tab renderer (read-only context)
@@ -2643,7 +2102,72 @@
   }
 
   function searchAddress(query) {
-    // Integrar con geocoding API si es necesario
+    if (!cadMap) {
+      showNotification('El mapa no está disponible', 'error');
+      return;
+    }
+
+    // Usar Nominatim de OpenStreetMap para geocodificación
+    var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&countrycodes=pe&limit=5';
+
+    fetch(nominatimUrl)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(results) {
+        if (results && results.length > 0) {
+          var firstResult = results[0];
+          var lat = parseFloat(firstResult.lat);
+          var lon = parseFloat(firstResult.lon);
+
+          // Centrar mapa en la ubicación encontrada
+          cadMap.setView([lat, lon], 16);
+
+          // Actualizar o crear marcador de ubicación
+          if (currentLocationMarker) {
+            cadMap.removeLayer(currentLocationMarker);
+          }
+
+          var incidentIcon = L.divIcon({
+            className: 'incident-marker-icon',
+            html: '<div style="background: #ef4444; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">📍</div>',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+          });
+
+          currentLocationMarker = L.marker([lat, lon], { icon: incidentIcon })
+            .addTo(cadMap)
+            .bindPopup('<b>Ubicación seleccionada</b><br>' + firstResult.display_name)
+            .openPopup();
+
+          // Autocompletar campo de ubicación en el formulario
+          updateIncidentLocation(firstResult.display_name, lat, lon);
+
+          showNotification('Ubicación encontrada: ' + firstResult.display_name, 'success');
+        } else {
+          showNotification('No se encontraron resultados para: ' + query, 'warning');
+        }
+      })
+      .catch(function(error) {
+        console.error('Error en búsqueda de dirección:', error);
+        showNotification('Error al buscar la dirección', 'error');
+      });
+  }
+
+  // Función para actualizar la ubicación del incidente en el formulario
+  function updateIncidentLocation(address, lat, lon) {
+    // Aquí puedes actualizar campos del formulario si existen
+    // Por ahora, guardamos la ubicación en el ticket activo
+    if (ticketsState.activeTicketId) {
+      var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+      if (ticket) {
+        ticket.location = {
+          address: address,
+          lat: lat,
+          lon: lon
+        };
+      }
+    }
   }
 
   // Esperar a que el elemento exista y luego inicializar
@@ -2779,14 +2303,24 @@
       };
       var incidentTypeName = incidentTypeNames[ticket.incidentType] || 'Sin tipo';
 
+      // Agregar clase de ticket con mensajes sin leer
+      if (ticket.unread > 0 && !isActive) {
+        button.classList.add('ticket-has-unread');
+      }
+
+      var unreadBadge = '';
+      if (ticket.unread > 0 && !isActive) {
+        unreadBadge = '<span class="badge badge-unread" style="margin-left: 8px; padding: 3px 8px; font-size: 11px; position: absolute; top: 8px; right: 8px;">' + ticket.unread + '</span>';
+      }
+
       button.innerHTML =
-        '<div class="cad-tab" style="min-width: 180px; text-align: left;">' +
+        '<div class="cad-tab" style="min-width: 180px; text-align: left; position: relative;">' +
           '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
             '<h5 style="margin: 0; font-size: 16px;">' + ticket.id + '</h5>' +
             '<span class="' + badgeClass + '" style="font-size: 14px; padding: 2px 6px;">' + badgeText + '</span>' +
           '</div>' +
-          '<p class="m-t">' + incidentTypeName + '</p>' +
-          (ticket.unread > 0 ? '<span class="unread">' + ticket.unread + '</span>' : '') +
+          '<p class="m-t" style="margin-bottom: 0;">' + incidentTypeName + '</p>' +
+          unreadBadge +
         '</div>';
 
       button.addEventListener('click', function() {
@@ -3014,6 +2548,126 @@
     }, randomDelay);
   }
 
+  // Función para cerrar un ticket con motivo
+  function closeTicketWithReason() {
+    if (!ticketsState.activeTicketId) {
+      showNotification('No hay ningún ticket activo para cerrar', 'warning');
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    // Verificar que el ticket no esté ya cerrado
+    if (ticket.status === 'cerrado') {
+      showNotification('Este ticket ya está cerrado', 'info');
+      return;
+    }
+
+    // Mostrar modal para pedir motivo de cierre
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Cerrar Ticket',
+        html:
+          '<div style="text-align: left;">' +
+          '<p>Ticket: <strong>' + ticket.id + '</strong></p>' +
+          '<label for="closeReason" style="display: block; margin-top: 15px; margin-bottom: 5px;">Motivo del cierre *</label>' +
+          '<textarea id="closeReason" class="swal2-textarea" placeholder="Describa el motivo del cierre del ticket..." style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"></textarea>' +
+          '</div>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Cerrar Ticket',
+        cancelButtonText: 'Cancelar',
+        preConfirm: function() {
+          var reason = document.getElementById('closeReason').value.trim();
+          if (!reason) {
+            Swal.showValidationMessage('Debe ingresar un motivo de cierre');
+            return false;
+          }
+          return reason;
+        }
+      }).then(function(result) {
+        if (result.isConfirmed && result.value) {
+          closeTicket(ticket, result.value);
+        }
+      });
+    } else {
+      var reason = prompt('Ingrese el motivo del cierre del ticket ' + ticket.id + ':');
+      if (reason && reason.trim()) {
+        closeTicket(ticket, reason.trim());
+      }
+    }
+  }
+
+  // Función para cerrar el ticket
+  function closeTicket(ticket, reason) {
+    // Actualizar estado del ticket
+    ticket.status = 'cerrado';
+    ticket.closedAt = new Date().toLocaleString('es-ES');
+    ticket.closeReason = reason;
+
+    // Agregar evento de cierre al chat
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    var closeEvent = {
+      type: 'event',
+      icon: '✅',
+      title: 'Ticket cerrado',
+      detail: 'Motivo: ' + reason,
+      timestamp: timeString
+    };
+
+    if (!ticket.chatMessages) {
+      ticket.chatMessages = [];
+    }
+    ticket.chatMessages.push(closeEvent);
+
+    // Remover el ticket de la lista (ya que está cerrado)
+    var ticketIndex = ticketsState.tickets.findIndex(function(t) { return t.id === ticket.id; });
+    if (ticketIndex !== -1) {
+      ticketsState.tickets.splice(ticketIndex, 1);
+    }
+
+    // Actualizar tabs
+    renderTicketTabs();
+
+    // Si no hay más tickets, limpiar formulario y chat
+    if (ticketsState.tickets.length === 0) {
+      ticketsState.activeTicketId = null;
+      clearFormAndChat();
+    } else {
+      // Seleccionar el primer ticket disponible
+      selectTicket(ticketsState.tickets[0].id);
+    }
+
+    showNotification('Ticket ' + ticket.id + ' cerrado exitosamente', 'success');
+  }
+
+  // Función para limpiar formulario y chat cuando no hay tickets
+  function clearFormAndChat() {
+    // Limpiar formulario
+    var formTicketHeader = document.getElementById('formTicketHeader');
+    if (formTicketHeader) formTicketHeader.textContent = 'Sin ticket activo';
+
+    var formIncidentId = document.getElementById('formIncidentId');
+    if (formIncidentId) formIncidentId.value = '';
+
+    // Limpiar chat
+    var chatTimeline = document.getElementById('chatTimeline');
+    if (chatTimeline) {
+      chatTimeline.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;">No hay mensajes</div>';
+    }
+
+    var chatTicketId = document.getElementById('chatTicketId');
+    if (chatTicketId) chatTicketId.textContent = '-';
+
+    var chatTicketStatus = document.getElementById('chatTicketStatus');
+    if (chatTicketStatus) chatTicketStatus.textContent = '-';
+  }
+
   // Vincular botón de enviar mensaje
   document.addEventListener('DOMContentLoaded', function() {
     var chatSendButton = document.getElementById('chatSendButton');
@@ -3031,6 +2685,312 @@
         }
       });
     }
+  });
+
+  // ============================================
+  // SISTEMA DE ASIGNACIÓN DE AGENTES
+  // ============================================
+
+  // Lista de agentes disponibles
+  var agentsData = [
+    { id: 'ramirez', name: 'Agente Ramírez', shortName: 'A. Ramírez', transporte: 'Camioneta', status: 'Disponible', distancia: '0.8 km', coords: [-12.117, -76.998] },
+    { id: 'vega', name: 'Agente Vega', shortName: 'C. Vega', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.2 km', coords: [-12.118, -76.999] },
+    { id: 'suarez', name: 'Agente Suárez', shortName: 'D. Suárez', transporte: 'Camioneta', status: 'Disponible', distancia: '2.3 km', coords: [-12.119, -77.000] },
+    { id: 'torres', name: 'Agente Torres', shortName: 'E. Torres', transporte: 'Motocicleta', status: 'Disponible', distancia: '1.7 km', coords: [-12.116, -76.997] },
+    { id: 'lopez', name: 'Agente López', shortName: 'F. López', transporte: 'A pie', status: 'Disponible', distancia: '2.1 km', coords: [-12.115, -76.996] },
+    { id: 'garcia', name: 'Agente García', shortName: 'G. García', transporte: 'Camioneta', status: 'Disponible', distancia: '0.5 km', coords: [-12.120, -77.001] },
+    { id: 'martinez', name: 'Agente Martínez', shortName: 'H. Martínez', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.8 km', coords: [-12.114, -76.995] },
+    { id: 'fernandez', name: 'Agente Fernández', shortName: 'I. Fernández', transporte: 'Camioneta', status: 'Disponible', distancia: '3.2 km', coords: [-12.113, -76.994] }
+  ];
+
+  // Función para abrir modal de asignación de agentes
+  function openAssignAgentModal() {
+    if (!ticketsState.activeTicketId) {
+      showNotification('Debe seleccionar un ticket primero', 'warning');
+      return;
+    }
+
+    var modal = document.getElementById('assignAgentModal');
+    if (!modal) return;
+
+    var searchInput = document.getElementById('agentSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    renderAgentListForAssignment();
+    modal.classList.add('active');
+
+    setTimeout(function() {
+      if (searchInput) searchInput.focus();
+    }, 100);
+  }
+
+  // Función para cerrar modal de asignación
+  function closeAssignAgentModal() {
+    var modal = document.getElementById('assignAgentModal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  // Función para filtrar agentes en el modal
+  function filterAgents() {
+    renderAgentListForAssignment();
+  }
+
+  // Función para renderizar lista de agentes en el modal
+  function renderAgentListForAssignment() {
+    var container = document.getElementById('agentListContainer');
+    var searchInput = document.getElementById('agentSearchInput');
+    if (!container) return;
+
+    var searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+    // Obtener ticket activo
+    var activeTicket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket) return;
+
+    // Inicializar agentes asignados si no existe
+    if (!activeTicket.assignedAgents) activeTicket.assignedAgents = [];
+
+    // Filtrar agentes
+    var availableAgents = agentsData.filter(function(agent) {
+      // Excluir agentes ya asignados a este ticket
+      var alreadyAssigned = activeTicket.assignedAgents.some(function(a) {
+        return a.id === agent.id;
+      });
+      if (alreadyAssigned) return false;
+
+      // Filtrar por búsqueda
+      if (searchTerm) {
+        return agent.name.toLowerCase().includes(searchTerm) ||
+               agent.transporte.toLowerCase().includes(searchTerm);
+      }
+
+      // Solo mostrar disponibles si no hay búsqueda
+      return agent.status === 'Disponible';
+    });
+
+    // Ordenar por distancia
+    availableAgents.sort(function(a, b) {
+      return parseFloat(a.distancia) - parseFloat(b.distancia);
+    });
+
+    container.innerHTML = '';
+
+    if (availableAgents.length === 0) {
+      container.innerHTML = '<div class="no-results">No se encontraron agentes disponibles</div>';
+      return;
+    }
+
+    // Renderizar cada agente
+    availableAgents.forEach(function(agent) {
+      var item = document.createElement('div');
+      item.className = 'agent-list-item' + (agent.status !== 'Disponible' ? ' ocupado' : '');
+
+      var info = document.createElement('div');
+      info.className = 'agent-info';
+
+      var name = document.createElement('div');
+      name.className = 'agent-list-name';
+      name.textContent = agent.name;
+
+      var role = document.createElement('div');
+      role.className = 'agent-list-role';
+      role.textContent = agent.transporte.toUpperCase();
+
+      info.appendChild(name);
+      info.appendChild(role);
+
+      var meta = document.createElement('div');
+      meta.style.textAlign = 'right';
+
+      var statusMark = document.createElement('div');
+      statusMark.style.fontSize = '1.2rem';
+      statusMark.textContent = agent.status === 'Disponible' ? '✓' : '⏸';
+      statusMark.style.color = agent.status === 'Disponible' ? '#22c55e' : '#999';
+
+      var distance = document.createElement('div');
+      distance.className = 'agent-distance';
+      distance.textContent = '📍 ' + agent.distancia;
+
+      meta.appendChild(statusMark);
+      meta.appendChild(distance);
+
+      item.appendChild(info);
+      item.appendChild(meta);
+
+      // Solo permitir clic si está disponible
+      if (agent.status === 'Disponible') {
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', function() {
+          assignAgentToTicket(agent);
+        });
+      }
+
+      container.appendChild(item);
+    });
+  }
+
+  // Función para asignar agente al ticket
+  function assignAgentToTicket(agent) {
+    var activeTicket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket) return;
+
+    // Inicializar array si no existe
+    if (!activeTicket.assignedAgents) activeTicket.assignedAgents = [];
+
+    // Verificar si ya está asignado
+    var alreadyAssigned = activeTicket.assignedAgents.some(function(a) {
+      return a.id === agent.id;
+    });
+    if (alreadyAssigned) return;
+
+    // Agregar agente al ticket
+    activeTicket.assignedAgents.push({
+      id: agent.id,
+      name: agent.name,
+      shortName: agent.shortName,
+      transporte: agent.transporte,
+      status: 'En ruta'
+    });
+
+    // Inicializar chatMessages si no existe
+    if (!activeTicket.chatMessages) activeTicket.chatMessages = [];
+
+    // Agregar evento al chat
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    activeTicket.chatMessages.push({
+      type: 'event',
+      icon: '👮',
+      title: 'Agente asignado',
+      detail: agent.shortName + ' • ' + agent.transporte,
+      timestamp: timeString
+    });
+
+    // Actualizar UI
+    loadTicketChat(activeTicket);
+    renderAssignedAgentsList();
+    closeAssignAgentModal();
+
+    showNotification('Agente ' + agent.shortName + ' asignado correctamente', 'success');
+  }
+
+  // Función para renderizar lista de agentes asignados
+  function renderAssignedAgentsList() {
+    var container = document.getElementById('assignedAgentsContainer');
+    if (!container) return;
+
+    var activeTicket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket || !activeTicket.assignedAgents || activeTicket.assignedAgents.length === 0) {
+      container.innerHTML = '<div style="padding: 1rem; text-align: center; color: #9ca3af; font-style: italic;">No hay agentes asignados</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+
+    activeTicket.assignedAgents.forEach(function(agent) {
+      var agentDiv = document.createElement('div');
+      agentDiv.className = 'agent-tag';
+
+      agentDiv.innerHTML =
+        '<div class="agent-info-block">' +
+          '<div class="agent-name">' + agent.shortName + '</div>' +
+          '<div class="agent-meta-chip">' + agent.transporte + ' • ' + agent.status + '</div>' +
+        '</div>' +
+        '<button type="button" class="release-agent-btn" onclick="releaseAgentFromTicket(\'' + agent.id + '\')">Liberar</button>';
+
+      container.appendChild(agentDiv);
+    });
+  }
+
+  // Función para liberar un agente del ticket
+  function releaseAgentFromTicket(agentId) {
+    var activeTicket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket || !activeTicket.assignedAgents) return;
+
+    var agentIndex = activeTicket.assignedAgents.findIndex(function(a) { return a.id === agentId; });
+    if (agentIndex === -1) return;
+
+    var agent = activeTicket.assignedAgents[agentIndex];
+    activeTicket.assignedAgents.splice(agentIndex, 1);
+
+    // Agregar evento al chat
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    if (!activeTicket.chatMessages) activeTicket.chatMessages = [];
+
+    activeTicket.chatMessages.push({
+      type: 'event',
+      icon: '↩️',
+      title: 'Agente liberado',
+      detail: agent.shortName + ' liberado del incidente',
+      timestamp: timeString
+    });
+
+    // Actualizar UI
+    loadTicketChat(activeTicket);
+    renderAssignedAgentsList();
+
+    showNotification('Agente ' + agent.shortName + ' liberado', 'info');
+  }
+
+  // Función para liberar todos los agentes
+  function releaseAllAgents() {
+    var activeTicket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket || !activeTicket.assignedAgents || activeTicket.assignedAgents.length === 0) {
+      showNotification('No hay agentes asignados para liberar', 'warning');
+      return;
+    }
+
+    var count = activeTicket.assignedAgents.length;
+    activeTicket.assignedAgents = [];
+
+    // Agregar evento al chat
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    if (!activeTicket.chatMessages) activeTicket.chatMessages = [];
+
+    activeTicket.chatMessages.push({
+      type: 'event',
+      icon: '↩️',
+      title: 'Agentes liberados',
+      detail: count + ' agente' + (count !== 1 ? 's' : '') + ' liberado' + (count !== 1 ? 's' : '') + ' del incidente',
+      timestamp: timeString
+    });
+
+    // Actualizar UI
+    loadTicketChat(activeTicket);
+    renderAssignedAgentsList();
+
+    showNotification(count + ' agente(s) liberado(s)', 'info');
+  }
+
+  // Exponer funciones globalmente para que los onclick funcionen
+  window.openAssignAgentModal = openAssignAgentModal;
+  window.closeAssignAgentModal = closeAssignAgentModal;
+  window.filterAgents = filterAgents;
+  window.releaseAgentFromTicket = releaseAgentFromTicket;
+  window.releaseAllAgents = releaseAllAgents;
+
+  // Cargar lista de agentes asignados cuando se selecciona un ticket
+  document.addEventListener('DOMContentLoaded', function() {
+    // Vincular eventos del modal
+    var modal = document.getElementById('assignAgentModal');
+    if (modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeAssignAgentModal();
+        }
+      });
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeAssignAgentModal();
+      }
+    });
   });
 
   // Función para mostrar notificaciones
@@ -3061,6 +3021,29 @@
         e.preventDefault();
         confirmCreateTicket();
       });
+    }
+
+    // Vincular botón de enviar mensaje
+    var sendBtn = document.getElementById('chatSendButton');
+    var chatInput = document.getElementById('chatComposerInput');
+
+    if (sendBtn) {
+      sendBtn.addEventListener('click', sendChatMessage);
+    }
+
+    if (chatInput) {
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+    }
+
+    // Vincular botón de cerrar ticket
+    var closeTicketBtn = document.getElementById('closeTicketBtn');
+    if (closeTicketBtn) {
+      closeTicketBtn.addEventListener('click', closeTicketWithReason);
     }
 
     // Cargar tickets de ejemplo al inicio

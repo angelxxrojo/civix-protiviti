@@ -1,491 +1,609 @@
 <!-- SweetAlert2 (requerido por la consola CAD) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.tailwindcss.com"></script>
+
 <!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <!-- Tu app CAD -->
 
 
-<!-- <div class="row">
+
+<style>
+
+  /* Estilos específicos para CAD */
+  .cad-container {
+    padding: 15px;
+  }
+
+  .cad-scrollable {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #666 #222;
+  }
+
+  .cad-scrollable::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .cad-scrollable::-webkit-scrollbar-track {
+    background: #222;
+  }
+
+  .cad-scrollable::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 3px;
+  }
+
+  .cad-tab {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  
+
+  /* Tab activo - sobreescribe btn-accent para tener opacidad 75% */
+  .cad-tab.btn-accent {
+    background: rgba(246, 114, 0, 0.75) !important;
+    border: 2px solid #f67200 !important;
+    color: white !important;
+  }
+
+  .cad-tab.btn-accent:hover {
+    background: rgba(246, 114, 0, 0.85) !important;
+  }
+
+  .cad-badge-critica { background: #dc3545; color: white; }
+  .cad-badge-alta { background: #ff7a2f; color: white; }
+  .cad-badge-media { background: #ffc107; color: #000; }
+  .cad-badge-baja { background: #28a745; color: white; }
+
+  .map-grid-cell {
+    border: 1px solid #444;
+    background: #1a1a1a;
+  }
+
+  .map-marker {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: #f67200;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .map-marker:hover {
+    transform: scale(1.2);
+  }
+
+  .chat-message {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  .chat-message.agent {
+    background: #e8f5e9;
+    margin-left: auto;
+    margin-right: 0;
+    max-width: 75%;
+  }
+
+  .chat-message.citizen {
+    background: #f3f4f6;
+    margin-right: auto;
+    margin-left: 0;
+    max-width: 75%;
+  }
+
+  .btn{
+    margin-right: 8px;
+    }
+    
+  .dot{width:10px;height:10px;border-radius:50%}
+  .ok{background:var(--ok)} .away{background:var(--away)} .busy{background:var(--busy)}
+    
+
+  .map-panel-body {
+    display: flex;
+    padding: 0.9rem;
+    flex: none;
+    min-height: 420px;
+    height: 420px;
+  }
+  #mapCAD {
+    flex: 1;
+    min-height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .map-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem 1rem;
+    color: #e5e7eb;
+    font-size: 0.9rem;
+  }
+  .map-filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid #262626;
+    border-radius: 10px;
+    padding: 0.85rem 0.9rem;
+    background: #121212;
+  }
+  .map-filter-title {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: #e5e7eb;
+    text-transform: uppercase;
+  }
+  .map-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem 1rem;
+  }
+  .map-filter-separator {
+    width: 100%;
+    height: 1px;
+    background: #1f1f1f;
+    margin-top: 0.25rem;
+  }
+  .map-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .map-filter-item input {
+    width: 18px;
+    height: 18px;
+    accent-color: #22c55e;
+  }
+  
+  
+</style>
+
+<div class="row">
   <div class="col-md-12">
-    <div class="new-incident-wrapper">
-      <button class="btn btn-accent btn-rounded" id="addticket" type="button">
-        <i class="pe-7s-plus" aria-hidden="true"></i> Registrar nuevo incidente
+    <div class="new-incident-wrapper " style="display:flex; justify-content:space-between; align-items:center;">
+      <div> </div>
+      <button class="btn btn-accent" id="addticket" type="button">
+        <i class="pe-7s-plus" aria-hidden="true"></i> Crear Ticket
       </button>
     </div>
   </div>
-</div> -->
+</div>
 
-<div class="w-full">
-  <div class="w-full">
-    <div class="bg-white border-b border-gray-200 px-6 py-4">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-bold text-gray-900">Tickets Activos</h3>
-        <span class="text-sm text-gray-500" id="ticketsCount">3 tickets</span>
+<div class="row">
+  <div class="col-md-12">
+    <div class="">
+      <div class="panel-heading">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h4 class="m-b-none">Tickets Activos</h4>
+          <span class="badge" id="ticketsCount">3 tickets</span>
+        </div>
       </div>
-      <div class="overflow-x-auto scrollbar-hide">
-        <div class="flex gap-3 pb-2" id="incidentTabs"></div>
+      <div class="panel-body" style="overflow-x: auto; white-space: nowrap;">
+        <div id="incidentTabs"></div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-4">
-  
-  <!-- COLUMNA 1: Formulario del Ticket -->
-  <div class="h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide">
-    <div class="space-y-6 pr-4" id="ticketFormContainer">
-
-      <!-- Card: Header Principal -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div class="p-6">
-          <h3 class="text-2xl font-bold text-orange-500">Registro de Incidencias – Seguridad Ciudadana</h3>
-          <p class="text-sm text-gray-500 mt-1" id="formTicketHeader">Ticket #3242 • 27/11/2025, 7:24:24 a.m.</p>
-        </div>
-      </div>
-
-      <!-- Card: Información General del Reporte -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" x2="12" y1="16" y2="12"></line>
-              <line x1="12" x2="12.01" y1="8" y2="8"></line>
-            </svg>
-            Información General del Reporte
-          </h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">ID de la Incidencia</label>
-              <input type="text" id="formIncidentId" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100" readonly value="#3242">
+<div class="row cad-container">
+    <!-- Primera Columna - Formulario -->
+    <div class="col-md-4">
+        <div class="cad-scrollable" id="ticketFormContainer">
+          <!-- Panel: Header Principal -->
+          <div class="panel panel-filled mb-2">
+            <div class="panel-heading">
+              <h4 class="m-b-none">Registro de Incidencias – Seguridad Ciudadana</h4>
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Nivel de Alerta</label>
-              <select id="formAlertLevel" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                <option value="critica">🔴 Crítica</option>
-                <option value="alta">🟠 Alta</option>
-                <option value="media">🟡 Media</option>
-                <option value="baja">🟢 Baja</option>
-              </select>
+            <div class="panel-body">
+              <small id="formTicketHeader">Ticket #3242 • 27/11/2025, 7:24:24 a.m.</small>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card: Tipo de Incidencia -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div class="p-6">
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-700">Tipo de Incidencia *</label>
-            <select id="formIncidentType" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-              <option value="">Seleccionar</option>
-              <option value="robo-vehiculo">🚗 Robo de Vehículo</option>
-              <option value="persona-sospechosa">👤 Persona Sospechosa</option>
-              <option value="persona-desaparecida">🔍 Persona Desaparecida</option>
-              <option value="vehiculo-sospechoso">🚙 Vehículo Sospechoso</option>
-              <option value="otra">📋 Otra incidencia</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card: Datos del Reportante -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            Datos del Reportante
-          </h3>
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Nombre completo *</label>
-                <input type="text" id="formReporterName" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Nombre completo" value="Juan Pérez García">
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">DNI / Identificación *</label>
-                <input type="text" id="formReporterDNI" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="DNI" value="12345678">
-              </div>
+          
+          <!-- Panel: Información General del Reporte -->
+          <div class="panel panel-filled panel-inner-radius mb-2">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Información General del Reporte</h5>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Teléfono de contacto *</label>
-                <input type="text" id="formReporterPhone" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Teléfono" value="55 9876 5432">
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>ID de la Incidencia</label>
+                    <input type="text" id="formIncidentId" class="form-control rounded-input bg-dark" readonly value="#3242">
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Nivel de Alerta</label>
+                    <select id="formAlertLevel" class="form-control rounded-input">
+                      <option value="critica"> <span class="dot away"></span> Crítica</option>
+                      <option value="alta">Alta</option>
+                      <option value="media">Media</option>
+                      <option value="baja">Baja</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Correo electrónico</label>
-                <input type="email" id="formReporterEmail" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="correo@ejemplo.com" value="juan@example.com">
-              </div>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Relación con el hecho</label>
-              <select id="formReporterRelation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                <option value="">Seleccionar</option>
-                <option value="victima" selected>Víctima</option>
-                <option value="testigo">Testigo</option>
-                <option value="tercero">Tercero</option>
-              </select>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card: Persona Desaparecida (Dinámico según tipo) -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-orange-500" id="formMissingPersonSection" style="display: none;">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <line x1="17" x2="22" y1="8" y2="13"></line>
-              <line x1="22" x2="17" y1="8" y2="13"></line>
-            </svg>
-            Datos de la Persona Desaparecida
-          </h3>
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Nombre completo</label>
-                <input type="text" id="formMissingName" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Nombre completo">
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Edad</label>
-                <input type="text" id="formMissingAge" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Edad">
-              </div>
+          
+          <!-- Panel: Tipo de Incidencia -->
+          <div class="panel panel-filled  panel-inner-radius mb-2">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Tipo de Incidencia</h5>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Género</label>
-                <select id="formMissingGender" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+            <div class="panel-body">
+              <div class="form-group">
+                <label>Tipo de Incidencia *</label>
+                <select id="formIncidentType" class="form-control rounded-input">
                   <option value="">Seleccionar</option>
-                  <option value="masculino">Masculino</option>
-                  <option value="femenino">Femenino</option>
-                  <option value="otro">Otro</option>
+                  <option value="robo-vehiculo">🚗 Robo de Vehículo</option>
+                  <option value="persona-sospechosa">👤 Persona Sospechosa</option>
+                  <option value="persona-desaparecida">🔍 Persona Desaparecida</option>
+                  <option value="vehiculo-sospechoso">🚙 Vehículo Sospechoso</option>
+                  <option value="otra">📋 Otra incidencia</option>
                 </select>
               </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">DNI</label>
-                <input type="text" id="formMissingDNI" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="DNI">
-              </div>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Fecha y hora vista por última vez</label>
-              <input type="datetime-local" id="formMissingLastSeen" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Lugar donde fue vista por última vez</label>
-              <input type="text" id="formMissingLastLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Descripción de la persona</label>
-              <textarea id="formMissingDescription" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Incluya vestimenta, señales particulares, tatuajes, cicatrices, etc." rows="4"></textarea>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">¿Tiene problemas médicos o cognitivos?</label>
-              <select id="formMissingMedical" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                <option value="">Seleccionar</option>
-                <option value="si">Sí</option>
-                <option value="no">No</option>
-                <option value="desconoce">Desconoce</option>
-              </select>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card: Persona Sospechosa (Dinámico según tipo) -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-yellow-500" id="formSuspiciousPersonSection" style="display: none;">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <circle cx="10" cy="7" r="4"></circle>
-              <path d="M10.3 15H7a4 4 0 0 0-4 4v2"></path>
-              <circle cx="17" cy="17" r="3"></circle>
-              <path d="m21 21-1.9-1.9"></path>
-            </svg>
-            Datos de la Persona Sospechosa
-          </h3>
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Nombre (opcional)</label>
-                <input type="text" id="formSuspiciousName" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Si se conoce">
+          
+          <!-- Panel: Datos del Reportante -->
+          <div class="panel panel-filled   panel-inner-radius mb-2">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Datos del Reportante</h5>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Nombre completo *</label>
+                    <input type="text" id="formReporterName" class="form-control rounded-input" placeholder="Nombre completo" value="Juan Pérez García">
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>DNI / Identificación *</label>
+                    <input type="text" id="formReporterDNI" class="form-control rounded-input" placeholder="DNI" value="12345678">
+                  </div>
+                </div>
               </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Alias (opcional)</label>
-                <input type="text" id="formSuspiciousAlias" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Apodo o alias">
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Teléfono de contacto *</label>
+                    <input type="text" id="formReporterPhone" class="form-control rounded-input" placeholder="Teléfono" value="55 9876 5432">
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Correo electrónico</label>
+                    <input type="email" id="formReporterEmail" class="form-control rounded-input" placeholder="correo@ejemplo.com" value="juan@example.com">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Descripción física</label>
-              <textarea id="formSuspiciousDescription" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Estatura, complexión, rasgos distintivos..."></textarea>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Motivo de sospecha</label>
-              <textarea id="formSuspiciousReason" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="¿Por qué es sospechosa?"></textarea>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Último lugar visto</label>
-              <input type="text" id="formSuspiciousLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">¿Vinculado con hechos anteriores?</label>
-              <select id="formSuspiciousLinked" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                <option value="">Seleccionar</option>
-                <option value="si">Sí</option>
-                <option value="no">No</option>
-                <option value="desconoce">Desconoce</option>
-              </select>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Relación con el hecho</label>
+                    <select id="formReporterRelation" class="form-control rounded-input">
+                      <option value="">Seleccionar</option>
+                      <option value="victima" selected>Víctima</option>
+                      <option value="testigo">Testigo</option>
+                      <option value="tercero">Tercero</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card: Vehículo Sospechoso (Dinámico según tipo) -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-blue-500" id="formSuspiciousVehicleSection" style="display: none;">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
-              <path d="M15 18H9"></path>
-              <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
-              <circle cx="17" cy="18" r="2"></circle>
-              <circle cx="7" cy="18" r="2"></circle>
-            </svg>
-            Datos del Vehículo Sospechoso
-          </h3>
-          <div class="space-y-4">
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Placa (opcional)</label>
-              <input type="text" id="formSuspVehiclePlate" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Si es visible">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Tipo de vehículo</label>
-                <input type="text" id="formSuspVehicleType" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Auto, camioneta, etc.">
+        
+          <!-- Card: Persona Desaparecida (Dinámico según tipo) -->
+          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-orange-500" id="formMissingPersonSection" style="display: none;">
+            <div class="p-6">
+              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <line x1="17" x2="22" y1="8" y2="13"></line>
+                  <line x1="22" x2="17" y1="8" y2="13"></line>
+                </svg>
+                Datos de la Persona Desaparecida
+              </h3>
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Nombre completo</label>
+                    <input type="text" id="formMissingName" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Nombre completo">
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Edad</label>
+                    <input type="text" id="formMissingAge" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Edad">
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Género</label>
+                    <select id="formMissingGender" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                      <option value="">Seleccionar</option>
+                      <option value="masculino">Masculino</option>
+                      <option value="femenino">Femenino</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">DNI</label>
+                    <input type="text" id="formMissingDNI" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="DNI">
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Fecha y hora vista por última vez</label>
+                  <input type="datetime-local" id="formMissingLastSeen" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Lugar donde fue vista por última vez</label>
+                  <input type="text" id="formMissingLastLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Descripción de la persona</label>
+                  <textarea id="formMissingDescription" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Incluya vestimenta, señales particulares, tatuajes, cicatrices, etc." rows="4"></textarea>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">¿Tiene problemas médicos o cognitivos?</label>
+                  <select id="formMissingMedical" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                    <option value="">Seleccionar</option>
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                    <option value="desconoce">Desconoce</option>
+                  </select>
+                </div>
               </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Color</label>
-                <input type="text" id="formSuspVehicleColor" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Color">
-              </div>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Detalles distintivos</label>
-              <textarea id="formSuspVehicleDetails" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Calcomanías, daños, características especiales..."></textarea>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Lugar donde fue visto</label>
-              <input type="text" id="formSuspVehicleLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Hora de registro</label>
-              <input type="time" id="formSuspVehicleTime" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Comportamiento sospechoso</label>
-              <textarea id="formSuspVehicleBehavior" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="¿Qué hace que sea sospechoso?"></textarea>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card: Datos del Robo de Vehículo (Dinámico según tipo) -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-purple-500" id="formVehicleSection" style="display: none;">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
-              <circle cx="7" cy="17" r="2"></circle>
-              <path d="M9 17h6"></path>
-              <circle cx="17" cy="17" r="2"></circle>
-            </svg>
-            Datos del Robo de Vehículo
-          </h3>
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Tipo de vehículo</label>
-                <select id="formVehicleType" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                  <option value="">Seleccionar</option>
-                  <option value="auto">Automóvil</option>
-                  <option value="moto">Motocicleta</option>
-                  <option value="camioneta">Camioneta</option>
-                  <option value="otro">Otro</option>
-                </select>
+        
+          <!-- Card: Persona Sospechosa (Dinámico según tipo) -->
+          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-yellow-500" id="formSuspiciousPersonSection" style="display: none;">
+            <div class="p-6">
+              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
+                  <circle cx="10" cy="7" r="4"></circle>
+                  <path d="M10.3 15H7a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="17" cy="17" r="3"></circle>
+                  <path d="m21 21-1.9-1.9"></path>
+                </svg>
+                Datos de la Persona Sospechosa
+              </h3>
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Nombre (opcional)</label>
+                    <input type="text" id="formSuspiciousName" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Si se conoce">
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Alias (opcional)</label>
+                    <input type="text" id="formSuspiciousAlias" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Apodo o alias">
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Descripción física</label>
+                  <textarea id="formSuspiciousDescription" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Estatura, complexión, rasgos distintivos..."></textarea>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Motivo de sospecha</label>
+                  <textarea id="formSuspiciousReason" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="¿Por qué es sospechosa?"></textarea>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Último lugar visto</label>
+                  <input type="text" id="formSuspiciousLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">¿Vinculado con hechos anteriores?</label>
+                  <select id="formSuspiciousLinked" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                    <option value="">Seleccionar</option>
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                    <option value="desconoce">Desconoce</option>
+                  </select>
+                </div>
               </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Marca / Modelo</label>
-                <input type="text" id="formVehicleBrand" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ej: Toyota Corolla">
-              </div>
-            </div>
-            <div class="grid grid-cols-3 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Placa</label>
-                <input type="text" id="formVehiclePlate" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="ABC-123">
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Color</label>
-                <input type="text" id="formVehicleColor" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Color">
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Año</label>
-                <input type="text" id="formVehicleYear" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="2020">
-              </div>
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Lugar del robo</label>
-              <input type="text" id="formVehicleLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación exacta">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Fecha y hora del robo</label>
-              <input type="datetime-local" id="formVehicleDateTime" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">¿Tiene GPS?</label>
-              <select id="formVehicleGPS" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                <option value="">Seleccionar</option>
-                <option value="si">Sí</option>
-                <option value="no">No</option>
-                <option value="desconoce">Desconoce</option>
-              </select>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card: Evidencia Adjunta -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" x2="12" y1="3" y2="15"></line>
-            </svg>
-            Evidencia Adjunta (Opcional)
-          </h3>
-          <div class="space-y-3">
-            <p class="text-sm text-gray-500">Sube fotos, videos, documentos o audio relacionados con el incidente</p>
-            <button type="button" class="w-full h-11 px-8 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors inline-flex items-center justify-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" x2="12" y1="3" y2="15"></line>
-              </svg>
-              Subir archivos (máx. 10 archivos)
-            </button>
-            <div id="formEvidenceList" class="space-y-2 mt-3"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card: Ubicación del Incidente -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-            Ubicación del Incidente
-          </h3>
-          <div class="space-y-4">
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Dirección exacta *</label>
-              <input type="text" id="formLocationAddress" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Calle, número, colonia" value="Av. Reforma 456, Col. Juárez">
-              <p class="text-xs text-gray-500">💡 Usa el mapa de la derecha para buscar y autocompletar</p>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Distrito *</label>
-                <input type="text" id="formLocationDistrict" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Distrito" value="Cuauhtémoc">
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Provincia *</label>
-                <input type="text" id="formLocationProvince" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Provincia" value="Ciudad de México">
+    
+          <!-- Card: Vehículo Sospechoso (Dinámico según tipo) -->
+          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-blue-500" id="formSuspiciousVehicleSection" style="display: none;">
+            <div class="p-6">
+              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
+                  <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                  <path d="M15 18H9"></path>
+                  <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                  <circle cx="17" cy="18" r="2"></circle>
+                  <circle cx="7" cy="18" r="2"></circle>
+                </svg>
+                Datos del Vehículo Sospechoso
+              </h3>
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Placa (opcional)</label>
+                  <input type="text" id="formSuspVehiclePlate" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Si es visible">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Tipo de vehículo</label>
+                    <input type="text" id="formSuspVehicleType" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Auto, camioneta, etc.">
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Color</label>
+                    <input type="text" id="formSuspVehicleColor" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Color">
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Detalles distintivos</label>
+                  <textarea id="formSuspVehicleDetails" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Calcomanías, daños, características especiales..."></textarea>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Lugar donde fue visto</label>
+                  <input type="text" id="formSuspVehicleLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Hora de registro</label>
+                  <input type="time" id="formSuspVehicleTime" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Comportamiento sospechoso</label>
+                  <textarea id="formSuspVehicleBehavior" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="¿Qué hace que sea sospechoso?"></textarea>
+                </div>
               </div>
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Referencia</label>
-              <input type="text" id="formLocationReference" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Frente a..., cerca de..." value="Frente al banco">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700">Coordenadas GPS</label>
-              <input type="text" id="formLocationCoords" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100" readonly placeholder="Auto-detectado o manual" value="19.4326, -99.1332">
+          </div>
+    
+          <!-- Card: Datos del Robo de Vehículo (Dinámico según tipo) -->
+          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-purple-500" id="formVehicleSection" style="display: none;">
+            <div class="p-6">
+              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
+                  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
+                  <circle cx="7" cy="17" r="2"></circle>
+                  <path d="M9 17h6"></path>
+                  <circle cx="17" cy="17" r="2"></circle>
+                </svg>
+                Datos del Robo de Vehículo
+              </h3>
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Tipo de vehículo</label>
+                    <select id="formVehicleType" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                      <option value="">Seleccionar</option>
+                      <option value="auto">Automóvil</option>
+                      <option value="moto">Motocicleta</option>
+                      <option value="camioneta">Camioneta</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Marca / Modelo</label>
+                    <input type="text" id="formVehicleBrand" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ej: Toyota Corolla">
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Placa</label>
+                    <input type="text" id="formVehiclePlate" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="ABC-123">
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Color</label>
+                    <input type="text" id="formVehicleColor" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Color">
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700">Año</label>
+                    <input type="text" id="formVehicleYear" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="2020">
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Lugar del robo</label>
+                  <input type="text" id="formVehicleLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación exacta">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">Fecha y hora del robo</label>
+                  <input type="datetime-local" id="formVehicleDateTime" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-700">¿Tiene GPS?</label>
+                  <select id="formVehicleGPS" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                    <option value="">Seleccionar</option>
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                    <option value="desconoce">Desconoce</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card: Otra Incidencia (Dinámico según tipo) -->
-      <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-gray-500" id="formOtherSection" style="display: none;">
-        <div class="p-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" x2="12" y1="8" y2="12"></line>
-              <line x1="12" x2="12.01" y1="16" y2="16"></line>
-            </svg>
-            Descripción de la Incidencia
-          </h3>
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-700">Descripción detallada</label>
-            <textarea id="formOtherDescription" class="w-full min-h-[120px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" rows="6" placeholder="Describe detalladamente la incidencia..."></textarea>
+    
+          <!-- Card: Evidencia Adjunta -->
+          <div class="panel panel-filled   panel-inner-radius mb-2">
+            <div class="panel-body">
+              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" x2="12" y1="3" y2="15"></line>
+                </svg>
+                Evidencia Adjunta (Opcional)
+              </h3>
+              <div class="space-y-3">
+                <p class="text-sm text-gray-500">Sube fotos, videos, documentos o audio relacionados con el incidente</p>
+                <button type="button" class="w-full btn btn-accent h-11 px-8 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors inline-flex items-center justify-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" x2="12" y1="3" y2="15"></line>
+                  </svg>
+                  Subir archivos (máx. 10 archivos)
+                </button>
+                <div id="formEvidenceList" class="space-y-2 mt-3"></div>
+              </div>
+            </div>
           </div>
+    
         </div>
-      </div>
-
-      <!-- Botones de acción -->
-      <div class="flex gap-3 sticky bottom-0 bg-white/95 backdrop-blur-sm p-4 border-t border-gray-200">
-        <button type="button" id="formSaveBtn" class="flex-1 h-11 px-8 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-md transition-colors">Guardar reporte</button>
-        <button type="button" id="formClearBtn" class="h-11 px-8 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors">Limpiar formulario</button>
-        <button type="button" id="formCancelBtn" class="h-11 px-8 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors">Cancelar</button>
-      </div>
-
     </div>
-  </div>
-  
-  <!-- COLUMNA 2: Chat del Ticket -->
-  <div class="h-[calc(100vh-200px)]">
-    <div class="bg-white rounded-lg border border-gray-200 flex flex-col h-full">
-      
+    
+    <!-- COLUMNA 2: Chat del Ticket -->
+    <div class="col-md-4">
+    <div class="panel panel-filled  " style="display: flex; flex-direction: column; height: calc(100vh - 200px);">
+
       <!-- Header del Chat -->
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-xl font-bold text-gray-900 mb-2">Chat del ticket</h2>
-        <div class="space-y-1 text-sm text-gray-500">
-          <div>Ticket: <span class="font-semibold text-gray-900" id="chatTicketId">#3242</span></div>
-          <div>Agente: <span class="font-semibold text-gray-900" id="chatAgentName">Agente Rodríguez</span></div>
-          <div>Estado: <span class="font-semibold text-orange-500" id="chatTicketStatus">En atención</span></div>
+      <div class="panel-heading">
+        <h5 class="m-b-none">Chat del ticket</h5>
+        <div style="font-size: 12px; margin-top: 8px;">
+          <div>Ticket: <strong id="chatTicketId">#3242</strong></div>
+          <div>Agente: <strong id="chatAgentName">Agente Rodríguez</strong></div>
+          <div>Estado: <span style="color: #f67200;" id="chatTicketStatus">En atención</span></div>
         </div>
       </div>
-      
+
       <!-- Área de mensajes -->
-      <div class="flex-1 overflow-y-auto p-6 scrollbar-hide">
-        <div class="space-y-4" id="chatTimeline">
+      <div class="panel-body cad-scrollable" style="flex: 1;">
+        <div id="chatTimeline">
           <!-- Los mensajes se renderizan aquí con JS -->
         </div>
       </div>
-      
+
       <!-- Input de mensaje -->
-      <div class="p-6 border-t border-gray-200">
-        <div class="flex gap-2">
-          <input 
-            type="text" 
+      <div class="panel-footer">
+        <div style="display: flex; gap: 8px;">
+          <input
+            type="text"
             id="chatComposerInput"
-            class="flex-1 h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" 
+            class="form-control rounded-input"
             placeholder="Escribe un mensaje..."
+            style="flex: 1;"
           >
-          <button 
-            type="button" 
+          <button
+            type="button"
             id="chatSendButton"
-            class="inline-flex items-center justify-center h-10 px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-md transition-colors"
+            class="btn btn-accent btn-rounded"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path>
@@ -494,108 +612,1094 @@
           </button>
         </div>
       </div>
-      
-    </div>
-</div>
-  
-  <!-- COLUMNA 3: Mapa Interactivo -->
-  <div class="h-[calc(100vh-200px)]">
-    <div class="bg-white rounded-lg border border-gray-200 flex flex-col h-full">
-      
-      <!-- Header del Mapa -->
-      <div class="p-4 border-b border-gray-200">
-        <h2 class="text-xl font-bold text-gray-900">Mapa Interactivo</h2>
-        <div class="flex gap-2 mt-3">
-          <input 
-            type="text" 
-            id="mapSearchInput"
-            class="flex-1 h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" 
-            placeholder="Buscar dirección..."
-          >
-          <button 
-            type="button" 
-            id="mapSearchBtn"
-            class="inline-flex items-center justify-center h-10 w-10 text-white bg-orange-500 hover:bg-orange-600 rounded-md transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Tabs: Agentes / Cámaras -->
-      <div class="p-4 border-b border-gray-200">
-        <div class="h-10 w-full grid grid-cols-2 items-center justify-center rounded-md bg-gray-100 p-1" id="mapTabs">
-          <button 
-            type="button" 
-            data-tab="agents"
-            class="map-tab flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium rounded-sm transition-all active bg-white text-gray-900 shadow-sm"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            <span>Agentes</span>
-          </button>
-          <button 
-            type="button" 
-            data-tab="cameras"
-            class="map-tab flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium rounded-sm transition-all text-gray-500"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-              <circle cx="12" cy="13" r="3"></circle>
-            </svg>
-            <span>Cámaras</span>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Área del Mapa -->
-      <div class="flex-1 bg-gray-50 relative overflow-hidden">
-        
-        <!-- Grid de fondo -->
-        <div class="absolute inset-0 grid grid-cols-12 grid-rows-12" id="mapGrid">
-          <!-- Las celdas se generan con JS o se pueden poner estáticas -->
-        </div>
-        
-        <!-- Líneas de calles (SVG) -->
-        <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-30">
-          <line x1="20%" y1="0" x2="20%" y2="100%" stroke="#9ca3af" stroke-width="2"></line>
-          <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#9ca3af" stroke-width="3"></line>
-          <line x1="80%" y1="0" x2="80%" y2="100%" stroke="#9ca3af" stroke-width="2"></line>
-          <line x1="0" y1="30%" x2="100%" y2="30%" stroke="#9ca3af" stroke-width="2"></line>
-          <line x1="0" y1="60%" x2="100%" y2="60%" stroke="#9ca3af" stroke-width="3"></line>
-          <line x1="0" y1="80%" x2="100%" y2="80%" stroke="#9ca3af" stroke-width="2"></line>
-        </svg>
-        
-        <!-- Marcadores de agentes -->
-        <div id="mapMarkers">
-          <!-- Los marcadores se renderizan con JS -->
-        </div>
-        
-        <!-- Leyenda del mapa -->
-        <div class="absolute bottom-4 left-4 bg-white/95 border border-gray-200 rounded-lg p-3 text-xs">
-          <div class="font-semibold text-gray-900 mb-1">Mapa Simulado</div>
-          <div class="text-gray-500 map-legend-text">Vista de Agentes Activos</div>
-        </div>
-        
-        <!-- Mapa real (Leaflet) - oculto por defecto, mostrar cuando esté disponible -->
-        <div id="mapCAD" class="absolute inset-0 z-10 hidden"></div>
-        
-      </div>
-      
+
     </div>
   </div>
-  
+
+    <!-- COLUMNA 3: Mapa Interactivo -->
+    <div class="col-md-4">
+        <div class="panel panel-filled  " style="display: flex; flex-direction: column; height: calc(100vh - 200px);">
+            <!-- Header del Mapa -->
+            <div class="panel-heading">
+                <h5 class="m-b-none">Mapa Interactivo</h5>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <input
+                    type="text"
+                    id="mapSearchInput"
+                    class="form-control rounded-input"
+                    placeholder="Buscar dirección..."
+                    style="flex: 1;"
+                  >
+                  <button
+                    type="button"
+                    id="mapSearchBtn"
+                    class="btn btn-accent btn-rounded"
+                    style="width: 40px; padding: 8px;"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </button>
+                </div>
+            </div>
+        
+            <!-- Tabs: Agentes / Cámaras -->
+            <div style="padding: 10px; border-bottom: 1px solid #3d404c;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; background: #1a1a1a; padding: 4px; border-radius: 8px;" id="mapTabs">
+                  <button
+                    type="button"
+                    data-tab="agents"
+                    class="map-tab active"
+                    style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; font-size: 13px; border-radius: 6px; background: #252525; border: none; cursor: pointer;"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Agentes</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-tab="cameras"
+                    class="map-tab"
+                    style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; font-size: 13px; border-radius: 6px; background: transparent; border: none; cursor: pointer; opacity: 0.6;"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                      <circle cx="12" cy="13" r="3"></circle>
+                    </svg>
+                    <span>Cámaras</span>
+                  </button>
+                </div>
+            </div>
+        
+            <!-- Área del Mapa -->
+            <div class="panel-body map-panel-body">
+                    <div id="mapCAD"></div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<div class="row three-pane-row">
+    <div class="col-lg-3 col-md-3 pane">
+                    <div class="tabs-container">
+                        <div class="tabs-context-text">Contexto del incidente</div>
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" href="#tab-3" aria-expanded="true"> <i class="fa fa-laptop"></i> Datos</a></li>
+                            <li class=""><a data-toggle="tab" href="#tab-4" aria-expanded="false"><i class="fa fa-desktop"></i> Agentes</a></li>
+                            <li class=""><a data-toggle="tab" href="#tab-5" aria-expanded="false"><i class="fa fa-database"></i> Personas</a></li>
+                            <li class=""><a data-toggle="tab" href="#tab-6" aria-expanded="false"><i class="pe-7s-hammer"></i> Gestión</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="tab-3" class="tab-pane active">
+                                <div class="panel panel-filled  " style="height:100%; display:flex; flex-direction:column;">
+                                    <div class="panel-body" style="overflow:visible;">
+                                        <style>
+                                          #tab-3 .panel,
+                                          #tab-4 .panel,
+                                          #tab-5 .panel {
+                                            background: transparent;
+                                            border: none;
+                                            box-shadow: none;
+                                            border-radius: 0;
+                                          }
+                                          #tab-3 .panel-heading,
+                                          #tab-4 .panel-heading,
+                                          #tab-5 .panel-heading {
+                                            background: transparent;
+                                            border-bottom: 1px solid #2a3140;
+                                            color: #ffffff;
+                                          }
+                                          #tab-3 .panel-body,
+                                          #tab-4 .panel-body,
+                                          #tab-5 .panel-body {
+                                            background: transparent;
+                                          }
+                                          #tab-5 .panel-body {
+                                            padding: 0;
+                                          }
+                                          #tab-3 .item {
+                                            display:flex;
+                                            flex-direction:column;
+                                            align-items:flex-start;
+                                            margin-bottom:14px;
+                                            width:100%;
+                                          }
+                                          #tab-3 .label {
+                                            display:block;
+                                            color:#ffffff;
+                                            font-weight:600;
+                                            font-size:1.05rem;
+                                            width:100%;
+                                            text-align:left;
+                                            padding:0;
+                                            line-height:1.3;
+                                            background:none;
+                                            border-radius:0;
+                                          }
+                                          #tab-3 .sep {
+                                            width:100%;
+                                            height:1px;
+                                            background:#3a3f4b;
+                                            margin:4px 0 6px;
+                                          }
+                                          #tab-3 .value-box {
+                                            display:block;
+                                            background:transparent;
+                                            border:none;
+                                            color:#a6adbb;
+                                            border-radius:0;
+                                            padding:0;
+                                            font-weight:500;
+                                            font-size:1.05rem;
+                                            width:100%;
+                                            text-align:left;
+                                          }
+                                          #tab-3 .value-chart {
+                                            display:flex;
+                                            flex-direction:column;
+                                            align-items:center;
+                                            justify-content:center;
+                                            gap:0.4rem;
+                                            text-align:center;
+                                          }
+                                          #tab-3 .value-chart canvas {
+                                            width:70px;
+                                            height:70px;
+                                          }
+                                          #tab-3 #cg-sla-text {
+                                            color:#f87171;
+                                            font-weight:600;
+                                          }
+                                          #tab-3 #cg-desc { white-space:pre-wrap; }
+                                          #tab-5 .personas-tab {
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:1.5rem;
+                                            color:#f3f4f6;
+                                          }
+                                          #tab-5 .personas-section {
+                                            background:transparent;
+                                            border:none;
+                                            border-radius:0;
+                                            padding:0.25rem 0 0.75rem;
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.75rem;
+                                          }
+                                          #tab-5 .personas-section.personas-editor {
+                                            background:transparent;
+                                            border:none;
+                                            border-radius:0;
+                                            padding:0.25rem 0 0.75rem;
+                                            gap:0.75rem;
+                                          }
+                                          #tab-5 .personas-section .section-label {
+                                            color:#ffffff;
+                                            font-size:1rem;
+                                            font-weight:600;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.04em;
+                                            border-bottom:1px solid #2a3140;
+                                            padding-bottom:0.35rem;
+                                            margin:0;
+                                          }
+                                          #tab-5 .personas-section.personas-editor .section-label {
+                                            border-bottom:1px solid #2a3140;
+                                            padding-bottom:0.35rem;
+                                          }
+                                          #tab-5 .personas-section.denunciante {
+                                            gap:0.5rem;
+                                            padding-bottom:0.75rem;
+                                            border-bottom:1px solid #262626;
+                                          }
+                                          #tab-5 .denunciante-name {
+                                            font-size:1.1rem;
+                                            font-weight:600;
+                                            color:#ffffff;
+                                          }
+                                          #tab-5 .denunciante-meta {
+                                            display:flex;
+                                            flex-wrap:wrap;
+                                            gap:1rem 2rem;
+                                            margin-top:0.25rem;
+                                          }
+                                          #tab-5 .denunciante-field {
+                                            min-width:160px;
+                                          }
+                                          #tab-5 .field-label {
+                                            text-transform:uppercase;
+                                            font-size:0.7rem;
+                                            color:#9ca3af;
+                                            letter-spacing:0.05em;
+                                            margin-bottom:0.2rem;
+                                          }
+                                          #tab-5 .field-value {
+                                            font-size:1rem;
+                                            color:#f3f4f6;
+                                            font-weight:500;
+                                          }
+                                          #tab-5 .personas-list {
+                                            list-style:none;
+                                            padding:0;
+                                            margin:0;
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0;
+                                          }
+                                          #tab-5 .persona-row {
+                                            display:flex;
+                                            align-items:flex-start;
+                                            justify-content:space-between;
+                                            gap:1rem;
+                                            padding:0.75rem 0;
+                                            border-bottom:1px solid #262626;
+                                          }
+                                          #tab-5 .persona-row:last-child {
+                                            border-bottom:none;
+                                          }
+                                          #tab-5 .persona-info-block {
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.35rem;
+                                            flex:1;
+                                          }
+                                          #tab-5 .persona-info-block .persona-name {
+                                            font-weight:600;
+                                            color:#ffffff;
+                                            font-size:1.05rem;
+                                          }
+                                          #tab-5 .persona-meta-row {
+                                            display:flex;
+                                            flex-wrap:wrap;
+                                            gap:0.35rem 0.85rem;
+                                            align-items:center;
+                                          }
+                                          #tab-5 .persona-role-chip {
+                                            font-size:0.8rem;
+                                            letter-spacing:0.08em;
+                                            text-transform:uppercase;
+                                            color:#a3aed0;
+                                          }
+                                          #tab-5 .persona-meta {
+                                            font-size:0.85rem;
+                                            color:#9ca3af;
+                                            font-weight:500;
+                                          }
+                                         
+                                          #tab-5 .persona-form-grid {
+                                            display:grid;
+                                            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+                                            gap:0.85rem 1.25rem;
+                                          }
+                                          #tab-5 .persona-form-field {
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.35rem;
+                                          }
+                                          #tab-5 .persona-form-field label {
+                                            font-size:0.8rem;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.05em;
+                                            color:#9ca3af;
+                                            font-weight:600;
+                                          }
+                                          #tab-5 .persona-form-field input,
+                                          #tab-5 .persona-form-field select {
+                                            width:100%;
+                                            border:1px solid #374151;
+                                            background:#0f0f0f;
+                                            color:#f3f4f6;
+                                            border-radius:6px;
+                                            padding:0.45rem 0.6rem;
+                                            font-size:0.95rem;
+                                          }
+                                          #tab-5 .persona-form-field input:focus,
+                                          #tab-5 .persona-form-field select:focus {
+                                            outline:none;
+                                            border-color:#22c55e;
+                                            box-shadow:0 0 0 1px #22c55e33;
+                                          }
+                                          #tab-5 .persona-actions {
+                                            display:flex;
+                                            flex-wrap:wrap;
+                                            justify-content:center;
+                                            gap:0.75rem;
+                                            margin-top:1rem;
+                                          }
+                                          #tab-5 .persona-actions .btn {
+                                            flex:none;
+                                            min-width:150px;
+                                          }
+                                          #tab-5 .persona-actions .persona-clear-btn {
+                                            background:transparent;
+                                            border-color:#374151;
+                                            color:#9ca3af;
+                                          }
+                                          #tab-5 .persona-actions .persona-clear-btn:hover {
+                                            color:#f3f4f6;
+                                            border-color:#4b5563;
+                                          }
+                                          #tab-5 .persona-submit-btn {
+                                            color:#ffffff;
+                                            text-transform:none;
+                                            letter-spacing:0.02em;
+                                          }
+                                          #tab-5 .persona-form-message {
+                                            margin-top:0.5rem;
+                                            font-size:0.85rem;
+                                            color:#f59e0b;
+                                          }
+                                          .incident-tabs-container {
+                                            margin:0.5rem 0 1rem 0;
+                                            padding:0.75rem 0.25rem 0;
+                                          }
+                                          @media (min-width:992px){
+                                            .incident-tabs-container {
+                                              padding:0.75rem 0.5rem 0;
+                                            }
+                                          }
+                                          .incident-tabs {
+                                            display:flex;
+                                            gap:0.65rem;
+                                            padding:0.65rem;
+                                            flex-wrap:wrap;
+                                            background:#111111;
+                                            border:1px solid #262626;
+                                            border-radius:12px;
+                                          }
+                                          .incident-tab {
+                                            background:#0f0f0f;
+                                            border:1px solid #2f2f2f;
+                                            border-radius:10px;
+                                            padding:0.75rem 1rem;
+                                            min-width:200px;
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.25rem;
+                                            color:#f3f4f6;
+                                            cursor:pointer;
+                                            transition:border 0.2s ease, background 0.2s ease, transform 0.2s ease;
+                                            position:relative;
+                                            text-align:left;
+                                            font-size:0.95rem;
+                                          }
+                                          .incident-tab:hover {
+                                            border-color:#22c55e;
+                                            background:#151515;
+                                            transform:translateY(-1px);
+                                          }
+                                          .incident-tab.active {
+                                            border-color:#22c55e;
+                                            background:#1d1d1d;
+                                            box-shadow:0 0 0 1px #22c55e33;
+                                          }
+                                          .incident-tab .incident-id {
+                                            font-weight:700;
+                                            font-size:0.9rem;
+                                            letter-spacing:0.05em;
+                                            color:#9ca3af;
+                                            text-transform:uppercase;
+                                          }
+                                          .incident-tab .incident-title {
+                                            font-weight:600;
+                                            color:#f3f4f6;
+                                            font-size:1.05rem;
+                                            line-height:1.3;
+                                          }
+                                          .incident-tab .incident-meta {
+                                            font-size:0.85rem;
+                                            color:#9ca3af;
+                                          }
+                                          .incident-tab .unread {
+                                            position:absolute;
+                                            top:0.5rem;
+                                            right:0.5rem;
+                                            background:#22c55e;
+                                            color:#0b0b0b;
+                                            font-weight:700;
+                                            font-size:0.75rem;
+                                            border-radius:999px;
+                                            padding:0.1rem 0.5rem;
+                                          }
+                                          .chat-toolbar-context {
+                                            font-size:0.85rem;
+                                            color:#9ca3af;
+                                            letter-spacing:0.04em;
+                                            text-transform:uppercase;
+                                            margin-top:0.15rem;
+                                          }
+                                          .chat-panel {
+                                            background:#0f0f0f;
+                                            border:1px solid #262626;
+                                            border-left:4px solid #22c55e;
+                                            border-radius:0;
+                                            padding:1.25rem 1.5rem;
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:1rem;
+                                            height:var(--pane-height);
+                                          }
+                                          .chat-toolbar {
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:space-between;
+                                            gap:1rem;
+                                            padding-bottom:0.5rem;
+                                            border-bottom:1px solid #1d1d1f;
+                                          }
+                                          .chat-toolbar-title {
+                                            font-size:1.1rem;
+                                            font-weight:600;
+                                            color:#f3f4f6;
+                                          }
+                                          .chat-search {
+                                            background:#111111;
+                                            border:1px solid #333333;
+                                            border-radius:0;
+                                            display:flex;
+                                            align-items:center;
+                                            padding:0.2rem 0.8rem;
+                                            width:100%;
+                                            flex:1;
+                                          }
+                                          .chat-search input {
+                                            background:transparent;
+                                            border:none;
+                                            color:#e5e7eb;
+                                            font-size:0.9rem;
+                                            flex:1;
+                                            width:100%;
+                                          }
+                                          .chat-search input:focus {
+                                            outline:none;
+                                          }
+                                          .chat-stream {
+                                            flex:1;
+                                            border:1px solid #1f1f1f;
+                                            border-radius:0;
+                                            padding:1rem;
+                                            background:#090909;
+                                            overflow-y:auto;
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.85rem;
+                                          }
+                                          .chat-stream-day {
+                                            text-align:center;
+                                          }
+                                          .chat-stream-pill {
+                                            display:inline-flex;
+                                            padding:0.15rem 0.85rem;
+                                            border-radius:999px;
+                                            border:1px solid #2f2f2f;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.05em;
+                                            color:#9ca3af;
+                                            font-size:0.75rem;
+                                          }
+                                          .chat-stream-empty {
+                                            text-align:center;
+                                            color:#9ca3af;
+                                            font-style:italic;
+                                            padding:1rem 0;
+                                          }
+                                          .chat-scroll-cta {
+                                            display:none;
+                                            justify-content:center;
+                                            margin-top:auto;
+                                          }
+                                          .chat-scroll-cta .btn {
+                                            border-radius:0;
+                                            padding:0.4rem 1.25rem;
+                                          }
+                                          .chat-event {
+                                            display:flex;
+                                            gap:0.75rem;
+                                            background:#111111;
+                                            border:1px dashed #2f2f2f;
+                                            border-radius:0;
+                                            padding:0.65rem 0.85rem;
+                                            align-items:flex-start;
+                                          }
+                                          .chat-event .event-icon {
+                                            font-size:1.1rem;
+                                            width:32px;
+                                            height:32px;
+                                            border-radius:999px;
+                                            background:#1d1d1d;
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:center;
+                                          }
+                                          .chat-event .event-title {
+                                            font-weight:600;
+                                            color:#f3f4f6;
+                                          }
+                                          .chat-event .event-detail {
+                                            font-size:0.9rem;
+                                            color:#d1d5db;
+                                          }
+                                          .chat-event .event-meta {
+                                            font-size:0.75rem;
+                                            color:#9ca3af;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.05em;
+                                          }
+                                          .chat-message {
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.3rem;
+                                            border-radius:0;
+                                            padding:0.85rem;
+                                            position:relative;
+                                          }
+                                          .chat-message.from-operator {
+                                            background:#101828;
+                                            border:1px solid #1d2a44;
+                                            align-self:flex-end;
+                                            max-width:80%;
+                                          }
+                                          .chat-message.from-agent {
+                                            background:#111111;
+                                            border:1px solid #1f1f1f;
+                                            align-self:flex-start;
+                                            max-width:80%;
+                                          }
+                                          .chat-message-author {
+                                            font-weight:600;
+                                            color:#f3f4f6;
+                                            display:flex;
+                                            gap:0.3rem;
+                                            align-items:center;
+                                          }
+                                          .chat-message-role {
+                                            font-size:0.8rem;
+                                            color:#9ca3af;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.05em;
+                                          }
+                                          .chat-message-text {
+                                            font-size:0.95rem;
+                                            line-height:1.45;
+                                            color:#e5e7eb;
+                                          }
+                                          .chat-attachments {
+                                            display:flex;
+                                            flex-wrap:wrap;
+                                            gap:0.35rem;
+                                          }
+                                          .chat-attachment {
+                                            font-size:0.78rem;
+                                            border:1px solid #3a3a3a;
+                                            border-radius:0;
+                                            padding:0.2rem 0.65rem;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.05em;
+                                            color:#d1d5db;
+                                            background:#141414;
+                                          }
+                                          .chat-message-meta {
+                                            font-size:0.75rem;
+                                            color:#9ca3af;
+                                            text-align:right;
+                                            letter-spacing:0.05em;
+                                          }
+                                          .chat-composer {
+                                            display:flex;
+                                            gap:0.75rem;
+                                            align-items:flex-end;
+                                            border-top:1px solid #1e1e1e;
+                                            padding-top:0.75rem;
+                                          }
+                                          .chat-composer textarea {
+                                            flex:1;
+                                            background:#0f0f0f;
+                                            border:1px solid #333333;
+                                            border-radius:0;
+                                            resize:vertical;
+                                            min-height:68px;
+                                            max-height:140px;
+                                            padding:0.75rem 0.85rem;
+                                            color:#f3f4f6;
+                                          }
+                                          .chat-composer textarea:focus {
+                                            outline:none;
+                                            border-color:#22c55e;
+                                            box-shadow:0 0 0 1px #22c55e33;
+                                          }
+                                          .chat-send-btn {
+                                            align-self:stretch;
+                                            min-width:110px;
+                                          }
+                                          .agents-section {
+                                            background:transparent;
+                                            border:none;
+                                            border-radius:0;
+                                            padding:0.5rem 0 0.75rem;
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:1rem;
+                                          }
+                                          .agents-section .section-label {
+                                            color:#ffffff;
+                                            font-size:1rem;
+                                            font-weight:600;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.04em;
+                                            border-bottom:1px solid #2a3140;
+                                            padding-bottom:0.35rem;
+                                            margin-bottom:0;
+                                          }
+                                          .agents {
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0;
+                                          }
+                                          .agent-tag {
+                                            background:transparent;
+                                            border:none;
+                                            border-bottom:1px solid #262626;
+                                            color:#f3f4f6;
+                                            padding:0.65rem 0;
+                                            font-size:1.05rem;
+                                            display:flex;
+                                            align-items:flex-start;
+                                            justify-content:space-between;
+                                          }
+                                          .agent-tag:last-child {
+                                            border-bottom:none;
+                                          }
+                                          .agent-tag:hover {
+                                            background:none;
+                                          }
+                                          .agent-info-block {
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.25rem;
+                                            flex:1;
+                                          }
+                                          .agents .agent-name {
+                                            font-weight:600;
+                                            color:#ffffff;
+                                            font-size:1.05rem;
+                                          }
+                                          .agent-meta-chip {
+                                            color:#a3aed0;
+                                            font-size:0.85rem;
+                                            letter-spacing:0.05em;
+                                            text-transform:uppercase;
+                                          }
+                                          .release-agent-btn,
+                                          #tab-5 .persona-action-btn {
+                                            background:#0f0f0f;
+                                            border:1px solid #343a40;
+                                            color:#f3f4f6;
+                                            cursor:pointer;
+                                            padding:0.45rem 1.35rem;
+                                            font-size:0.9rem;
+                                            border-radius:999px;
+                                            text-transform:uppercase;
+                                            letter-spacing:0.04em;
+                                            font-weight:600;
+                                          }
+                                          .release-agent-btn:hover,
+                                          #tab-5 .persona-action-btn:hover {
+                                            background:#1c1c1c;
+                                            border-color:#4b5563;
+                                            color:#ffffff;
+                                          }
+                                          .btn-assign-agent {
+                                            width:100%;
+                                            margin-top:0.5rem;
+                                            display:inline-flex;
+                                            justify-content:center;
+                                            align-items:center;
+                                            gap:0.35rem;
+                                            font-weight:600;
+                                            font-size:1rem;
+                                          }
+                                          .btn-release-all {
+                                            margin-top:0;
+                                            background:#0f0f0f;
+                                            border:1px solid #343a40;
+                                            color:#f3f4f6;
+                                            border-radius:999px;
+                                            padding:0.75rem 1.5rem;
+                                          }
+                                          .btn-release-all:hover {
+                                            background:#1c1c1c;
+                                            border-color:#4b5563;
+                                            color:#ffffff;
+                                          }
+                                          .modal-overlay {
+                                            position:fixed;
+                                            top:0;
+                                            left:0;
+                                            width:100%;
+                                            height:100%;
+                                            background-color:rgba(0,0,0,0.75);
+                                            display:none;
+                                            z-index:1000;
+                                            align-items:center;
+                                            justify-content:center;
+                                          }
+                                          .modal-overlay.active {
+                                            display:flex;
+                                          }
+                                          .agent-modal {
+                                            background-color:#0f0f0f;
+                                            border:1px solid #2b2b2b;
+                                            border-radius:14px;
+                                            width:90%;
+                                            max-width:520px;
+                                            max-height:80vh;
+                                            overflow:hidden;
+                                            box-shadow:0 25px 80px rgba(0,0,0,0.65);
+                                            color:#f3f4f6;
+                                          }
+                                          .agent-modal-header {
+                                            padding:1.4rem 1.65rem;
+                                            border-bottom:1px solid #262626;
+                                            display:flex;
+                                            justify-content:space-between;
+                                            align-items:center;
+                                          }
+                                          .agent-modal-title {
+                                            font-size:1.1rem;
+                                            font-weight:600;
+                                            color:#f3f4f6;
+                                          }
+                                          .agent-modal-close {
+                                            background:none;
+                                            border:none;
+                                            font-size:1.25rem;
+                                            cursor:pointer;
+                                            color:#9ca3af;
+                                            padding:0.25rem;
+                                            transition:color 0.2s ease;
+                                          }
+                                          .agent-modal-close:hover {
+                                            color:#ffffff;
+                                          }
+                                          .agent-modal-body {
+                                            padding:1.25rem 1.65rem;
+                                            max-height:60vh;
+                                            overflow-y:auto;
+                                          }
+                                         .agent-modal-body::-webkit-scrollbar {
+                                            width:8px;
+                                          }
+                                          .agent-modal-body::-webkit-scrollbar-thumb {
+                                            background:#333;
+                                            border-radius:4px;
+                                          }
+                                          .modal-search {
+                                            margin-bottom:1rem;
+                                          }
+                                          .modal-search input {
+                                            width:100%;
+                                            padding:0.75rem 0.85rem;
+                                            border:1px solid #333333;
+                                            border-radius:10px;
+                                            font-size:1rem;
+                                            background:#141414;
+                                            color:#f3f4f6;
+                                            transition:border-color 0.2s ease,box-shadow 0.2s ease;
+                                          }
+                                          .modal-search input:focus {
+                                            outline:none;
+                                            border-color:#ff3600;
+                                            box-shadow:0 0 0 1px #ff360033;
+                                          }
+                                          .agent-list-item {
+                                            padding:0.85rem 1.1rem;
+                                            margin-bottom:0.75rem;
+                                            background:#111111;
+                                            border:1px solid #2b2b2b;
+                                            border-radius:12px;
+                                            cursor:pointer;
+                                            transition:background 0.2s ease,border 0.2s ease,transform 0.2s ease;
+                                            display:flex;
+                                            justify-content:space-between;
+                                            align-items:center;
+                                          }
+                                          .agent-list-item:hover {
+                                            background:#1f1f1f;
+                                            border-color:#ff3600;
+                                            transform:translateY(-1px);
+                                          }
+                                          .agent-info {
+                                            display:flex;
+                                            flex-direction:column;
+                                            gap:0.25rem;
+                                          }
+                                          .agent-list-name {
+                                            font-weight:600;
+                                            color:#ffffff;
+                                            font-size:1.05rem;
+                                          }
+                                          .agent-list-role {
+                                            font-size:0.85rem;
+                                            color:#a3aed0;
+                                            letter-spacing:0.05em;
+                                            text-transform:uppercase;
+                                          }
+                                          .agent-list-item:hover .agent-list-role {
+                                            color:#d1d5db;
+                                          }
+                                          .agent-list-item.ocupado {
+                                            opacity:0.55;
+                                            cursor:default;
+                                          }
+                                          .agent-list-item.ocupado:hover {
+                                            background:#111111;
+                                            border-color:#2b2b2b;
+                                          }
+                                          .agent-list-item.ocupado .agent-list-role {
+                                            color:#7c7c7c;
+                                          }
+                                          .agent-incident-tag {
+                                            font-size:0.75rem;
+                                            color:#9ca3af;
+                                            font-style:italic;
+                                          }
+                                          .agent-distance {
+                                            font-size:0.82rem;
+                                            color:#e5e7eb;
+                                            font-weight:600;
+                                          }
+                                          .no-results {
+                                            text-align:center;
+                                            padding:2rem;
+                                            color:#9ca3af;
+                                            font-style:italic;
+                                          }
+                                        </style>
+
+                                        <div class="item">
+                                          <div class="label">ID del incidente</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-id">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Título</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-title">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Descripción</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-desc">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Dirección</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-direccion">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Estado</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-estado">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Clasificación</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box"><span id="cg-clasificacion">—</span></div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Tipo</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-tipo">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Subtipo</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-subtipo">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Fecha y hora de creación</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-creacion">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Tiempo transcurrido en horas</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box" id="cg-tiempo">—</div>
+                                        </div>
+                                        <div class="item">
+                                          <div class="label">Porcentaje del tiempo del SLA</div>
+                                          <div class="sep"></div>
+                                          <div class="value-box value-chart">
+                                            <canvas id="cg-sla-pie" width="80" height="80" aria-hidden="true"></canvas>
+                                            <div id="cg-sla-text">—</div>
+                                          </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tab-4" class="tab-pane">
+                                <div class="panel-body">
+                                        <div class="agents-section">
+                                            <div class="section-label">Agentes asignados</div>
+                                            <div class="agents" id="assignedAgentsContainer"></div>
+                                            <button type="button" class="btn btn-default btn-rounded btn-release-all" onclick="releaseAllAgents()">Liberar a todos</button>
+                                        <button type="button" class="btn btn-success btn-rounded btn-assign-agent" onclick="openAssignAgentModal()">+ Asignar agente</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <div id="tab-5" class="tab-pane">
+                                <div class="panel-body personas-tab" id="personas-tab">
+                                    <div class="personas-section denunciante" id="denunciante-section">
+                                        <div class="section-label">Denunciante</div>
+                                        <div class="denunciante-name" id="denunciante-nombre">—</div>
+                                        <div class="denunciante-meta">
+                                            <div class="denunciante-field">
+                                                <div class="field-label">Teléfono</div>
+                                                <div class="field-value" id="denunciante-telefono">—</div>
+                                            </div>
+                                            <div class="denunciante-field">
+                                                <div class="field-label">Documento</div>
+                                                <div class="field-value" id="denunciante-documento">—</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="personas-section" id="personas-section">
+                                        <div class="section-label">Personas involucradas</div>
+                                        <ul class="personas-list" id="personas-list">
+                                            <li class="persona-row">
+                                                <div class="persona-info-block">
+                                                    <div class="persona-name">Juan Pérez</div>
+                                                    <div class="persona-meta-row">
+                                                        <span class="persona-role-chip">Afectado • DNI 45678901</span>
+                                                        <span class="persona-meta">Masculino</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-default btn-rounded persona-action-btn" aria-label="Quitar a Juan Pérez">Quitar</button>
+                                            </li>
+                                            <li class="persona-row">
+                                                <div class="persona-info-block">
+                                                    <div class="persona-name">María López</div>
+                                                    <div class="persona-meta-row">
+                                                        <span class="persona-role-chip">Testigo • CE X123456</span>
+                                                        <span class="persona-meta">Femenino</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-default btn-rounded persona-action-btn" aria-label="Quitar a María López">Quitar</button>
+                                            </li>
+                                      </ul>
+                                      <div class="personas-section personas-editor">
+                                        <div class="section-label">Registrar persona involucrada</div>
+                                        <div class="persona-form-grid">
+                                            <div class="persona-form-field">
+                                                <label for="persona-nombre">Nombre completo</label>
+                                                <input type="text" id="persona-nombre" placeholder="Ej. Juan Pérez">
+                                            </div>
+                                            <div class="persona-form-field">
+                                                <label for="persona-genero">Género</label>
+                                                <select id="persona-genero">
+                                                    <option value="">Seleccionar</option>
+                                                    <option value="Masculino">Masculino</option>
+                                                    <option value="Femenino">Femenino</option>
+                                                    <option value="Otro">Otro</option>
+                                                </select>
+                                            </div>
+                                            <div class="persona-form-field">
+                                                <label for="persona-tipo-doc">Tipo documento</label>
+                                                <select id="persona-tipo-doc">
+                                                    <option value="">Seleccionar</option>
+                                                    <option value="DNI">DNI</option>
+                                                    <option value="CE">Carnet de Extranjería</option>
+                                                    <option value="Pasaporte">Pasaporte</option>
+                                                </select>
+                                            </div>
+                                            <div class="persona-form-field">
+                                                <label for="persona-numero-doc">Número</label>
+                                                <input type="text" id="persona-numero-doc" placeholder="Documento">
+                                            </div>
+                                            <div class="persona-form-field">
+                                                <label for="persona-rol">Rol en el incidente</label>
+                                                <input type="text" id="persona-rol" placeholder="Ej. Testigo, afectado">
+                                            </div>
+                                        </div>
+                                        <div class="persona-actions">
+                                            <button type="button" class="btn btn-default btn-rounded persona-clear-btn">Limpiar</button>
+                                            <button type="button" class="btn btn-w-md btn-success btn-rounded persona-submit-btn">Registrar persona</button>
+                                        </div>
+                                        <div class="persona-form-message"></div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tab-6" class="tab-pane">
+                                <div class="gestion-tab-content">
+                                    <div class="gestion-section">
+                                        <div class="section-label">CIERRE DE INCIDENTE</div>
+                                        <div class="section-sep"></div>
+                                        <div class="gestion-form">
+                                            <div class="form-grid">
+                                                <div class="form-field">
+                                                    <label for="cierre-clasificacion">Clasificación</label>
+                                                    <select id="cierre-clasificacion">
+                                                        <option value="tránsito" selected>Tránsito</option>
+                                                        <option value="seguridad">Seguridad</option>
+                                                        <option value="servicios">Servicios públicos</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-field">
+                                                    <label for="cierre-tipo">Tipo</label>
+                                                    <select id="cierre-tipo">
+                                                        <option value="accidente" selected>Accidente</option>
+                                                        <option value="incidente">Incidente</option>
+                                                        <option value="emergencia">Emergencia</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-field">
+                                                    <label for="cierre-subtipo">Subtipo</label>
+                                                    <select id="cierre-subtipo">
+                                                        <option value="choque" selected>Choque</option>
+                                                        <option value="alcance">Alcance</option>
+                                                        <option value="peaton">Peatón</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-field">
+                                                    <label for="cierre-severidad">Nivel de severidad</label>
+                                                    <select id="cierre-severidad">
+                                                        <option value="critica">Crítica</option>
+                                                        <option value="alta">Alta</option>
+                                                        <option value="media" selected>Media</option>
+                                                        <option value="baja">Baja</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="cierre-detalle">Detalles del cierre</label>
+                                                <textarea id="cierre-detalle" placeholder="Describe las acciones finales, responsables y evidencias de cierre."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="gestion-close-wrapper">
+                                        <button class="btn btn-accent btn-rounded btn-close-incident" type="button">
+                                            Cerrar incidente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+      
+    
 </div>
 
 <!-- Modal para asignar agente -->
-<!-- <div class="modal-overlay" id="assignAgentModal">
+<div class="modal-overlay" id="assignAgentModal">
   <div class="agent-modal">
     <div class="agent-modal-header">
       <h3 class="agent-modal-title">Asignar agente al incidente</h3>
@@ -603,15 +1707,20 @@
     </div>
     <div class="agent-modal-body">
       <div class="modal-search">
-        <input type="text" id="agentSearchInput" placeholder="Buscar agente por nombre..." oninput="filterAgents()"
-          aria-label="Buscar agente" />
+        <input
+          type="text"
+          id="agentSearchInput"
+          placeholder="Buscar agente por nombre..."
+          oninput="filterAgents()"
+          aria-label="Buscar agente"
+        />
       </div>
       <div id="agentListContainer"></div>
     </div>
   </div>
 </div>
 
-{{modal_nuevo_incidente}} -->
+ {{modal_nuevo_incidente}}
 
 <script>
   // Initialize Leaflet map for the operator chat view
@@ -642,8 +1751,8 @@
 </script>
 <script>
   // General tab renderer (read-only context)
-  (function () {
-    function byId(id) { return document.getElementById(id); }
+  (function(){
+    function byId(id){ return document.getElementById(id); }
     var data = {
       id: 'INC-2025-001',
       titulo: 'Accidente de tránsito en Av. Primavera',
@@ -665,102 +1774,20 @@
         telefono: '+51 999 123 456',
         documento: 'DNI 12345678'
       },
-      agentes: [{ nombre: 'A. Ramírez' }, { nombre: 'B. Torres' }],
-      personas: [{ nombre: 'Juan Pérez', rol: 'Afectado' }, { nombre: 'María López', rol: 'Testigo' }],
+      agentes: [ { nombre:'A. Ramírez' }, { nombre:'B. Torres' } ],
+      personas: [ { nombre:'Juan Pérez', rol:'Afectado' }, { nombre:'María López', rol:'Testigo' } ],
       camaras: [
-        { id: 'CAM-014', estado: 'online', ubicacion: 'Primavera x Central', distancia: '120m' },
-        { id: 'CAM-021', estado: 'offline', ubicacion: 'Primavera x Velasco', distancia: '350m' }
+        { id:'CAM-014', estado:'online', ubicacion:'Primavera x Central', distancia:'120m' },
+        { id:'CAM-021', estado:'offline', ubicacion:'Primavera x Velasco', distancia:'350m' }
       ]
     };
     const incidentTabsData = [
-      { id: '#3242', title: 'Robo de Vehículo', date: '26 nov, 12:51 p.m.', status: 'high', unread: 3 },
-      { id: '#3247', title: 'Persona Sospechosa', date: '26 nov, 11:51 a.m.', status: 'medium', unread: 1 },
-      { id: '#3245', title: 'Otra incidencia', date: '26 nov, 10:51 a.m.', status: 'low', unread: 0 },
+      { id: 'INC-2025-001', title: 'Accidente en Av. Primavera', summary: 'Colisión de vehículos; tránsito lento', unread: 3 },
+      { id: 'INC-2025-014', title: 'Robo en Plaza Central', summary: 'Sospechoso huyó hacia Av. Grau', unread: 1 },
+      { id: 'INC-2025-022', title: 'Manifestación no autorizada', summary: 'Grupo de 50 personas frente a municipalidad', unread: 0 },
+      { id: 'INC-2025-027', title: 'Corte de electricidad', summary: 'Sector Los Álamos sin servicio', unread: 8 },
     ];
     let activeIncidentTab = incidentTabsData[0].id;
-
-    // Datos de formulario por cada ticket
-    const ticketFormData = {
-      '#3242': {
-        ticketId: '#3242',
-        date: '27/11/2025, 7:24:24 a.m.',
-        alertLevel: 'alta',
-        incidentType: 'robo-vehiculo',
-        reporter: {
-          name: 'Juan Pérez García',
-          dni: '12345678',
-          phone: '55 9876 5432',
-          email: 'juan@example.com',
-          relation: 'victima'
-        },
-        vehicle: {
-          type: 'auto',
-          brand: 'Toyota Corolla 2020',
-          plate: 'ABC-1234',
-          color: 'Rojo',
-          year: '2020',
-          location: 'Av. Reforma 456, Col. Juárez',
-          dateTime: '2025-11-27T07:00',
-          hasGPS: 'no'
-        },
-        location: {
-          address: 'Av. Reforma 456, Col. Juárez',
-          district: 'Cuauhtémoc',
-          province: 'Ciudad de México',
-          reference: 'Frente al banco',
-          coords: '19.4326, -99.1332'
-        }
-      },
-      '#3247': {
-        ticketId: '#3247',
-        date: '26/11/2025, 11:51:00 a.m.',
-        alertLevel: 'media',
-        incidentType: 'persona-sospechosa',
-        reporter: {
-          name: 'María López Sánchez',
-          dni: '87654321',
-          phone: '55 1234 5678',
-          email: 'maria@example.com',
-          relation: 'testigo'
-        },
-        suspiciousPerson: {
-          name: 'Desconocido',
-          alias: 'El Flaco',
-          description: 'Hombre de aproximadamente 1.75m, complexión delgada, vestimenta oscura',
-          reason: 'Merodeando establecimientos comerciales de manera sospechosa',
-          lastLocation: 'Plaza comercial Central',
-          linked: 'desconoce'
-        },
-        location: {
-          address: 'Calle Principal 123, Col. Centro',
-          district: 'Benito Juárez',
-          province: 'Ciudad de México',
-          reference: 'Cerca del parque',
-          coords: '19.3910, -99.1560'
-        }
-      },
-      '#3245': {
-        ticketId: '#3245',
-        date: '26/11/2025, 10:51:00 a.m.',
-        alertLevel: 'baja',
-        incidentType: 'otra',
-        reporter: {
-          name: 'Carlos Ramírez',
-          dni: '45678912',
-          phone: '55 9999 8888',
-          email: 'carlos@example.com',
-          relation: 'tercero'
-        },
-        otherDescription: 'Ruido excesivo en zona residencial durante horario nocturno',
-        location: {
-          address: 'Av. Insurgentes 789',
-          district: 'Miguel Hidalgo',
-          province: 'Ciudad de México',
-          reference: 'Esquina con Reforma',
-          coords: '19.4200, -99.1700'
-        }
-      }
-    };
 
     const assignedAgents = [
       { shortName: 'A. Ramírez', transporte: 'Camioneta', status: 'Disponible' },
@@ -849,10 +1876,9 @@
       renderIncidentTabs();
       renderAssignedAgents();
       renderChatTimeline();
-      updateTicketForm(activeIncidentTab);
-    } catch (_) { }
+    } catch(_) {}
 
-    function dibujarSlaPie(porcentaje) {
+    function dibujarSlaPie(porcentaje){
       var canvas = document.getElementById('cg-sla-pie');
       if (!canvas || !canvas.getContext) return;
       var ctx = canvas.getContext('2d');
@@ -881,7 +1907,7 @@
       ctx.fill();
     }
 
-    function renderPersonasTab(info) {
+    function renderPersonasTab(info){
       var denSection = byId('denunciante-section');
       if (!denSection) return;
       var denunciante = info && info.denunciante;
@@ -898,161 +1924,7 @@
       }
     }
 
-    // Función para mostrar/ocultar secciones según tipo de incidencia
-    function toggleIncidentTypeSections(incidentType) {
-      var vehicleSection = byId('formVehicleSection');
-      var missingPersonSection = byId('formMissingPersonSection');
-      var suspiciousPersonSection = byId('formSuspiciousPersonSection');
-      var suspiciousVehicleSection = byId('formSuspiciousVehicleSection');
-      var otherSection = byId('formOtherSection');
-
-      // Ocultar todas las secciones primero
-      if (vehicleSection) vehicleSection.style.display = 'none';
-      if (missingPersonSection) missingPersonSection.style.display = 'none';
-      if (suspiciousPersonSection) suspiciousPersonSection.style.display = 'none';
-      if (suspiciousVehicleSection) suspiciousVehicleSection.style.display = 'none';
-      if (otherSection) otherSection.style.display = 'none';
-
-      // Mostrar la sección correspondiente
-      switch(incidentType) {
-        case 'robo-vehiculo':
-          if (vehicleSection) vehicleSection.style.display = '';
-          break;
-        case 'persona-desaparecida':
-          if (missingPersonSection) missingPersonSection.style.display = '';
-          break;
-        case 'persona-sospechosa':
-          if (suspiciousPersonSection) suspiciousPersonSection.style.display = '';
-          break;
-        case 'vehiculo-sospechoso':
-          if (suspiciousVehicleSection) suspiciousVehicleSection.style.display = '';
-          break;
-        case 'otra':
-          if (otherSection) otherSection.style.display = '';
-          break;
-      }
-    }
-
-    // Función para actualizar el formulario según el ticket seleccionado
-    function updateTicketForm(ticketId) {
-      var formData = ticketFormData[ticketId];
-      if (!formData) return;
-
-      // Actualizar header
-      var headerEl = byId('formTicketHeader');
-      if (headerEl) {
-        headerEl.textContent = 'Ticket ' + formData.ticketId + ' • ' + formData.date;
-      }
-
-      // Actualizar información general
-      var incidentIdEl = byId('formIncidentId');
-      if (incidentIdEl) incidentIdEl.value = formData.ticketId;
-
-      var alertLevelEl = byId('formAlertLevel');
-      if (alertLevelEl) alertLevelEl.value = formData.alertLevel;
-
-      var incidentTypeEl = byId('formIncidentType');
-      if (incidentTypeEl) incidentTypeEl.value = formData.incidentType;
-
-      // Actualizar datos del reportante
-      var reporterNameEl = byId('formReporterName');
-      if (reporterNameEl) reporterNameEl.value = formData.reporter.name || '';
-
-      var reporterDNIEl = byId('formReporterDNI');
-      if (reporterDNIEl) reporterDNIEl.value = formData.reporter.dni || '';
-
-      var reporterPhoneEl = byId('formReporterPhone');
-      if (reporterPhoneEl) reporterPhoneEl.value = formData.reporter.phone || '';
-
-      var reporterEmailEl = byId('formReporterEmail');
-      if (reporterEmailEl) reporterEmailEl.value = formData.reporter.email || '';
-
-      var reporterRelationEl = byId('formReporterRelation');
-      if (reporterRelationEl) reporterRelationEl.value = formData.reporter.relation || '';
-
-      // Mostrar/ocultar secciones según tipo de incidente
-      toggleIncidentTypeSections(formData.incidentType);
-
-      // Llenar datos de robo de vehículo si existe
-      if (formData.vehicle && formData.incidentType === 'robo-vehiculo') {
-        var vehicleTypeEl = byId('formVehicleType');
-        if (vehicleTypeEl) vehicleTypeEl.value = formData.vehicle.type || '';
-
-        var vehicleBrandEl = byId('formVehicleBrand');
-        if (vehicleBrandEl) vehicleBrandEl.value = formData.vehicle.brand || '';
-
-        var vehiclePlateEl = byId('formVehiclePlate');
-        if (vehiclePlateEl) vehiclePlateEl.value = formData.vehicle.plate || '';
-
-        var vehicleColorEl = byId('formVehicleColor');
-        if (vehicleColorEl) vehicleColorEl.value = formData.vehicle.color || '';
-
-        var vehicleYearEl = byId('formVehicleYear');
-        if (vehicleYearEl) vehicleYearEl.value = formData.vehicle.year || '';
-
-        var vehicleLocationEl = byId('formVehicleLocation');
-        if (vehicleLocationEl) vehicleLocationEl.value = formData.vehicle.location || '';
-
-        var vehicleDateTimeEl = byId('formVehicleDateTime');
-        if (vehicleDateTimeEl) vehicleDateTimeEl.value = formData.vehicle.dateTime || '';
-
-        var vehicleGPSEl = byId('formVehicleGPS');
-        if (vehicleGPSEl) vehicleGPSEl.value = formData.vehicle.hasGPS || '';
-      }
-
-      // Llenar datos de persona sospechosa si existe
-      if (formData.suspiciousPerson && formData.incidentType === 'persona-sospechosa') {
-        var suspNameEl = byId('formSuspiciousName');
-        if (suspNameEl) suspNameEl.value = formData.suspiciousPerson.name || '';
-
-        var suspAliasEl = byId('formSuspiciousAlias');
-        if (suspAliasEl) suspAliasEl.value = formData.suspiciousPerson.alias || '';
-
-        var suspDescEl = byId('formSuspiciousDescription');
-        if (suspDescEl) suspDescEl.value = formData.suspiciousPerson.description || '';
-
-        var suspReasonEl = byId('formSuspiciousReason');
-        if (suspReasonEl) suspReasonEl.value = formData.suspiciousPerson.reason || '';
-
-        var suspLocationEl = byId('formSuspiciousLocation');
-        if (suspLocationEl) suspLocationEl.value = formData.suspiciousPerson.lastLocation || '';
-
-        var suspLinkedEl = byId('formSuspiciousLinked');
-        if (suspLinkedEl) suspLinkedEl.value = formData.suspiciousPerson.linked || '';
-      }
-
-      // Llenar datos de otra incidencia si existe
-      if (formData.otherDescription && formData.incidentType === 'otra') {
-        var otherDescEl = byId('formOtherDescription');
-        if (otherDescEl) otherDescEl.value = formData.otherDescription || '';
-      }
-
-      // Actualizar ubicación
-      var locationAddressEl = byId('formLocationAddress');
-      if (locationAddressEl) locationAddressEl.value = formData.location.address || '';
-
-      var locationDistrictEl = byId('formLocationDistrict');
-      if (locationDistrictEl) locationDistrictEl.value = formData.location.district || '';
-
-      var locationProvinceEl = byId('formLocationProvince');
-      if (locationProvinceEl) locationProvinceEl.value = formData.location.province || '';
-
-      var locationReferenceEl = byId('formLocationReference');
-      if (locationReferenceEl) locationReferenceEl.value = formData.location.reference || '';
-
-      var locationCoordsEl = byId('formLocationCoords');
-      if (locationCoordsEl) locationCoordsEl.value = formData.location.coords || '';
-    }
-
-    // Event listener para cambio de tipo de incidencia en tiempo real
-    var incidentTypeSelect = byId('formIncidentType');
-    if (incidentTypeSelect) {
-      incidentTypeSelect.addEventListener('change', function() {
-        toggleIncidentTypeSections(this.value);
-      });
-    }
-
-    function formatTransportLabel(text) {
+    function formatTransportLabel(text){
       if (!text) return '';
       var upper = text.toString().trim().toUpperCase();
       if (upper.startsWith('A ') || upper.startsWith('EN ')) return upper;
@@ -1072,35 +1944,33 @@
       incidentTabsData.forEach(function(tab) {
         var button = document.createElement('button');
         button.type = 'button';
-        
-        // Clases base
-        var baseClasses = 'flex-shrink-0 p-4 rounded-lg border-2 transition-all hover:shadow-md min-w-[200px] text-left';
-        
-        // Clases según estado activo/inactivo
-        var stateClasses = tab.id === activeIncidentTab 
-          ? 'border-orange-500 bg-orange-50 shadow-md' 
-          : 'border-gray-200 bg-white hover:border-gray-400';
-        
-        button.className = baseClasses + ' ' + stateClasses;
-        
-        // Determinar color del indicador según status
-        var statusColor = 'bg-green-500'; // default: low
-        if (tab.status === 'high') {
-          statusColor = 'bg-orange-500';
+
+        // Clases CIVIX
+        var isActive = tab.id === activeIncidentTab;
+        button.className = isActive
+          ? 'btn btn-accent'
+          : 'btn btn-default';
+
+        // Determinar badge según status
+        var badgeClass = 'badge cad-badge-baja'; // default: low
+        var badgeText = '●';
+        if (tab.status === 'critical') {
+          badgeClass = 'badge cad-badge-critica';
+        } else if (tab.status === 'high') {
+          badgeClass = 'badge cad-badge-alta';
         } else if (tab.status === 'medium') {
-          statusColor = 'bg-yellow-500';
+          badgeClass = 'badge cad-badge-media';
         }
-        
-        button.innerHTML = 
-          '<div class="space-y-2">' +
-            '<div class="flex items-center justify-between gap-2">' +
-              '<div class="font-bold text-lg text-gray-900">' + tab.id + '</div>' +
-              '<div class="w-3 h-3 rounded-full ' + statusColor + '"></div>' +
+
+        button.innerHTML =
+          '<div class="cad-tab" style="min-width: 180px; text-align: left;">' +
+            '<div  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+              '<h5 style="margin: 0; font-size: 16px;">' + tab.id + '</h5>' +
+              '<span class="' + badgeClass + '" style="font-size: 14px; padding: 2px 6px;">' + badgeText + '</span>' +
             '</div>' +
-            '<div class="text-sm font-medium text-gray-700 line-clamp-1">' + tab.title + '</div>' +
-            '<div class="text-xs text-gray-500">' + tab.date + '</div>' +
+            '<p class="m-t">' + tab.title + '</p>' +
           '</div>';
-        
+
         button.addEventListener('click', function() {
           activeIncidentTab = tab.id;
           tab.unread = 0;
@@ -1109,123 +1979,135 @@
           renderChatTimeline();
           updateTicketForm(tab.id);
         });
-        
+
         container.appendChild(button);
       });
-      
+
       updateChatIncidentContext();
     }
-    function updateChatIncidentContext() {
-      var ticketIdEl = byId('chatTicketId');
-      var agentNameEl = byId('chatAgentName');
-      var statusEl = byId('chatTicketStatus');
-      
-      var active = incidentTabsData.find(function(tab) { 
-        return tab.id === activeIncidentTab; 
-      });
-      
-      if (ticketIdEl) ticketIdEl.textContent = active ? active.id : '—';
-      if (agentNameEl) agentNameEl.textContent = 'Agente Rodríguez'; // Puedes hacerlo dinámico
-      if (statusEl) statusEl.textContent = 'En atención'; // Puedes hacerlo dinámico
+    
+    function updateChatIncidentContext(){
+      if (!chatIncidentLabelEl) return;
+      var active = incidentTabsData.find(function(tab){ return tab.id === activeIncidentTab; });
+      chatIncidentLabelEl.textContent = active ? (active.id + ' • ' + active.title) : '—';
     }
-    function getChatTimelineForIncident(incidentId) {
+    
+    function getChatTimelineForIncident(incidentId){
       if (!chatTimelineByIncident[incidentId]) chatTimelineByIncident[incidentId] = [];
       return chatTimelineByIncident[incidentId];
     }
-    function formatChatTime(date) {
+    
+    function formatChatTime(date){
       return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     }
-    function buildChatEvent(item) {
+    
+    function buildChatEvent(item){
       var wrapper = document.createElement('div');
-      wrapper.className = 'flex items-start gap-3 p-3 bg-gray-50 border border-dashed border-gray-200 rounded-lg';
-      
-      wrapper.innerHTML = 
-        '<div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-base">' + 
-          (item.icon || '⚙️') + 
-        '</div>' +
-        '<div class="flex-1">' +
-          '<div class="font-semibold text-gray-900 text-sm">' + (item.title || 'Evento del sistema') + '</div>' +
-          (item.detail ? '<div class="text-sm text-gray-600">' + item.detail + '</div>' : '') +
-          '<div class="text-xs text-gray-400 uppercase tracking-wide mt-1">' + (item.timestamp || '') + '</div>' +
-        '</div>';
-      
+      wrapper.className = 'chat-event';
+      var icon = document.createElement('div');
+      icon.className = 'event-icon';
+      icon.textContent = item.icon || '⚙️';
+      var body = document.createElement('div');
+      var title = document.createElement('div');
+      title.className = 'event-title';
+      title.textContent = item.title || 'Evento del sistema';
+      var detail = document.createElement('div');
+      detail.className = 'event-detail';
+      detail.textContent = item.detail || '';
+      var meta = document.createElement('div');
+      meta.className = 'event-meta';
+      meta.textContent = item.timestamp || formatChatTime(new Date());
+      body.appendChild(title);
+      if (item.detail) body.appendChild(detail);
+      body.appendChild(meta);
+      wrapper.appendChild(icon);
+      wrapper.appendChild(body);
       return wrapper;
     }
-
-    function buildChatMessage(item) {
+    
+    function buildChatMessage(item){
       var wrapper = document.createElement('div');
-      var isOperator = item.from === 'operator';
-      
-      // Contenedor con alineación
-      wrapper.className = 'flex ' + (isOperator ? 'justify-end' : 'justify-start');
-      
-      // Clases del mensaje según tipo
-      var messageClasses = isOperator 
-        ? 'bg-orange-500 text-white' 
-        : 'bg-gray-100 text-gray-900';
-      
-      var timeClasses = isOperator 
-        ? 'text-orange-200' 
-        : 'text-gray-500';
-      
-      var messageDiv = document.createElement('div');
-      messageDiv.className = 'max-w-[75%] rounded-lg p-3 ' + messageClasses;
-      
-      messageDiv.innerHTML = 
-        '<div class="text-sm mb-1">' + (item.text || '') + '</div>' +
-        '<div class="text-xs ' + timeClasses + '">' + (item.timestamp || '') + '</div>';
-      
-      // Attachments si existen
-      if (item.attachments && item.attachments.length) {
-        var attachmentsDiv = document.createElement('div');
-        attachmentsDiv.className = 'flex flex-wrap gap-1 mt-2';
-        
-        item.attachments.forEach(function(att) {
+      wrapper.className = 'chat-message ' + (item.from === 'operator' ? 'from-operator' : 'from-agent');
+      var author = document.createElement('div');
+      author.className = 'chat-message-author';
+      var authorName = document.createElement('span');
+      authorName.className = 'chat-message-name';
+      authorName.textContent = item.name || (item.from === 'operator' ? 'Operador CAD' : 'Agente de campo');
+      author.appendChild(authorName);
+      if (item.role){
+        var role = document.createElement('span');
+        role.className = 'chat-message-role';
+        role.textContent = item.role;
+        author.appendChild(role);
+      }
+      var text = document.createElement('div');
+      text.className = 'chat-message-text';
+      text.textContent = item.text || '';
+      wrapper.appendChild(author);
+      wrapper.appendChild(text);
+      if (item.attachments && item.attachments.length){
+        var attBox = document.createElement('div');
+        attBox.className = 'chat-attachments';
+        item.attachments.forEach(function(att){
           var tag = document.createElement('div');
-          tag.className = 'text-xs px-2 py-1 rounded border ' + 
-            (isOperator ? 'border-orange-300 text-orange-100' : 'border-gray-300 text-gray-600');
-          tag.textContent = '📎 ' + att.name;
-          attachmentsDiv.appendChild(tag);
+          tag.className = 'chat-attachment';
+          var typeLabel = att.type ? att.type.toString().toUpperCase() : 'ARCHIVO';
+          tag.textContent = typeLabel + ' · ' + (att.name || 'Adjunto');
+          attBox.appendChild(tag);
         });
-        
-        messageDiv.appendChild(attachmentsDiv);
+        wrapper.appendChild(attBox);
       }
-      
-      wrapper.appendChild(messageDiv);
+      var meta = document.createElement('div');
+      meta.className = 'chat-message-meta';
+      meta.textContent = item.timestamp || formatChatTime(new Date());
+      wrapper.appendChild(meta);
       return wrapper;
     }
-
-    function renderChatTimeline() {
-      var container = byId('chatTimeline');
-      if (!container) return;
-      container.innerHTML = '';
-
-      var timeline = getChatTimelineForIncident(activeIncidentTab);
-      
-      if (!timeline || !timeline.length) {
-        container.innerHTML = '<div class="text-center text-gray-500 italic py-4">No hay mensajes aún</div>';
-        return;
-      }
-
-      timeline.forEach(function(item) {
-        if (item.type === 'event') {
-          container.appendChild(buildChatEvent(item));
-        } else if (item.type === 'message') {
-          container.appendChild(buildChatMessage(item));
-        }
+    
+    function renderChatTimeline(){
+      if (!chatTimelineEl) return;
+      var items = getChatTimelineForIncident(activeIncidentTab);
+      var term = chatFilterTerm.trim().toLowerCase();
+      chatTimelineEl.innerHTML = '';
+      var hasVisible = false;
+      items.forEach(function(item){
+        var searchable = [
+          item.title || '',
+          item.detail || '',
+          item.text || '',
+          item.name || ''
+        ].join(' ').toLowerCase();
+        if (term && searchable.indexOf(term) === -1) return;
+        hasVisible = true;
+        chatTimelineEl.appendChild(item.type === 'event' ? buildChatEvent(item) : buildChatMessage(item));
       });
-
-      // Auto scroll al final
-      if (chatAutoScroll && chatStreamEl) {
-        chatStreamEl.scrollTop = chatStreamEl.scrollHeight;
+      if (!hasVisible){
+        var empty = document.createElement('div');
+        empty.className = 'chat-stream-empty';
+        empty.textContent = 'No hay actividad que coincida con el filtro.';
+        chatTimelineEl.appendChild(empty);
+      }
+      if (chatDayPillEl){
+        var now = new Date();
+        chatDayPillEl.textContent = 'Hoy · ' + now.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+      }
+      updateChatKpis();
+      if (chatAutoScroll && chatStreamEl){
+        requestAnimationFrame(function(){
+          chatStreamEl.scrollTop = chatStreamEl.scrollHeight;
+          if (chatScrollCta) chatScrollCta.style.display = 'none';
+        });
+      } else if (chatScrollCta && chatStreamEl){
+        var nearBottom = chatStreamEl.scrollHeight - chatStreamEl.scrollTop - chatStreamEl.clientHeight < 40;
+        chatScrollCta.style.display = nearBottom ? 'none' : 'flex';
       }
     }
-
-    function updateChatKpis() {
+    
+    function updateChatKpis(){
       var timeline = getChatTimelineForIncident(activeIncidentTab);
-      var totalMensajes = timeline.filter(function (item) { return item.type === 'message'; }).length;
-      var totalEventos = timeline.filter(function (item) { return item.type === 'event'; }).length;
-      var totalArchivos = timeline.reduce(function (acc, item) {
+      var totalMensajes = timeline.filter(function(item){ return item.type === 'message'; }).length;
+      var totalEventos = timeline.filter(function(item){ return item.type === 'event'; }).length;
+      var totalArchivos = timeline.reduce(function(acc, item){
         return acc + ((item.attachments && item.attachments.length) || 0);
       }, 0);
       if (chatKpiRefs.mensajes) chatKpiRefs.mensajes.textContent = totalMensajes;
@@ -1233,54 +2115,48 @@
       if (chatKpiRefs.archivos) chatKpiRefs.archivos.textContent = totalArchivos;
       if (chatKpiRefs.agentes) chatKpiRefs.agentes.textContent = assignedAgents.length;
     }
-    function addChatEntry(incidentId, entry) {
+    
+    function addChatEntry(incidentId, entry){
       var timeline = getChatTimelineForIncident(incidentId);
       timeline.push(entry);
-      if (incidentId === activeIncidentTab) {
+      if (incidentId === activeIncidentTab){
         renderChatTimeline();
       }
     }
-    function addChatMessage(incidentId, message) {
-      var timeline = getChatTimelineForIncident(incidentId);
-      timeline.push({
+    
+    function addChatMessage(incidentId, payload){
+      addChatEntry(incidentId, Object.assign({
         id: 'msg-' + Date.now(),
         type: 'message',
-        from: message.from,
-        name: message.name,
-        text: message.text,
-        timestamp: message.timestamp,
-        attachments: message.attachments || []
-      });
+        timestamp: formatChatTime(new Date())
+      }, payload));
     }
-    function addChatEvent(incidentId, event) {
-      var timeline = getChatTimelineForIncident(incidentId);
-      timeline.push({
+    
+    function addChatEvent(incidentId, payload){
+      addChatEntry(incidentId, Object.assign({
         id: 'evt-' + Date.now(),
         type: 'event',
-        icon: event.icon,
-        title: event.title,
-        detail: event.detail,
-        timestamp: formatChatTime(new Date())
-      });
+        timestamp: formatChatTime(new Date()),
+        icon: '⚙️'
+      }, payload));
     }
-    function handleChatSend() {
-      var input = byId('chatComposerInput');
-      if (!input || !input.value.trim()) return;
-      
-      var text = input.value.trim();
-      input.value = '';
-      
+    
+    function handleChatSend(){
+      if (!chatComposerInput) return;
+      var message = chatComposerInput.value.trim();
+      if (!message) return;
+      chatComposerInput.value = '';
+      chatAutoScroll = true;
       addChatMessage(activeIncidentTab, {
         from: 'operator',
-        name: 'Operador',
-        text: text,
-        timestamp: formatChatTime(new Date())
+        name: 'Operadora CAD',
+        role: 'CAD',
+        text: message
       });
-      
-      chatAutoScroll = true;
-      renderChatTimeline();
+      scheduleAgentResponse(activeIncidentTab);
     }
-    function scheduleAgentResponse(targetIncident) {
+    
+    function scheduleAgentResponse(targetIncident){
       if (!assignedAgents.length) return;
       var replies = [
         'Recibido, seguimos en el punto.',
@@ -1288,7 +2164,7 @@
         'Atención completada, pendientes de nueva indicación.'
       ];
       var responder = assignedAgents[Math.floor(Math.random() * assignedAgents.length)];
-      setTimeout(function () {
+      setTimeout(function(){
         addChatMessage(targetIncident, {
           from: 'agent',
           name: responder.shortName,
@@ -1298,7 +2174,7 @@
       }, 1500);
     }
 
-    function renderAssignedAgents() {
+    function renderAssignedAgents(){
       var container = byId('assignedAgentsContainer');
       if (!container) return;
       container.innerHTML = '';
@@ -1310,7 +2186,7 @@
         updateChatKpis();
         return;
       }
-      assignedAgents.forEach(function (agent) {
+      assignedAgents.forEach(function(agent){
         var tag = document.createElement('div');
         tag.className = 'agent-tag';
         var infoBlock = document.createElement('div');
@@ -1329,7 +2205,7 @@
         btn.type = 'button';
         btn.className = 'btn btn-default btn-rounded release-agent-btn';
         btn.textContent = 'Liberar';
-        btn.addEventListener('click', function () { releaseAgent(agent.shortName); });
+        btn.addEventListener('click', function(){ releaseAgent(agent.shortName); });
         tag.appendChild(infoBlock);
         tag.appendChild(btn);
         container.appendChild(tag);
@@ -1337,8 +2213,8 @@
       updateChatKpis();
     }
 
-    function releaseAgent(agentName) {
-      var idx = assignedAgents.findIndex(function (agent) { return agent.shortName === agentName; });
+    function releaseAgent(agentName){
+      var idx = assignedAgents.findIndex(function(agent){ return agent.shortName === agentName; });
       if (idx === -1) return;
       var removed = assignedAgents[idx];
       assignedAgents.splice(idx, 1);
@@ -1352,40 +2228,40 @@
     }
 
     let currentAgentSearchTerm = '';
-    if (chatSearchInput) {
-      chatSearchInput.addEventListener('input', function (evt) {
+    if (chatSearchInput){
+      chatSearchInput.addEventListener('input', function(evt){
         chatFilterTerm = evt.target.value || '';
         chatAutoScroll = true;
         renderChatTimeline();
       });
     }
-    if (chatSendButton) {
+    if (chatSendButton){
       chatSendButton.addEventListener('click', handleChatSend);
     }
-    if (chatComposerInput) {
-      chatComposerInput.addEventListener('keydown', function (evt) {
-        if (evt.key === 'Enter' && !evt.shiftKey) {
+    if (chatComposerInput){
+      chatComposerInput.addEventListener('keydown', function(evt){
+        if (evt.key === 'Enter' && !evt.shiftKey){
           evt.preventDefault();
           handleChatSend();
         }
       });
     }
-    if (chatStreamEl) {
-      chatStreamEl.addEventListener('scroll', function () {
+    if (chatStreamEl){
+      chatStreamEl.addEventListener('scroll', function(){
         var nearBottom = chatStreamEl.scrollHeight - chatStreamEl.scrollTop - chatStreamEl.clientHeight < 40;
         chatAutoScroll = nearBottom;
         if (chatScrollCta) chatScrollCta.style.display = nearBottom ? 'none' : 'flex';
       });
     }
-    if (chatGoBottomBtn) {
-      chatGoBottomBtn.addEventListener('click', function () {
+    if (chatGoBottomBtn){
+      chatGoBottomBtn.addEventListener('click', function(){
         chatAutoScroll = true;
         if (chatStreamEl) chatStreamEl.scrollTo({ top: chatStreamEl.scrollHeight, behavior: 'smooth' });
         if (chatScrollCta) chatScrollCta.style.display = 'none';
       });
     }
 
-    function openAssignAgentModal() {
+    function openAssignAgentModal(){
       var modal = byId('assignAgentModal');
       if (!modal) return;
       currentAgentSearchTerm = '';
@@ -1393,39 +2269,39 @@
       if (input) input.value = '';
       renderAgentList(false, '');
       modal.classList.add('active');
-      setTimeout(function () { if (input) input.focus(); }, 100);
+      setTimeout(function(){ if (input) input.focus(); }, 100);
     }
 
-    function closeAssignAgentModal() {
+    function closeAssignAgentModal(){
       var modal = byId('assignAgentModal');
       if (modal) modal.classList.remove('active');
     }
 
-    function filterAgents() {
+    function filterAgents(){
       var input = byId('agentSearchInput');
       currentAgentSearchTerm = input ? input.value.trim() : '';
       var includeOccupied = currentAgentSearchTerm.length > 0;
       renderAgentList(includeOccupied, currentAgentSearchTerm);
     }
 
-    function renderAgentList(includeOccupied, searchTerm) {
+    function renderAgentList(includeOccupied, searchTerm){
       if (includeOccupied === undefined) includeOccupied = false;
       if (searchTerm === undefined) searchTerm = '';
       var container = byId('agentListContainer');
       if (!container) return;
-      var agentsToShow = availableAgents.filter(function (agent) {
-        return !assignedAgents.some(function (a) { return a.shortName === agent.shortName; });
+      var agentsToShow = availableAgents.filter(function(agent){
+        return !assignedAgents.some(function(a){ return a.shortName === agent.shortName; });
       });
       if (!includeOccupied && !searchTerm) {
-        agentsToShow = agentsToShow.filter(function (agent) { return agent.status === 'Disponible'; });
+        agentsToShow = agentsToShow.filter(function(agent){ return agent.status === 'Disponible'; });
       }
       if (searchTerm) {
-        agentsToShow = agentsToShow.filter(function (agent) {
+        agentsToShow = agentsToShow.filter(function(agent){
           return agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            agent.transporte.toLowerCase().includes(searchTerm.toLowerCase());
+                 agent.transporte.toLowerCase().includes(searchTerm.toLowerCase());
         });
       }
-      agentsToShow.sort(function (a, b) {
+      agentsToShow.sort(function(a,b){
         return parseFloat(a.distancia) - parseFloat(b.distancia);
       });
       container.innerHTML = '';
@@ -1433,11 +2309,11 @@
         container.innerHTML = '<div class="no-results">No se encontraron agentes disponibles</div>';
         return;
       }
-      agentsToShow.forEach(function (agent) {
+      agentsToShow.forEach(function(agent){
         var item = document.createElement('div');
         item.className = 'agent-list-item' + (agent.status === 'Ocupado' ? ' ocupado' : '');
         if (agent.status !== 'Ocupado') {
-          item.addEventListener('click', function () { assignAgent(agent); });
+          item.addEventListener('click', function(){ assignAgent(agent); });
         }
         var info = document.createElement('div');
         info.className = 'agent-info';
@@ -1472,8 +2348,8 @@
       });
     }
 
-    function assignAgent(agent) {
-      if (assignedAgents.some(function (a) { return a.shortName === agent.shortName; })) return;
+    function assignAgent(agent){
+      if (assignedAgents.some(function(a){ return a.shortName === agent.shortName; })) return;
       assignedAgents.push({
         shortName: agent.shortName,
         transporte: agent.transporte,
@@ -1488,7 +2364,7 @@
       });
       closeAssignAgentModal();
     }
-    function releaseAllAgents() {
+    function releaseAllAgents(){
       if (!assignedAgents.length) return;
       var released = assignedAgents.length;
       assignedAgents.length = 0;
@@ -1501,12 +2377,12 @@
       });
     }
 
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e){
       if (e.target.classList && e.target.classList.contains('modal-overlay')) {
         closeAssignAgentModal();
       }
     });
-    document.addEventListener('keydown', function (e) {
+    document.addEventListener('keydown', function(e){
       if (e.key === 'Escape') closeAssignAgentModal();
     });
     window.openAssignAgentModal = openAssignAgentModal;
@@ -1516,8 +2392,8 @@
   })();
 </script>
 <script>
-  (function attachNuevoIncidenteModal() {
-    function ensureLeaflet(cb) {
+  (function attachNuevoIncidenteModal(){
+    function ensureLeaflet(cb){
       if (typeof L !== 'undefined') {
         if (cb) cb();
         return;
@@ -1535,13 +2411,13 @@
       document.head.appendChild(script);
     }
 
-    function initNuevoIncidenteMap() {
+    function initNuevoIncidenteMap(){
       var modal = document.getElementById('modalIncidenteNuevo');
       if (!modal) return;
       var mapEl = modal.querySelector('#incn-inline-map');
       if (!mapEl || mapEl.dataset.leaflet === '1') return;
       var hint = modal.querySelector('#incn-map-hint');
-      ensureLeaflet(function () {
+      ensureLeaflet(function(){
         try {
           var latInput = modal.querySelector('#incn-lat');
           var lngInput = modal.querySelector('#incn-lng');
@@ -1553,34 +2429,34 @@
             attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
           }).addTo(map);
           var marker;
-          function placeMarker(latlng) {
+          function placeMarker(latlng){
             if (marker) marker.setLatLng(latlng);
             else marker = L.marker(latlng).addTo(map);
             if (latInput) latInput.value = latlng.lat.toFixed(6);
             if (lngInput) lngInput.value = latlng.lng.toFixed(6);
             if (hint) hint.style.display = 'none';
           }
-          mapEl.addEventListener('mouseenter', function () { if (hint) hint.style.display = 'none'; }, { once: true });
-          map.on('click', function (evt) { placeMarker(evt.latlng); });
+          mapEl.addEventListener('mouseenter', function(){ if (hint) hint.style.display = 'none'; }, { once: true });
+          map.on('click', function(evt){ placeMarker(evt.latlng); });
           var defaultLatLng = L.latLng(center[0], center[1]);
           marker = L.marker(defaultLatLng).addTo(map).bindPopup('<b>Incidente</b><br>Av. Primavera 123').openPopup();
           if (latInput) latInput.value = defaultLatLng.lat.toFixed(6);
           if (lngInput) lngInput.value = defaultLatLng.lng.toFixed(6);
-          setTimeout(function () { map.invalidateSize(); }, 60);
+          setTimeout(function(){ map.invalidateSize(); }, 60);
           mapEl.dataset.leaflet = '1';
           mapEl._leafletMap = map;
-        } catch (error) {
+        } catch(error){
           console.error('Leaflet init error', error);
         }
       });
     }
 
-    function showNuevoIncidenteModal() {
+    function showNuevoIncidenteModal(){
       var modal = document.getElementById('modalIncidenteNuevo');
       if (!modal) return;
       if (window.$ && typeof window.$('#modalIncidenteNuevo').modal === 'function') {
         window.$('#modalIncidenteNuevo')
-          .one('shown.bs.modal', function () { initNuevoIncidenteMap(); })
+          .one('shown.bs.modal', function(){ initNuevoIncidenteMap(); })
           .modal('show');
       } else {
         modal.style.display = 'block';
@@ -1590,7 +2466,7 @@
       }
     }
 
-    function bindNuevoIncidenteButton() {
+    function bindNuevoIncidenteButton(){
       var trigger = document.getElementById('addticket');
       if (!trigger || trigger.dataset.niBound === '1') return;
       trigger.dataset.niBound = '1';
@@ -1783,5 +2659,635 @@
   waitForElement('mapGrid', function() {
     initMap();
     initMapSearch();
+  });
+
+  // ============================================
+  // SISTEMA DE TICKETS INTERACTIVO
+  // ============================================
+
+  // Estado global de tickets
+  var ticketsState = {
+    nextTicketId: 1,
+    activeTicketId: null,
+    tickets: []
+  };
+
+  // Función para generar un nuevo ID de ticket
+  function generateTicketId() {
+    var year = new Date().getFullYear();
+    var ticketNumber = String(ticketsState.nextTicketId++).padStart(3, '0');
+    return 'INC-' + year + '-' + ticketNumber;
+  }
+
+  // Función para mostrar modal de confirmación y crear ticket
+  function confirmCreateTicket() {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Crear Ticket',
+        text: '¿Está seguro que quiere crear el ticket?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#f67200',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No'
+      }).then(function(result) {
+        if (result.isConfirmed) {
+          createNewTicket();
+        }
+      });
+    } else {
+      if (confirm('¿Está seguro que quiere crear el ticket?')) {
+        createNewTicket();
+      }
+    }
+  }
+
+  // Función para crear un nuevo ticket
+  function createNewTicket() {
+    var newTicket = {
+      id: generateTicketId(),
+      timestamp: new Date().toLocaleString('es-ES'),
+      alertLevel: 'media',
+      incidentType: '',
+      reporterName: '',
+      reporterDNI: '',
+      reporterPhone: '',
+      reporterEmail: '',
+      reporterRelation: '',
+      location: '',
+      status: 'abierto',
+      unread: 0,
+      chatMessages: []
+    };
+
+    // Agregar ticket al estado
+    ticketsState.tickets.push(newTicket);
+
+    // Actualizar la UI
+    renderTicketTabs();
+
+    // Activar el nuevo ticket
+    selectTicket(newTicket.id);
+
+    // Mostrar mensaje de confirmación
+    showNotification('Nuevo ticket ' + newTicket.id + ' creado exitosamente', 'success');
+
+    return newTicket;
+  }
+
+  // Función para renderizar los tabs de tickets
+  function renderTicketTabs() {
+    var container = document.getElementById('incidentTabs');
+    var countEl = document.getElementById('ticketsCount');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    // Actualizar contador
+    if (countEl) {
+      countEl.textContent = ticketsState.tickets.length + ' ticket' + (ticketsState.tickets.length !== 1 ? 's' : '');
+    }
+
+    // Renderizar cada ticket
+    ticketsState.tickets.forEach(function(ticket) {
+      var button = document.createElement('button');
+      button.type = 'button';
+
+      var isActive = ticket.id === ticketsState.activeTicketId;
+      button.className = isActive ? 'btn btn-accent' : 'btn btn-default';
+
+      // Badge según nivel de alerta
+      var badgeClass = 'badge cad-badge-baja';
+      var badgeText = '●';
+      if (ticket.alertLevel === 'critica') {
+        badgeClass = 'badge cad-badge-critica';
+      } else if (ticket.alertLevel === 'alta') {
+        badgeClass = 'badge cad-badge-alta';
+      } else if (ticket.alertLevel === 'media') {
+        badgeClass = 'badge cad-badge-media';
+      }
+
+      // Obtener nombre del tipo de incidencia
+      var incidentTypeNames = {
+        'robo-vehiculo': '🚗 Robo de Vehículo',
+        'persona-sospechosa': '👤 Persona Sospechosa',
+        'persona-desaparecida': '🔍 Persona Desaparecida',
+        'vehiculo-sospechoso': '🚙 Vehículo Sospechoso',
+        'otra': '📋 Otra incidencia'
+      };
+      var incidentTypeName = incidentTypeNames[ticket.incidentType] || 'Sin tipo';
+
+      button.innerHTML =
+        '<div class="cad-tab" style="min-width: 180px; text-align: left;">' +
+          '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+            '<h5 style="margin: 0; font-size: 16px;">' + ticket.id + '</h5>' +
+            '<span class="' + badgeClass + '" style="font-size: 14px; padding: 2px 6px;">' + badgeText + '</span>' +
+          '</div>' +
+          '<p class="m-t">' + incidentTypeName + '</p>' +
+          (ticket.unread > 0 ? '<span class="unread">' + ticket.unread + '</span>' : '') +
+        '</div>';
+
+      button.addEventListener('click', function() {
+        selectTicket(ticket.id);
+      });
+
+      container.appendChild(button);
+    });
+  }
+
+  // Función para seleccionar un ticket
+  function selectTicket(ticketId) {
+    ticketsState.activeTicketId = ticketId;
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketId; });
+
+    if (!ticket) return;
+
+    // Marcar mensajes como leídos
+    ticket.unread = 0;
+
+    // Actualizar tabs
+    renderTicketTabs();
+
+    // Cargar datos del ticket en el formulario
+    loadTicketToForm(ticket);
+
+    // Cargar chat del ticket
+    loadTicketChat(ticket);
+  }
+
+  // Función para cargar datos del ticket en el formulario
+  function loadTicketToForm(ticket) {
+    var formTicketHeader = document.getElementById('formTicketHeader');
+    var formIncidentId = document.getElementById('formIncidentId');
+    var formAlertLevel = document.getElementById('formAlertLevel');
+    var formIncidentType = document.getElementById('formIncidentType');
+    var formReporterName = document.getElementById('formReporterName');
+    var formReporterDNI = document.getElementById('formReporterDNI');
+    var formReporterPhone = document.getElementById('formReporterPhone');
+    var formReporterEmail = document.getElementById('formReporterEmail');
+    var formReporterRelation = document.getElementById('formReporterRelation');
+
+    if (formTicketHeader) formTicketHeader.textContent = 'Ticket ' + ticket.id + ' • ' + ticket.timestamp;
+    if (formIncidentId) formIncidentId.value = ticket.id;
+    if (formAlertLevel) formAlertLevel.value = ticket.alertLevel;
+    if (formIncidentType) formIncidentType.value = ticket.incidentType;
+    if (formReporterName) formReporterName.value = ticket.reporterName;
+    if (formReporterDNI) formReporterDNI.value = ticket.reporterDNI;
+    if (formReporterPhone) formReporterPhone.value = ticket.reporterPhone;
+    if (formReporterEmail) formReporterEmail.value = ticket.reporterEmail;
+    if (formReporterRelation) formReporterRelation.value = ticket.reporterRelation;
+
+    // Mostrar/ocultar secciones según tipo de incidencia
+    handleIncidentTypeChange(ticket.incidentType);
+  }
+
+  // Función para cargar chat del ticket
+  function loadTicketChat(ticket) {
+    var chatTimeline = document.getElementById('chatTimeline');
+    var chatTicketId = document.getElementById('chatTicketId');
+    var chatTicketStatus = document.getElementById('chatTicketStatus');
+
+    if (chatTicketId) chatTicketId.textContent = ticket.id;
+    if (chatTicketStatus) chatTicketStatus.textContent = ticket.status;
+
+    if (!chatTimeline) return;
+
+    chatTimeline.innerHTML = '';
+
+    // Si no tiene mensajes, mostrar solo el evento de creación
+    if (!ticket.chatMessages || ticket.chatMessages.length === 0) {
+      var eventDiv = buildChatEvent({
+        icon: '⚡️',
+        title: 'Incidente creado',
+        detail: 'Registrado por operador',
+        timestamp: ticket.timestamp.split(',')[1] || ticket.timestamp
+      });
+      chatTimeline.appendChild(eventDiv);
+      return;
+    }
+
+    // Renderizar todos los mensajes del ticket
+    ticket.chatMessages.forEach(function(msg) {
+      var msgElement = msg.type === 'event'
+        ? buildChatEvent(msg)
+        : buildChatMessage(msg);
+      chatTimeline.appendChild(msgElement);
+    });
+
+    // Auto scroll al final
+    setTimeout(function() {
+      var chatContainer = chatTimeline.parentElement;
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
+  }
+
+  // Función para construir un evento del chat
+  function buildChatEvent(event) {
+    var div = document.createElement('div');
+    div.className = 'chat-event';
+    div.innerHTML =
+      '<div class="event-icon">' + (event.icon || '⚡️') + '</div>' +
+      '<div style="flex: 1;">' +
+        '<div class="event-title">' + event.title + '</div>' +
+        '<div class="event-detail">' + event.detail + '</div>' +
+        '<div class="event-meta">' + event.timestamp + '</div>' +
+      '</div>';
+    return div;
+  }
+
+  // Función para construir un mensaje del chat
+  function buildChatMessage(message) {
+    var div = document.createElement('div');
+    var isOperator = message.from === 'operator';
+    div.className = 'chat-message ' + (isOperator ? 'from-operator' : 'from-agent');
+
+    var attachmentsHtml = '';
+    if (message.attachments && message.attachments.length > 0) {
+      attachmentsHtml = '<div class="chat-attachments">';
+      message.attachments.forEach(function(att) {
+        attachmentsHtml += '<span class="chat-attachment">📎 ' + att.name + '</span>';
+      });
+      attachmentsHtml += '</div>';
+    }
+
+    div.innerHTML =
+      '<div class="chat-message-author">' +
+        '<span>' + message.name + '</span>' +
+        '<span class="chat-message-role"> • ' + message.role + '</span>' +
+      '</div>' +
+      '<div class="chat-message-text">' + message.text + '</div>' +
+      attachmentsHtml +
+      '<div class="chat-message-meta">' + message.timestamp + '</div>';
+
+    return div;
+  }
+
+  // Función para enviar un mensaje
+  function sendChatMessage() {
+    if (!ticketsState.activeTicketId) return;
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    var chatInput = document.getElementById('chatComposerInput');
+    if (!chatInput || !chatInput.value.trim()) return;
+
+    var messageText = chatInput.value.trim();
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    // Crear el mensaje
+    var newMessage = {
+      type: 'message',
+      from: 'operator',
+      name: 'Operador',
+      role: 'CAD',
+      text: messageText,
+      timestamp: timeString
+    };
+
+    // Inicializar array de mensajes si no existe
+    if (!ticket.chatMessages) {
+      ticket.chatMessages = [];
+      // Agregar evento de creación si es el primer mensaje
+      ticket.chatMessages.push({
+        type: 'event',
+        icon: '⚡️',
+        title: 'Incidente creado',
+        detail: 'Registrado por operador',
+        timestamp: ticket.timestamp.split(',')[1] || ticket.timestamp
+      });
+    }
+
+    // Agregar el mensaje al ticket
+    ticket.chatMessages.push(newMessage);
+
+    // Limpiar input
+    chatInput.value = '';
+
+    // Recargar el chat
+    loadTicketChat(ticket);
+
+    // Simular respuesta del agente después de 2-5 segundos
+    simulateAgentResponse(ticket);
+  }
+
+  // Función para simular respuesta de agente (solo para demo)
+  function simulateAgentResponse(ticket) {
+    var responses = [
+      'Recibido, en camino al lugar.',
+      'Entendido, llegando en 5 minutos.',
+      'Confirmado, ubicación identificada.',
+      'Roger, procediendo según protocolo.',
+      'Afirmativo, contactando con el reportante.'
+    ];
+
+    var randomDelay = 2000 + Math.random() * 3000; // 2-5 segundos
+
+    setTimeout(function() {
+      var now = new Date();
+      var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+      var agentMessage = {
+        type: 'message',
+        from: 'agent',
+        name: 'Agente',
+        role: 'En ruta',
+        text: responses[Math.floor(Math.random() * responses.length)],
+        timestamp: timeString
+      };
+
+      ticket.chatMessages.push(agentMessage);
+
+      // Si este ticket no está activo, incrementar contador de no leídos
+      if (ticketsState.activeTicketId !== ticket.id) {
+        ticket.unread++;
+        renderTicketTabs();
+      } else {
+        // Si está activo, recargar el chat
+        loadTicketChat(ticket);
+      }
+    }, randomDelay);
+  }
+
+  // Vincular botón de enviar mensaje
+  document.addEventListener('DOMContentLoaded', function() {
+    var chatSendButton = document.getElementById('chatSendButton');
+    var chatInput = document.getElementById('chatComposerInput');
+
+    if (chatSendButton) {
+      chatSendButton.addEventListener('click', sendChatMessage);
+    }
+
+    if (chatInput) {
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+    }
+  });
+
+  // Función para mostrar notificaciones
+  function showNotification(message, type) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: type === 'success' ? '¡Éxito!' : 'Información',
+        text: message,
+        icon: type,
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      alert(message);
+    }
+  }
+
+  // Vincular el botón de crear ticket
+  document.addEventListener('DOMContentLoaded', function() {
+    var addTicketBtn = document.getElementById('addticket');
+    if (addTicketBtn) {
+      // Remover el listener anterior si existe
+      var newBtn = addTicketBtn.cloneNode(true);
+      addTicketBtn.parentNode.replaceChild(newBtn, addTicketBtn);
+
+      // Agregar nuevo listener
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        confirmCreateTicket();
+      });
+    }
+
+    // Cargar tickets de ejemplo al inicio
+    initializeSampleTickets();
+  });
+
+  // Inicializar tickets de ejemplo
+  function initializeSampleTickets() {
+    var year = new Date().getFullYear();
+
+    // Crear 3 tickets de ejemplo
+    var sampleTickets = [
+      {
+        id: 'INC-' + year + '-001',
+        timestamp: '27/11/2025, 7:20:15 a.m.',
+        alertLevel: 'critica',
+        incidentType: 'robo-vehiculo',
+        reporterName: 'María García',
+        reporterDNI: '87654321',
+        reporterPhone: '55 1234 5678',
+        reporterEmail: 'maria@example.com',
+        reporterRelation: 'victima',
+        status: 'en atención',
+        unread: 2,
+        chatMessages: [
+          {
+            type: 'event',
+            icon: '⚡️',
+            title: 'Incidente creado',
+            detail: 'Registrado por operador',
+            timestamp: '7:20 a.m.'
+          },
+          {
+            type: 'event',
+            icon: '👮',
+            title: 'Agente asignado',
+            detail: 'Agente Ramírez • Camioneta',
+            timestamp: '7:21 a.m.'
+          },
+          {
+            type: 'message',
+            from: 'operator',
+            name: 'Operador',
+            role: 'CAD',
+            text: 'Unidad Ramírez, favor dirigirse a Av. Principal 123. Robo de vehículo reportado hace 10 minutos.',
+            timestamp: '7:21'
+          },
+          {
+            type: 'message',
+            from: 'agent',
+            name: 'Agente Ramírez',
+            role: 'En ruta',
+            text: 'Recibido, en camino. ETA 5 minutos.',
+            timestamp: '7:22'
+          },
+          {
+            type: 'message',
+            from: 'agent',
+            name: 'Agente Ramírez',
+            role: 'En el lugar',
+            text: 'Llegué al lugar. Estoy tomando declaración de la víctima.',
+            timestamp: '7:27',
+            attachments: [{ type: 'foto', name: 'Evidencia_001.jpg' }]
+          }
+        ]
+      },
+      {
+        id: 'INC-' + year + '-002',
+        timestamp: '27/11/2025, 7:22:30 a.m.',
+        alertLevel: 'alta',
+        incidentType: 'persona-sospechosa',
+        reporterName: 'Carlos Ruiz',
+        reporterDNI: '45678912',
+        reporterPhone: '55 9876 1234',
+        reporterEmail: 'carlos@example.com',
+        reporterRelation: 'testigo',
+        status: 'abierto',
+        unread: 0,
+        chatMessages: [
+          {
+            type: 'event',
+            icon: '⚡️',
+            title: 'Incidente creado',
+            detail: 'Registrado por operador',
+            timestamp: '7:22 a.m.'
+          },
+          {
+            type: 'message',
+            from: 'operator',
+            name: 'Operador',
+            role: 'CAD',
+            text: 'Se reporta persona sospechosa cerca del parque central. Favor verificar.',
+            timestamp: '7:23'
+          }
+        ]
+      },
+      {
+        id: 'INC-' + year + '-003',
+        timestamp: '27/11/2025, 7:24:10 a.m.',
+        alertLevel: 'media',
+        incidentType: 'vehiculo-sospechoso',
+        reporterName: 'Ana López',
+        reporterDNI: '12398745',
+        reporterPhone: '55 5555 9999',
+        reporterEmail: 'ana@example.com',
+        reporterRelation: 'testigo',
+        status: 'abierto',
+        unread: 1,
+        chatMessages: [
+          {
+            type: 'event',
+            icon: '⚡️',
+            title: 'Incidente creado',
+            detail: 'Registrado por operador',
+            timestamp: '7:24 a.m.'
+          },
+          {
+            type: 'event',
+            icon: '👮',
+            title: 'Agente asignado',
+            detail: 'Agente Torres • Motocicleta',
+            timestamp: '7:25 a.m.'
+          },
+          {
+            type: 'message',
+            from: 'agent',
+            name: 'Agente Torres',
+            role: 'Patrulla',
+            text: 'Vehículo localizado. Procedo a verificar placas.',
+            timestamp: '7:26'
+          }
+        ]
+      }
+    ];
+
+    ticketsState.tickets = sampleTickets;
+    ticketsState.nextTicketId = 4; // El siguiente será INC-2025-004
+
+    renderTicketTabs();
+
+    // Seleccionar el primer ticket
+    if (sampleTickets.length > 0) {
+      selectTicket(sampleTickets[0].id);
+    }
+  }
+
+  // ============================================
+  // FORMULARIO DINÁMICO SEGÚN TIPO DE INCIDENCIA
+  // ============================================
+
+  // Función para mostrar/ocultar secciones según tipo de incidencia
+  function handleIncidentTypeChange(incidentType) {
+    // Ocultar todas las secciones específicas
+    var missingPersonSection = document.getElementById('formMissingPersonSection');
+    var suspiciousPersonSection = document.getElementById('formSuspiciousPersonSection');
+    var suspiciousVehicleSection = document.getElementById('formSuspiciousVehicleSection');
+    var vehicleSection = document.getElementById('formVehicleSection');
+
+    if (missingPersonSection) missingPersonSection.style.display = 'none';
+    if (suspiciousPersonSection) suspiciousPersonSection.style.display = 'none';
+    if (suspiciousVehicleSection) suspiciousVehicleSection.style.display = 'none';
+    if (vehicleSection) vehicleSection.style.display = 'none';
+
+    // Mostrar la sección correspondiente
+    switch(incidentType) {
+      case 'persona-desaparecida':
+        if (missingPersonSection) missingPersonSection.style.display = 'block';
+        break;
+      case 'persona-sospechosa':
+        if (suspiciousPersonSection) suspiciousPersonSection.style.display = 'block';
+        break;
+      case 'vehiculo-sospechoso':
+        if (suspiciousVehicleSection) suspiciousVehicleSection.style.display = 'block';
+        break;
+      case 'robo-vehiculo':
+        if (vehicleSection) vehicleSection.style.display = 'block';
+        break;
+    }
+  }
+
+  // Función para guardar cambios del formulario
+  function saveFormChanges() {
+    if (!ticketsState.activeTicketId) return;
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    // Guardar todos los campos del formulario
+    ticket.alertLevel = document.getElementById('formAlertLevel')?.value || ticket.alertLevel;
+    ticket.incidentType = document.getElementById('formIncidentType')?.value || ticket.incidentType;
+    ticket.reporterName = document.getElementById('formReporterName')?.value || ticket.reporterName;
+    ticket.reporterDNI = document.getElementById('formReporterDNI')?.value || ticket.reporterDNI;
+    ticket.reporterPhone = document.getElementById('formReporterPhone')?.value || ticket.reporterPhone;
+    ticket.reporterEmail = document.getElementById('formReporterEmail')?.value || ticket.reporterEmail;
+    ticket.reporterRelation = document.getElementById('formReporterRelation')?.value || ticket.reporterRelation;
+
+    // Actualizar tabs para reflejar cambios
+    renderTicketTabs();
+  }
+
+  // Vincular eventos del formulario
+  document.addEventListener('DOMContentLoaded', function() {
+    // Listener para cambio de tipo de incidencia
+    var formIncidentType = document.getElementById('formIncidentType');
+    if (formIncidentType) {
+      formIncidentType.addEventListener('change', function() {
+        handleIncidentTypeChange(this.value);
+        saveFormChanges();
+      });
+    }
+
+    // Listeners para guardar cambios automáticamente
+    var formFields = [
+      'formAlertLevel',
+      'formReporterName',
+      'formReporterDNI',
+      'formReporterPhone',
+      'formReporterEmail',
+      'formReporterRelation'
+    ];
+
+    formFields.forEach(function(fieldId) {
+      var field = document.getElementById(fieldId);
+      if (field) {
+        field.addEventListener('change', saveFormChanges);
+        field.addEventListener('blur', saveFormChanges);
+      }
+    });
   });
 </script>

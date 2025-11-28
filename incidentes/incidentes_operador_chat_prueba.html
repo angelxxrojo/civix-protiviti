@@ -237,6 +237,96 @@
     }
   }
 
+  /* Estilos para modal de asignación de agentes */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .agent-modal {
+    background: #1a1a1a;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .agent-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #2d2d2d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .agent-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin: 0;
+  }
+
+  .agent-modal-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+
+  .agent-modal-close:hover {
+    background: #2d2d2d;
+    color: #e5e7eb;
+  }
+
+  .agent-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .modal-search {
+    margin-bottom: 20px;
+  }
+
+  .modal-search input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #2d2d2d;
+    border-radius: 8px;
+    background: #0f0f0f;
+    color: #e5e7eb;
+    font-size: 14px;
+  }
+
+  .modal-search input:focus {
+    outline: none;
+    border-color: #f67200;
+  }
+
   .btn{
     margin-right: 8px;
     }
@@ -255,8 +345,28 @@
   #mapCAD {
     flex: 1;
     min-height: 100%;
+    height: calc(100vh - 280px);
     border-radius: 12px;
     overflow: hidden;
+  }
+
+  .map-panel-body {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 280px);
+    padding: 0 !important;
+  }
+
+  /* Animación de pulso para cámaras que detectaron placas */
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    }
+    50% {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.9);
+    }
   }
   .map-filters {
     display: flex;
@@ -376,26 +486,6 @@
             </div>
           </div>
           
-          <!-- Panel: Tipo de Incidencia -->
-          <div class="panel panel-filled  panel-inner-radius mb-2">
-            <div class="panel-heading">
-              <h5 class="m-b-none">Tipo de Incidencia</h5>
-            </div>
-            <div class="panel-body">
-              <div class="form-group">
-                <label>Tipo de Incidencia *</label>
-                <select id="formIncidentType" class="form-control rounded-input">
-                  <option value="">Seleccionar</option>
-                  <option value="robo-vehiculo">🚗 Robo de Vehículo</option>
-                  <option value="persona-sospechosa">👤 Persona Sospechosa</option>
-                  <option value="persona-desaparecida">🔍 Persona Desaparecida</option>
-                  <option value="vehiculo-sospechoso">🚙 Vehículo Sospechoso</option>
-                  <option value="otra">📋 Otra incidencia</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          
           <!-- Panel: Datos del Reportante -->
           <div class="panel panel-filled   panel-inner-radius mb-2">
             <div class="panel-heading">
@@ -446,182 +536,239 @@
             </div>
           </div>
         
+          <!-- Panel: Tipo de Incidencia -->
+          <div class="panel panel-filled  panel-inner-radius mb-2">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Tipo de Incidencia</h5>
+            </div>
+            <div class="panel-body">
+              <div class="form-group">
+                <label>Tipo de Incidencia *</label>
+                <select id="formIncidentType" class="form-control rounded-input">
+                  <option value="">Seleccionar</option>
+                  <option value="robo-vehiculo">🚗 Robo de Vehículo</option>
+                  <option value="persona-sospechosa">👤 Persona Sospechosa</option>
+                  <option value="persona-desaparecida">🔍 Persona Desaparecida</option>
+                  <option value="vehiculo-sospechoso">🚙 Vehículo Sospechoso</option>
+                  <option value="otra">📋 Otra incidencia</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <!-- Card: Persona Desaparecida (Dinámico según tipo) -->
-          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-orange-500" id="formMissingPersonSection" style="display: none;">
-            <div class="p-6">
-              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <line x1="17" x2="22" y1="8" y2="13"></line>
-                  <line x1="22" x2="17" y1="8" y2="13"></line>
-                </svg>
-                Datos de la Persona Desaparecida
-              </h3>
-              <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Nombre completo</label>
-                    <input type="text" id="formMissingName" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Nombre completo">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Edad</label>
-                    <input type="text" id="formMissingAge" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Edad">
+          <div class="panel panel-filled panel-inner-radius mb-2" id="formMissingPersonSection" style="display: none;">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Datos de la Persona Desaparecida</h5>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Nombre completo</label>
+                    <input type="text" id="formMissingName" class="form-control rounded-input" placeholder="Nombre completo">
                   </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Género</label>
-                    <select id="formMissingGender" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Edad</label>
+                    <input type="text" id="formMissingAge" class="form-control rounded-input" placeholder="Edad">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Género</label>
+                    <select id="formMissingGender" class="form-control rounded-input">
                       <option value="">Seleccionar</option>
                       <option value="masculino">Masculino</option>
                       <option value="femenino">Femenino</option>
                       <option value="otro">Otro</option>
                     </select>
                   </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">DNI</label>
-                    <input type="text" id="formMissingDNI" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="DNI">
+                </div>
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>DNI</label>
+                    <input type="text" id="formMissingDNI" class="form-control rounded-input" placeholder="DNI">
                   </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Fecha y hora vista por última vez</label>
-                  <input type="datetime-local" id="formMissingLastSeen" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Fecha y hora vista por última vez</label>
+                    <input type="datetime-local" id="formMissingLastSeen" class="form-control rounded-input">
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Lugar donde fue vista por última vez</label>
-                  <input type="text" id="formMissingLastLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Lugar donde fue vista por última vez</label>
+                    <input type="text" id="formMissingLastLocation" class="form-control rounded-input" placeholder="Ubicación">
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Descripción de la persona</label>
-                  <textarea id="formMissingDescription" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Incluya vestimenta, señales particulares, tatuajes, cicatrices, etc." rows="4"></textarea>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Descripción de la persona</label>
+                    <textarea id="formMissingDescription" class="form-control rounded-input" placeholder="Incluya vestimenta, señales particulares, tatuajes, cicatrices, etc." rows="4"></textarea>
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">¿Tiene problemas médicos o cognitivos?</label>
-                  <select id="formMissingMedical" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                    <option value="">Seleccionar</option>
-                    <option value="si">Sí</option>
-                    <option value="no">No</option>
-                    <option value="desconoce">Desconoce</option>
-                  </select>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>¿Tiene problemas médicos o cognitivos?</label>
+                    <select id="formMissingMedical" class="form-control rounded-input">
+                      <option value="">Seleccionar</option>
+                      <option value="si">Sí</option>
+                      <option value="no">No</option>
+                      <option value="desconoce">Desconoce</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         
           <!-- Card: Persona Sospechosa (Dinámico según tipo) -->
-          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-yellow-500" id="formSuspiciousPersonSection" style="display: none;">
-            <div class="p-6">
-              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-                  <circle cx="10" cy="7" r="4"></circle>
-                  <path d="M10.3 15H7a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="17" cy="17" r="3"></circle>
-                  <path d="m21 21-1.9-1.9"></path>
-                </svg>
-                Datos de la Persona Sospechosa
-              </h3>
-              <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Nombre (opcional)</label>
-                    <input type="text" id="formSuspiciousName" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Si se conoce">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Alias (opcional)</label>
-                    <input type="text" id="formSuspiciousAlias" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Apodo o alias">
+          <div class="panel panel-filled panel-inner-radius mb-2" id="formSuspiciousPersonSection" style="display: none;">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Datos de la Persona Sospechosa</h5>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Nombre (opcional)</label>
+                    <input type="text" id="formSuspiciousName" class="form-control rounded-input" placeholder="Si se conoce">
                   </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Descripción física</label>
-                  <textarea id="formSuspiciousDescription" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Estatura, complexión, rasgos distintivos..."></textarea>
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Alias (opcional)</label>
+                    <input type="text" id="formSuspiciousAlias" class="form-control rounded-input" placeholder="Apodo o alias">
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Motivo de sospecha</label>
-                  <textarea id="formSuspiciousReason" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="¿Por qué es sospechosa?"></textarea>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Descripción física</label>
+                    <textarea id="formSuspiciousDescription" class="form-control rounded-input" placeholder="Estatura, complexión, rasgos distintivos..." rows="3"></textarea>
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Último lugar visto</label>
-                  <input type="text" id="formSuspiciousLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Motivo de sospecha</label>
+                    <textarea id="formSuspiciousReason" class="form-control rounded-input" placeholder="¿Por qué es sospechosa?" rows="3"></textarea>
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">¿Vinculado con hechos anteriores?</label>
-                  <select id="formSuspiciousLinked" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                    <option value="">Seleccionar</option>
-                    <option value="si">Sí</option>
-                    <option value="no">No</option>
-                    <option value="desconoce">Desconoce</option>
-                  </select>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Último lugar visto</label>
+                    <input type="text" id="formSuspiciousLocation" class="form-control rounded-input" placeholder="Ubicación">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>¿Vinculado con hechos anteriores?</label>
+                    <select id="formSuspiciousLinked" class="form-control rounded-input">
+                      <option value="">Seleccionar</option>
+                      <option value="si">Sí</option>
+                      <option value="no">No</option>
+                      <option value="desconoce">Desconoce</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
     
           <!-- Card: Vehículo Sospechoso (Dinámico según tipo) -->
-          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-blue-500" id="formSuspiciousVehicleSection" style="display: none;">
-            <div class="p-6">
-              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-                  <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
-                  <path d="M15 18H9"></path>
-                  <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
-                  <circle cx="17" cy="18" r="2"></circle>
-                  <circle cx="7" cy="18" r="2"></circle>
-                </svg>
-                Datos del Vehículo Sospechoso
-              </h3>
-              <div class="space-y-4">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Placa (opcional)</label>
-                  <input type="text" id="formSuspVehiclePlate" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Si es visible">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Tipo de vehículo</label>
-                    <input type="text" id="formSuspVehicleType" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Auto, camioneta, etc.">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Color</label>
-                    <input type="text" id="formSuspVehicleColor" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Color">
+          <div class="panel panel-filled panel-inner-radius mb-2" id="formSuspiciousVehicleSection" style="display: none;">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Datos del Vehículo Sospechoso</h5>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Placa (opcional)</label>
+                    <input type="text" id="formSuspVehiclePlate" class="form-control rounded-input" placeholder="Si es visible">
                   </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Detalles distintivos</label>
-                  <textarea id="formSuspVehicleDetails" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="Calcomanías, daños, características especiales..."></textarea>
+              </div>
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Tipo de vehículo</label>
+                    <input type="text" id="formSuspVehicleType" class="form-control rounded-input" placeholder="Auto, camioneta, etc.">
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Lugar donde fue visto</label>
-                  <input type="text" id="formSuspVehicleLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Color</label>
+                    <input type="text" id="formSuspVehicleColor" class="form-control rounded-input" placeholder="Color">
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Hora de registro</label>
-                  <input type="time" id="formSuspVehicleTime" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Detalles distintivos</label>
+                    <textarea id="formSuspVehicleDetails" class="form-control rounded-input" placeholder="Calcomanías, daños, características especiales..." rows="3"></textarea>
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Comportamiento sospechoso</label>
-                  <textarea id="formSuspVehicleBehavior" class="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md bg-white resize-vertical" placeholder="¿Qué hace que sea sospechoso?"></textarea>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Lugar donde fue visto</label>
+                    <input type="text" id="formSuspVehicleLocation" class="form-control rounded-input" placeholder="Ubicación">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Hora de registro</label>
+                    <input type="time" id="formSuspVehicleTime" class="form-control rounded-input">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Comportamiento sospechoso</label>
+                    <textarea id="formSuspVehicleBehavior" class="form-control rounded-input" placeholder="¿Qué hace que sea sospechoso?" rows="3"></textarea>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
     
           <!-- Card: Datos del Robo de Vehículo (Dinámico según tipo) -->
-          <div class="rounded-lg border border-gray-200 bg-white shadow-sm border-l-4 border-l-purple-500" id="formVehicleSection" style="display: none;">
-            <div class="p-6">
-              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-                  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
-                  <circle cx="7" cy="17" r="2"></circle>
-                  <path d="M9 17h6"></path>
-                  <circle cx="17" cy="17" r="2"></circle>
-                </svg>
-                Datos del Robo de Vehículo
-              </h3>
-              <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Tipo de vehículo</label>
-                    <select id="formVehicleType" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+          <div class="panel panel-filled panel-inner-radius mb-2" id="formVehicleSection" style="display: none;">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Datos del Robo de Vehículo</h5>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Tipo de vehículo</label>
+                    <select id="formVehicleType" class="form-control rounded-input">
                       <option value="">Seleccionar</option>
                       <option value="auto">Automóvil</option>
                       <option value="moto">Motocicleta</option>
@@ -629,80 +776,161 @@
                       <option value="otro">Otro</option>
                     </select>
                   </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Marca / Modelo</label>
-                    <input type="text" id="formVehicleBrand" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ej: Toyota Corolla">
+                </div>
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Marca / Modelo</label>
+                    <input type="text" id="formVehicleBrand" class="form-control rounded-input" placeholder="Ej: Toyota Corolla">
                   </div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Placa</label>
-                    <input type="text" id="formVehiclePlate" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="ABC-123">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Color</label>
-                    <input type="text" id="formVehicleColor" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Color">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Año</label>
-                    <input type="text" id="formVehicleYear" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="2020">
+              </div>
+              <div class="row">
+                <div class="col-lg-4">
+                  <div class="form-group">
+                    <label>Placa</label>
+                    <input type="text" id="formVehiclePlate" class="form-control rounded-input" placeholder="ABC-123">
                   </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Lugar del robo</label>
-                  <input type="text" id="formVehicleLocation" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" placeholder="Ubicación exacta">
+                <div class="col-lg-4">
+                  <div class="form-group">
+                    <label>Color</label>
+                    <input type="text" id="formVehicleColor" class="form-control rounded-input" placeholder="Color">
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">Fecha y hora del robo</label>
-                  <input type="datetime-local" id="formVehicleDateTime" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                <div class="col-lg-4">
+                  <div class="form-group">
+                    <label>Año</label>
+                    <input type="text" id="formVehicleYear" class="form-control rounded-input" placeholder="2020">
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-700">¿Tiene GPS?</label>
-                  <select id="formVehicleGPS" class="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                    <option value="">Seleccionar</option>
-                    <option value="si">Sí</option>
-                    <option value="no">No</option>
-                    <option value="desconoce">Desconoce</option>
-                  </select>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Lugar del robo</label>
+                    <input type="text" id="formVehicleLocation" class="form-control rounded-input" placeholder="Ubicación exacta">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Fecha y hora del robo</label>
+                    <input type="datetime-local" id="formVehicleDateTime" class="form-control rounded-input">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>¿Tiene GPS?</label>
+                    <select id="formVehicleGPS" class="form-control rounded-input">
+                      <option value="">Seleccionar</option>
+                      <option value="si">Sí</option>
+                      <option value="no">No</option>
+                      <option value="desconoce">Desconoce</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
     
-          <!-- Card: Evidencia Adjunta -->
-          <div class="panel panel-filled   panel-inner-radius mb-2">
+          <!-- Panel: Evidencia Adjunta -->
+          <div class="panel panel-filled panel-inner-radius mb-2">
+            <div class="panel-heading">
+              <h5 class="m-b-none">Evidencia Adjunta (Opcional)</h5>
+            </div>
             <div class="panel-body">
-              <h3 class="text-xl font-semibold flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" x2="12" y1="3" y2="15"></line>
-                </svg>
-                Evidencia Adjunta (Opcional)
-              </h3>
-              <div class="space-y-3">
-                <p class="text-sm text-gray-500">Sube fotos, videos, documentos o audio relacionados con el incidente</p>
-                <button type="button" class="w-full btn btn-accent h-11 px-8 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors inline-flex items-center justify-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" x2="12" y1="3" y2="15"></line>
-                  </svg>
-                  Subir archivos (máx. 10 archivos)
-                </button>
-                <div id="formEvidenceList" class="space-y-2 mt-3"></div>
+              <p style="font-size: 13px; color: #9ca3af; margin-bottom: 15px;">Sube fotos, videos, documentos o audio relacionados con el incidente</p>
+              <input type="file" id="evidenceFileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx" style="display: none;">
+              <button type="button" id="uploadEvidenceBtn" class="btn btn-accent" style="width: 100%;">
+                <i class="pe-7s-upload" aria-hidden="true"></i> Subir archivos (máx. 10 archivos)
+              </button>
+              <div id="formEvidenceList" style="margin-top: 15px;"></div>
+            </div>
+          </div>
+
+          <!-- Panel: Ubicación del Incidente -->
+          <div class="panel panel-filled panel-inner-radius mb-2">
+            <div class="panel-heading">
+              <h5 class="m-b-none">
+                <i class="pe-7s-map-marker" aria-hidden="true"></i> Ubicación del Incidente
+              </h5>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Dirección exacta *</label>
+                    <input type="text" id="formLocationAddress" class="form-control rounded-input" placeholder="Calle, número, colonia">
+                    <p style="font-size: 11px; color: #9ca3af; margin-top: 5px;">💡 Usa el mapa de la derecha para buscar y autocompletar</p>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Distrito *</label>
+                    <input type="text" id="formLocationDistrict" class="form-control rounded-input" placeholder="Distrito">
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label>Provincia *</label>
+                    <input type="text" id="formLocationProvince" class="form-control rounded-input" placeholder="Provincia">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Referencia</label>
+                    <input type="text" id="formLocationReference" class="form-control rounded-input" placeholder="Frente a..., cerca de...">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="form-group">
+                    <label>Coordenadas GPS</label>
+                    <input type="text" id="formLocationCoordinates" class="form-control rounded-input" placeholder="Auto-detectado o manual" readonly style="background: #2a2a2a;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Agentes Cercanos Disponibles -->
+              <div id="nearbyAgentsSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #374151;">
+                <div style="margin-bottom: 12px;">
+                  <strong style="color: #e5e7eb; font-size: 14px;">
+                    <i class="pe-7s-users" aria-hidden="true"></i> Agentes Disponibles Cercanos
+                  </strong>
+                  <p style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Ordenados por proximidad al incidente</p>
+                </div>
+                <div id="nearbyAgentsList" style="max-height: 250px; overflow-y: auto;">
+                  <!-- Los agentes cercanos se renderizarán aquí -->
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Panel: Agentes Asignados -->
+          <!-- Botón Guardar -->
+          <div class="panel panel-filled panel-inner-radius mb-2">
+            <div class="panel-body" style="text-align: center;">
+              <button type="button" id="saveTicketBtn" class="btn btn-accent" style="width: 100%; padding: 12px; font-size: 15px; font-weight: 600;">
+                <i class="pe-7s-diskette" aria-hidden="true"></i> Guardar Cambios del Ticket
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel: Agentes Asignados a este Ticket -->
           <div class="panel panel-filled panel-inner-radius mb-2">
             <div class="panel-heading">
-              <h5 class="m-b-none">Agentes con Tickets Asignados</h5>
+              <h5 class="m-b-none">Agentes Asignados a este Ticket</h5>
             </div>
             <div class="panel-body" style="padding: 0;">
-              <div id="assignedAgentsList" style="max-height: 300px; overflow-y: auto;">
-                <!-- Los agentes asignados se renderizarán aquí -->
+              <div id="ticketAssignedAgentsList" style="max-height: 300px; overflow-y: auto;">
+                <!-- Los agentes asignados a ESTE ticket se renderizarán aquí -->
               </div>
             </div>
           </div>
@@ -725,15 +953,6 @@
               <div>Estado: <span style="color: #f67200;" id="chatTicketStatus">En atención</span></div>
             </div>
           </div>
-          <button
-            type="button"
-            id="closeTicketBtn"
-            class="btn btn-danger btn-sm"
-            style="margin-top: 5px;"
-            title="Cerrar ticket"
-          >
-            <i class="pe-7s-close-circle" aria-hidden="true"></i> Cerrar Ticket
-          </button>
         </div>
       </div>
 
@@ -775,7 +994,7 @@
         <div class="panel panel-filled  " style="display: flex; flex-direction: column; height: calc(100vh - 200px);">
             <!-- Header del Mapa -->
             <div class="panel-heading">
-                <h5 class="m-b-none">Mapa Interactivo</h5>
+                <h5 class="m-b-none" id="mapTitle">Mapa Interactivo</h5>
                 <div style="display: flex; gap: 8px; margin-top: 10px;">
                 <input
                     type="text"
@@ -795,6 +1014,10 @@
                       <path d="m21 21-4.3-4.3"></path>
                     </svg>
                 </button>
+                </div>
+                <!-- Mensaje informativo para búsqueda de placas -->
+                <div id="plateSearchInfo" style="display: none; margin-top: 10px; padding: 10px; background: #1e3a1e; border-radius: 6px; font-size: 12px; color: #22c55e;">
+                  <strong>🤖 IA de Detección:</strong> Las cámaras que detectaron esta placa se marcarán en el mapa
                 </div>
             </div>
         
@@ -838,27 +1061,72 @@
         </div>
     </div>
 </div>
+<div class="row">
+  <div class="col-md-4">
+
+  </div>
+  <div class="col-md-4">
+    <button
+                type="button"
+                id="closeTicketBtn"
+                class="btn btn-w-md btn-default btn-block"
+                style="margin-top: 5px;"
+                title="Cerrar ticket"
+              >
+                <i class="pe-7s-close-circle" aria-hidden="true"></i> Cerrar Ticket
+              </button>
+  </div>
+  <div class="col-md-4">
+
+  </div>
+</div>
 
 <!-- Modal para asignar agente -->
-<div class="modal-overlay" id="assignAgentModal">
-  <div class="agent-modal">
-    <div class="agent-modal-header">
-      <h3 class="agent-modal-title">Asignar agente al incidente</h3>
-      <button class="agent-modal-close" onclick="closeAssignAgentModal()" aria-label="Cerrar modal">&times;</button>
+<div class="modal fade in" id="assignAgentModal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none; padding-right: 15px;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-left">
+                <h4 class="modal-title mb-0">Asignar Agente al Incidente</h4>
+                <h7 class="mb-0" id="assignModalTicketInfo">Seleccione un agente disponible</h7>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 15px">
+                            <div class="panel-heading">
+                                <h5>BÚSQUEDA DE AGENTES</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <input
+                                      type="text"
+                                      id="agentSearchInput"
+                                      class="form-control"
+                                      placeholder="Buscar agente por nombre o transporte..."
+                                      oninput="filterAgents()"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 15px; margin-top: 15px;">
+                            <div class="panel-heading">
+                                <h5>AGENTES DISPONIBLES</h5>
+                            </div>
+                            <div class="panel-body" style="max-height: 400px; overflow-y: auto;">
+                                <div id="agentListContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" onclick="closeAssignAgentModal()">Cerrar</button>
+            </div>
+        </div>
     </div>
-    <div class="agent-modal-body">
-      <div class="modal-search">
-        <input
-          type="text"
-          id="agentSearchInput"
-          placeholder="Buscar agente por nombre..."
-          oninput="filterAgents()"
-          aria-label="Buscar agente"
-        />
-      </div>
-      <div id="agentListContainer"></div>
-    </div>
-  </div>
 </div>
 
  {{modal_nuevo_incidente}}
@@ -872,17 +1140,48 @@
   var agentMarkers = [];
   var currentLocationMarker = null;
 
-  // Lista de agentes disponibles
-  var agentsData = [
-    { id: 'ramirez', name: 'Agente Ramírez', shortName: 'A. Ramírez', transporte: 'Camioneta', status: 'Disponible', distancia: '0.8 km', coords: [-12.117, -76.998], assignedTicket: null },
-    { id: 'vega', name: 'Agente Vega', shortName: 'C. Vega', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.2 km', coords: [-12.118, -76.999], assignedTicket: null },
-    { id: 'suarez', name: 'Agente Suárez', shortName: 'D. Suárez', transporte: 'Camioneta', status: 'Disponible', distancia: '2.3 km', coords: [-12.119, -77.000], assignedTicket: null },
-    { id: 'torres', name: 'Agente Torres', shortName: 'E. Torres', transporte: 'Motocicleta', status: 'Disponible', distancia: '1.7 km', coords: [-12.116, -76.997], assignedTicket: null },
-    { id: 'lopez', name: 'Agente López', shortName: 'F. López', transporte: 'A pie', status: 'Disponible', distancia: '2.1 km', coords: [-12.115, -76.996], assignedTicket: null },
-    { id: 'garcia', name: 'Agente García', shortName: 'G. García', transporte: 'Camioneta', status: 'Disponible', distancia: '0.5 km', coords: [-12.120, -77.001], assignedTicket: null },
-    { id: 'martinez', name: 'Agente Martínez', shortName: 'H. Martínez', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.8 km', coords: [-12.114, -76.995], assignedTicket: null },
-    { id: 'fernandez', name: 'Agente Fernández', shortName: 'I. Fernández', transporte: 'Camioneta', status: 'Disponible', distancia: '3.2 km', coords: [-12.113, -76.994], assignedTicket: null }
+  // Pool de nombres de agentes para generar aleatoriamente
+  var agentNamesPool = [
+    { name: 'Agente Ramírez', shortName: 'A. Ramírez' },
+    { name: 'Agente Vega', shortName: 'C. Vega' },
+    { name: 'Agente Suárez', shortName: 'D. Suárez' },
+    { name: 'Agente Torres', shortName: 'E. Torres' },
+    { name: 'Agente López', shortName: 'F. López' },
+    { name: 'Agente García', shortName: 'G. García' },
+    { name: 'Agente Martínez', shortName: 'H. Martínez' },
+    { name: 'Agente Fernández', shortName: 'I. Fernández' },
+    { name: 'Agente Castro', shortName: 'J. Castro' },
+    { name: 'Agente Rojas', shortName: 'K. Rojas' },
+    { name: 'Agente Mendoza', shortName: 'L. Mendoza' },
+    { name: 'Agente Silva', shortName: 'M. Silva' },
+    { name: 'Agente Vargas', shortName: 'N. Vargas' },
+    { name: 'Agente Morales', shortName: 'O. Morales' },
+    { name: 'Agente Reyes', shortName: 'P. Reyes' }
   ];
+
+  var transportTypes = ['Camioneta', 'Motocicleta', 'Bicicleta', 'A pie'];
+
+  // Lista dinámica de agentes (se regenera según la ubicación del incidente)
+  var agentsData = [];
+
+  // Pool de ubicaciones de cámaras de seguridad
+  var cameraLocations = [
+    { name: 'Cámara Av. Arequipa 1234', coords: [-12.0850, -77.0350] },
+    { name: 'Cámara Jr. Lampa 567', coords: [-12.0470, -77.0300] },
+    { name: 'Cámara Av. Brasil 890', coords: [-12.0650, -77.0500] },
+    { name: 'Cámara Jr. Ucayali 234', coords: [-12.0560, -77.0280] },
+    { name: 'Cámara Av. Tacna 789', coords: [-12.0750, -77.0420] },
+    { name: 'Cámara Av. Abancay 456', coords: [-12.0580, -77.0310] },
+    { name: 'Cámara Jr. Carabaya 123', coords: [-12.0450, -77.0290] },
+    { name: 'Cámara Av. Grau 890', coords: [-12.0520, -77.0410] },
+    { name: 'Cámara Jr. Ancash 345', coords: [-12.0490, -77.0320] },
+    { name: 'Cámara Av. Colonial 678', coords: [-12.0620, -77.0460] },
+    { name: 'Cámara Jr. Huallaga 901', coords: [-12.0540, -77.0295] },
+    { name: 'Cámara Av. Venezuela 234', coords: [-12.0680, -77.0380] }
+  ];
+
+  var cameraMarkers = [];
+  var detectedPlateData = {}; // Almacena qué placas fueron detectadas por qué cámaras
 
   // Initialize Leaflet map for the operator chat view
   document.addEventListener('DOMContentLoaded', function () {
@@ -921,6 +1220,9 @@
       .addTo(cadMap)
       .bindPopup('<b>Ubicación del incidente</b><br>Av. Primavera 123');
 
+    // 🔥 Generar agentes aleatorios iniciales alrededor de Av. Primavera
+    regenerateAgentsAroundIncident(primavera[0], primavera[1]);
+
     // Renderizar agentes en el mapa
     renderAgentsOnMap();
 
@@ -946,7 +1248,12 @@
       btn.addEventListener('click', function() {
         var query = input ? input.value.trim() : '';
         if (query) {
-          searchAddress(query);
+          // Detectar en qué pestaña estamos
+          if (activeMapTab === 'cameras') {
+            searchPlateWithAI(query);
+          } else {
+            searchAddress(query);
+          }
         }
       });
     }
@@ -956,7 +1263,12 @@
         if (e.key === 'Enter') {
           var query = input.value.trim();
           if (query) {
-            searchAddress(query);
+            // Detectar en qué pestaña estamos
+            if (activeMapTab === 'cameras') {
+              searchPlateWithAI(query);
+            } else {
+              searchAddress(query);
+            }
           }
         }
       });
@@ -1042,6 +1354,7 @@
     loadTicketChat(ticket);
     renderAgentsOnMap();
     renderAssignedAgentsList();
+    renderTicketAssignedAgents();
 
     showNotification('Agente ' + agent.name + ' asignado al ticket ' + ticket.id, 'success');
   }
@@ -1050,6 +1363,9 @@
   window.assignAgentFromMap = assignAgentFromMap;
 
   // Función para inicializar tabs del mapa
+  // Variable global para controlar el tab activo
+  var activeMapTab = 'agents';
+
   function initializeMapTabs() {
     var mapTabs = document.querySelectorAll('.map-tab');
 
@@ -1068,12 +1384,25 @@
         this.style.background = '#252525';
         this.style.opacity = '1';
 
-        // Cambiar vista del mapa según el tab
+        // Actualizar variable global
+        activeMapTab = tabType;
+
+        // Cambiar placeholder y funcionalidad del buscador
+        var mapSearchInput = document.getElementById('mapSearchInput');
+        var mapTitle = document.getElementById('mapTitle');
+        var plateSearchInfo = document.getElementById('plateSearchInfo');
+
         if (tabType === 'agents') {
+          mapSearchInput.placeholder = 'Buscar dirección...';
+          mapTitle.textContent = 'Mapa Interactivo - Agentes';
+          plateSearchInfo.style.display = 'none';
           renderAgentsOnMap();
         } else if (tabType === 'cameras') {
-          // Implementar vista de cámaras en el futuro
-          showNotification('Vista de cámaras próximamente', 'info');
+          mapSearchInput.placeholder = 'Buscar placa del vehículo...';
+          mapSearchInput.value = '';
+          mapTitle.textContent = 'Mapa Interactivo - Cámaras IA';
+          plateSearchInfo.style.display = 'block';
+          renderCamerasOnMap();
         }
       });
     });
@@ -1186,6 +1515,7 @@
           // Actualizar mapa y lista
           renderAgentsOnMap();
           renderAssignedAgentsList();
+          renderTicketAssignedAgents();
 
           showNotification('Agente ' + agent.name + ' liberado exitosamente', 'success');
         }
@@ -1199,6 +1529,7 @@
         // Actualizar mapa y lista
         renderAgentsOnMap();
         renderAssignedAgentsList();
+        renderTicketAssignedAgents();
 
         showNotification('Agente ' + agent.name + ' liberado exitosamente', 'success');
       }
@@ -2156,18 +2487,469 @@
 
   // Función para actualizar la ubicación del incidente en el formulario
   function updateIncidentLocation(address, lat, lon) {
-    // Aquí puedes actualizar campos del formulario si existen
-    // Por ahora, guardamos la ubicación en el ticket activo
-    if (ticketsState.activeTicketId) {
-      var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
-      if (ticket) {
-        ticket.location = {
-          address: address,
-          lat: lat,
-          lon: lon
-        };
-      }
+    // Obtener detalles completos de la dirección mediante reverse geocoding
+    var reverseUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&addressdetails=1';
+
+    fetch(reverseUrl)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        if (data && data.address) {
+          var addr = data.address;
+
+          // Extraer componentes de la dirección
+          var street = addr.road || addr.street || '';
+          var houseNumber = addr.house_number || '';
+          var suburb = addr.suburb || addr.neighbourhood || addr.quarter || '';
+          var district = addr.county || addr.state_district || addr.city_district || suburb || '';
+          var province = addr.state || addr.province || addr.region || '';
+          var city = addr.city || addr.town || addr.village || '';
+
+          // Construir dirección completa
+          var fullAddress = '';
+          if (street) {
+            fullAddress = street;
+            if (houseNumber) fullAddress += ' ' + houseNumber;
+            if (suburb) fullAddress += ', ' + suburb;
+          } else {
+            fullAddress = address;
+          }
+
+          // Actualizar campos del formulario
+          var formLocationAddress = document.getElementById('formLocationAddress');
+          var formLocationDistrict = document.getElementById('formLocationDistrict');
+          var formLocationProvince = document.getElementById('formLocationProvince');
+          var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+
+          if (formLocationAddress) formLocationAddress.value = fullAddress;
+          if (formLocationDistrict) formLocationDistrict.value = district || city || '';
+          if (formLocationProvince) formLocationProvince.value = province || '';
+          if (formLocationCoordinates) formLocationCoordinates.value = lat.toFixed(6) + ', ' + lon.toFixed(6);
+
+          // Guardar en el ticket activo
+          if (ticketsState.activeTicketId) {
+            var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+            if (ticket) {
+              ticket.location = {
+                address: fullAddress,
+                district: district || city || '',
+                province: province || '',
+                coordinates: lat.toFixed(6) + ', ' + lon.toFixed(6),
+                lat: lat,
+                lon: lon
+              };
+            }
+          }
+
+          // 🔥 REGENERAR agentes aleatoriamente alrededor del nuevo punto
+          regenerateAgentsAroundIncident(lat, lon);
+
+          // Mostrar agentes cercanos disponibles
+          showNearbyAgents(lat, lon);
+        }
+      })
+      .catch(function(error) {
+        console.error('Error en reverse geocoding:', error);
+        // Si falla el reverse geocoding, al menos guardar lo básico
+        var formLocationAddress = document.getElementById('formLocationAddress');
+        var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+
+        if (formLocationAddress) formLocationAddress.value = address;
+        if (formLocationCoordinates) formLocationCoordinates.value = lat.toFixed(6) + ', ' + lon.toFixed(6);
+
+        if (ticketsState.activeTicketId) {
+          var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+          if (ticket) {
+            ticket.location = {
+              address: address,
+              coordinates: lat.toFixed(6) + ', ' + lon.toFixed(6),
+              lat: lat,
+              lon: lon
+            };
+          }
+        }
+
+        // 🔥 REGENERAR agentes aleatoriamente alrededor del nuevo punto (aunque falle reverse geocoding)
+        regenerateAgentsAroundIncident(lat, lon);
+
+        // Mostrar agentes cercanos disponibles aunque falle el reverse geocoding
+        showNearbyAgents(lat, lon);
+      });
+  }
+
+  // Función para calcular distancia entre dos puntos GPS (Haversine formula)
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    var R = 6371; // Radio de la Tierra en km
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var distance = R * c; // Distancia en km
+    return distance;
+  }
+
+  // Función para generar agentes aleatorios alrededor de un punto
+  function generateRandomAgentsAroundPoint(centerLat, centerLon, count) {
+    var newAgents = [];
+    var usedNames = [];
+
+    // Barajar pool de nombres
+    var shuffledNames = agentNamesPool.slice().sort(function() { return Math.random() - 0.5; });
+
+    for (var i = 0; i < count; i++) {
+      if (i >= shuffledNames.length) break;
+
+      // Generar distancia aleatoria entre 0.3 km y 3.5 km
+      var randomDistance = 0.3 + Math.random() * 3.2; // en km
+
+      // Generar ángulo aleatorio (0-360 grados)
+      var randomAngle = Math.random() * 360;
+
+      // Convertir distancia y ángulo a coordenadas lat/lon
+      // 1 grado de latitud ≈ 111 km
+      // 1 grado de longitud ≈ 111 * cos(latitud) km
+      var deltaLat = (randomDistance * Math.cos(randomAngle * Math.PI / 180)) / 111;
+      var deltaLon = (randomDistance * Math.sin(randomAngle * Math.PI / 180)) / (111 * Math.cos(centerLat * Math.PI / 180));
+
+      var agentLat = centerLat + deltaLat;
+      var agentLon = centerLon + deltaLon;
+
+      // Seleccionar transporte aleatorio
+      var randomTransport = transportTypes[Math.floor(Math.random() * transportTypes.length)];
+
+      // Calcular distancia real para mostrar
+      var realDistance = calculateDistance(centerLat, centerLon, agentLat, agentLon);
+      var distanceText = realDistance < 1
+        ? Math.round(realDistance * 1000) + ' m'
+        : realDistance.toFixed(1) + ' km';
+
+      var agentData = shuffledNames[i];
+      var agentId = 'agent_' + Date.now() + '_' + i;
+
+      newAgents.push({
+        id: agentId,
+        name: agentData.name,
+        shortName: agentData.shortName,
+        transporte: randomTransport,
+        status: 'Disponible',
+        distancia: distanceText,
+        coords: [agentLat, agentLon],
+        assignedTicket: null
+      });
     }
+
+    return newAgents;
+  }
+
+  // Función para regenerar agentes alrededor de una nueva ubicación
+  function regenerateAgentsAroundIncident(incidentLat, incidentLon) {
+    // Preservar agentes que ya tienen tickets asignados
+    var assignedAgents = agentsData.filter(function(agent) {
+      return agent.assignedTicket !== null && agent.assignedTicket !== undefined;
+    });
+
+    // Generar entre 6 y 10 agentes nuevos disponibles
+    var numberOfNewAgents = 6 + Math.floor(Math.random() * 5);
+    var newAvailableAgents = generateRandomAgentsAroundPoint(incidentLat, incidentLon, numberOfNewAgents);
+
+    // Combinar agentes asignados (mantener) + nuevos disponibles
+    agentsData = assignedAgents.concat(newAvailableAgents);
+
+    // Actualizar marcadores en el mapa
+    renderAgentsOnMap();
+
+    console.log('Agentes regenerados: ' + newAvailableAgents.length + ' nuevos disponibles alrededor del punto (' + incidentLat + ', ' + incidentLon + ')');
+  }
+
+  // ============================================
+  // SISTEMA DE CÁMARAS CON IA DE DETECCIÓN DE PLACAS
+  // ============================================
+
+  // Función para renderizar cámaras en el mapa
+  function renderCamerasOnMap() {
+    if (!cadMap) return;
+
+    // Limpiar marcadores de agentes
+    agentMarkers.forEach(function(marker) {
+      cadMap.removeLayer(marker);
+    });
+    agentMarkers = [];
+
+    // Limpiar marcadores de cámaras anteriores
+    cameraMarkers.forEach(function(marker) {
+      cadMap.removeLayer(marker);
+    });
+    cameraMarkers = [];
+
+    // Crear icono para cámaras
+    var cameraIcon = L.divIcon({
+      className: 'camera-marker-icon',
+      html: '<div style="background: #3b82f6; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">📹</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+
+    // Agregar marcadores para todas las cámaras
+    cameraLocations.forEach(function(camera) {
+      var marker = L.marker(camera.coords, { icon: cameraIcon })
+        .addTo(cadMap)
+        .bindPopup(
+          '<div style="min-width: 180px;">' +
+            '<strong>' + camera.name + '</strong><br>' +
+            '<span style="color: #22c55e;">● Online</span><br>' +
+            '<span style="font-size: 11px; color: #6b7280;">Sistema de IA activo</span>' +
+          '</div>'
+        );
+
+      cameraMarkers.push(marker);
+    });
+
+    showNotification('Vista de cámaras cargada', 'success');
+  }
+
+  // Función para simular detección de placa por IA
+  function searchPlateWithAI(plate) {
+    if (!plate || plate.trim() === '') {
+      showNotification('Ingrese una placa válida', 'warning');
+      return;
+    }
+
+    plate = plate.trim().toUpperCase();
+
+    showNotification('🤖 IA procesando búsqueda de placa: ' + plate, 'info');
+
+    // Simular delay de procesamiento de IA
+    setTimeout(function() {
+      // Seleccionar aleatoriamente 2-5 cámaras que "detectaron" la placa
+      var numberOfDetections = 2 + Math.floor(Math.random() * 4);
+      var shuffledCameras = cameraLocations.slice().sort(function() { return Math.random() - 0.5; });
+      var detectedCameras = shuffledCameras.slice(0, numberOfDetections);
+
+      // Guardar detección
+      detectedPlateData[plate] = detectedCameras;
+
+      // Limpiar marcadores anteriores
+      cameraMarkers.forEach(function(marker) {
+        cadMap.removeLayer(marker);
+      });
+      cameraMarkers = [];
+
+      // Icono para cámaras que NO detectaron
+      var cameraIcon = L.divIcon({
+        className: 'camera-marker-icon',
+        html: '<div style="background: #6b7280; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); opacity: 0.5;">📹</div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      // Icono para cámaras que SÍ detectaron la placa
+      var detectedIcon = L.divIcon({
+        className: 'camera-detected-icon',
+        html: '<div style="background: #ef4444; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 3px solid white; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); animation: pulse 2s infinite;">📹</div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+
+      var detectedIds = detectedCameras.map(function(c) { return c.name; });
+
+      // Renderizar todas las cámaras
+      cameraLocations.forEach(function(camera) {
+        var isDetected = detectedIds.includes(camera.name);
+        var icon = isDetected ? detectedIcon : cameraIcon;
+
+        var popupContent = '<div style="min-width: 200px;">' +
+          '<strong>' + camera.name + '</strong><br>';
+
+        if (isDetected) {
+          var timestamp = new Date();
+          var timeStr = timestamp.getHours() + ':' + String(timestamp.getMinutes()).padStart(2, '0');
+
+          popupContent +=
+            '<div style="background: #1e3a1e; padding: 8px; border-radius: 4px; margin-top: 8px;">' +
+              '<div style="color: #22c55e; font-weight: 600; margin-bottom: 4px;">✅ PLACA DETECTADA</div>' +
+              '<div style="font-size: 12px; color: #9ca3af;">Placa: <strong style="color: #ef4444;">' + plate + '</strong></div>' +
+              '<div style="font-size: 11px; color: #6b7280;">Detectada: ' + timeStr + '</div>' +
+              '<div style="font-size: 10px; color: #6b7280; margin-top: 4px;">📊 Confianza IA: ' + (85 + Math.floor(Math.random() * 15)) + '%</div>' +
+            '</div>';
+        } else {
+          popupContent += '<span style="color: #6b7280; font-size: 12px;">No detectó esta placa</span>';
+        }
+
+        popupContent += '</div>';
+
+        var marker = L.marker(camera.coords, { icon: icon })
+          .addTo(cadMap)
+          .bindPopup(popupContent);
+
+        cameraMarkers.push(marker);
+
+        // Abrir popup automáticamente para cámaras que detectaron
+        if (isDetected) {
+          marker.openPopup();
+        }
+      });
+
+      // Centrar mapa en la primera cámara que detectó
+      if (detectedCameras.length > 0) {
+        cadMap.setView(detectedCameras[0].coords, 14);
+      }
+
+      showNotification('✅ ' + detectedCameras.length + ' cámara(s) detectaron la placa ' + plate, 'success');
+    }, 1500); // Simular delay de procesamiento de IA
+  }
+
+  // Función para mostrar agentes cercanos a la ubicación del incidente
+  function showNearbyAgents(incidentLat, incidentLon) {
+    var section = document.getElementById('nearbyAgentsSection');
+    var container = document.getElementById('nearbyAgentsList');
+
+    if (!section || !container) return;
+
+    // Obtener ticket activo
+    var activeTicket = ticketsState.activeTicketId
+      ? ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; })
+      : null;
+
+    if (!activeTicket) {
+      section.style.display = 'none';
+      return;
+    }
+
+    // Calcular distancia de cada agente al incidente
+    var agentsWithDistance = agentsData.map(function(agent) {
+      var distance = calculateDistance(incidentLat, incidentLon, agent.coords[0], agent.coords[1]);
+
+      // Crear copia del agente con propiedades adicionales (sin usar spread operator)
+      var agentCopy = {
+        id: agent.id,
+        name: agent.name,
+        shortName: agent.shortName,
+        transporte: agent.transporte,
+        status: agent.status,
+        distancia: agent.distancia,
+        coords: agent.coords,
+        assignedTicket: agent.assignedTicket,
+        calculatedDistance: distance,
+        distanceText: distance < 1
+          ? Math.round(distance * 1000) + ' m'
+          : distance.toFixed(1) + ' km'
+      };
+
+      return agentCopy;
+    });
+
+    // Filtrar solo disponibles (sin ticket asignado)
+    var availableAgents = agentsWithDistance.filter(function(agent) {
+      return !agent.assignedTicket || agent.assignedTicket === null;
+    });
+
+    // Ordenar por distancia (más cercano primero)
+    availableAgents.sort(function(a, b) {
+      return a.calculatedDistance - b.calculatedDistance;
+    });
+
+    // Mostrar solo los 5 más cercanos
+    var nearestAgents = availableAgents.slice(0, 5);
+
+    if (nearestAgents.length === 0) {
+      container.innerHTML = '<div style="padding: 15px; text-align: center; color: #9ca3af; font-size: 12px;">No hay agentes disponibles en este momento</div>';
+      section.style.display = 'block';
+      return;
+    }
+
+    // Renderizar lista de agentes
+    container.innerHTML = '';
+    nearestAgents.forEach(function(agent) {
+      var agentCard = document.createElement('div');
+      agentCard.style.cssText = 'padding: 10px 12px; border-bottom: 1px solid #374151; background: #1e293b; margin-bottom: 8px; border-radius: 6px;';
+
+      var transportIcon = {
+        'Camioneta': '🚗',
+        'Motocicleta': '🏍️',
+        'Bicicleta': '🚴',
+        'A pie': '🚶'
+      }[agent.transporte] || '🚗';
+
+      agentCard.innerHTML =
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+          '<div>' +
+            '<strong style="font-size: 13px; color: #e5e7eb;">' + agent.name + '</strong>' +
+            '<div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">' + transportIcon + ' ' + agent.transporte + '</div>' +
+          '</div>' +
+          '<div style="text-align: right;">' +
+            '<div style="font-size: 13px; color: #22c55e; font-weight: 600;">📍 ' + agent.distanceText + '</div>' +
+            '<div style="font-size: 10px; color: #9ca3af;">de distancia</div>' +
+          '</div>' +
+        '</div>' +
+        '<button onclick="assignAgentToTicketFromNearby(\'' + agent.id + '\')" class="btn btn-sm btn-accent" style="width: 100%; padding: 6px; font-size: 12px;">' +
+          '<i class="pe-7s-check" aria-hidden="true"></i> Asignar a este incidente' +
+        '</button>';
+
+      container.appendChild(agentCard);
+    });
+
+    // Mostrar la sección
+    section.style.display = 'block';
+  }
+
+  // Función para asignar agente desde la lista de cercanos
+  function assignAgentToTicketFromNearby(agentId) {
+    if (!ticketsState.activeTicketId) {
+      showNotification('No hay ticket activo', 'warning');
+      return;
+    }
+
+    var agent = agentsData.find(function(a) { return a.id === agentId; });
+    if (!agent) {
+      showNotification('Agente no encontrado', 'error');
+      return;
+    }
+
+    if (agent.assignedTicket) {
+      showNotification('Este agente ya tiene un ticket asignado', 'warning');
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    // Asignar agente al ticket
+    agent.assignedTicket = ticket.id;
+    agent.status = 'En servicio';
+
+    // Actualizar estado del ticket
+    ticket.status = 'Asignado';
+    ticket.assignedAgent = agent.name;
+
+    // Agregar mensaje al chat
+    if (!ticket.chatMessages) ticket.chatMessages = [];
+
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    ticket.chatMessages.push({
+      type: 'event',
+      icon: '👮',
+      title: 'Agente asignado',
+      detail: agent.name + ' - ' + agent.transporte,
+      timestamp: timeString
+    });
+
+    // Actualizar vistas
+    renderTicketTabs();
+    renderAgentMarkers();
+    loadTicketChat(ticket);
+    renderTicketAssignedAgents();
+
+    // Refrescar lista de agentes cercanos
+    if (ticket.location && ticket.location.lat && ticket.location.lon) {
+      showNearbyAgents(ticket.location.lat, ticket.location.lon);
+    }
+
+    showNotification('Agente ' + agent.name + ' asignado exitosamente', 'success');
   }
 
   // Esperar a que el elemento exista y luego inicializar
@@ -2349,6 +3131,9 @@
 
     // Cargar chat del ticket
     loadTicketChat(ticket);
+
+    // Cargar agentes asignados a este ticket
+    renderTicketAssignedAgents();
   }
 
   // Función para cargar datos del ticket en el formulario
@@ -2373,8 +3158,65 @@
     if (formReporterEmail) formReporterEmail.value = ticket.reporterEmail;
     if (formReporterRelation) formReporterRelation.value = ticket.reporterRelation;
 
+    // Cargar campos de ubicación
+    var formLocationAddress = document.getElementById('formLocationAddress');
+    var formLocationDistrict = document.getElementById('formLocationDistrict');
+    var formLocationProvince = document.getElementById('formLocationProvince');
+    var formLocationReference = document.getElementById('formLocationReference');
+    var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+
+    if (ticket.location) {
+      if (formLocationAddress) formLocationAddress.value = ticket.location.address || '';
+      if (formLocationDistrict) formLocationDistrict.value = ticket.location.district || '';
+      if (formLocationProvince) formLocationProvince.value = ticket.location.province || '';
+      if (formLocationReference) formLocationReference.value = ticket.location.reference || '';
+      if (formLocationCoordinates) formLocationCoordinates.value = ticket.location.coordinates || '';
+
+      // Si hay coordenadas, actualizar marcador en el mapa
+      if (ticket.location.lat && ticket.location.lon && cadMap) {
+        // Remover marcador previo
+        if (currentLocationMarker) {
+          cadMap.removeLayer(currentLocationMarker);
+        }
+
+        var incidentIcon = L.divIcon({
+          className: 'incident-marker-icon',
+          html: '<div style="background: #ef4444; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">📍</div>',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        });
+
+        currentLocationMarker = L.marker([ticket.location.lat, ticket.location.lon], { icon: incidentIcon })
+          .addTo(cadMap)
+          .bindPopup('<b>Ubicación del incidente</b><br>' + (ticket.location.address || 'Sin dirección'));
+
+        // Centrar mapa en la ubicación
+        cadMap.setView([ticket.location.lat, ticket.location.lon], 16);
+
+        // 🔥 REGENERAR agentes alrededor de esta ubicación
+        regenerateAgentsAroundIncident(ticket.location.lat, ticket.location.lon);
+
+        // Mostrar agentes cercanos disponibles
+        showNearbyAgents(ticket.location.lat, ticket.location.lon);
+      }
+    } else {
+      // Limpiar campos si no hay ubicación
+      if (formLocationAddress) formLocationAddress.value = '';
+      if (formLocationDistrict) formLocationDistrict.value = '';
+      if (formLocationProvince) formLocationProvince.value = '';
+      if (formLocationReference) formLocationReference.value = '';
+      if (formLocationCoordinates) formLocationCoordinates.value = '';
+
+      // Ocultar sección de agentes cercanos
+      var nearbySection = document.getElementById('nearbyAgentsSection');
+      if (nearbySection) nearbySection.style.display = 'none';
+    }
+
     // Mostrar/ocultar secciones según tipo de incidencia
     handleIncidentTypeChange(ticket.incidentType);
+
+    // Cargar evidencia del ticket
+    renderEvidenceList(ticket);
   }
 
   // Función para cargar chat del ticket
@@ -2691,17 +3533,13 @@
   // SISTEMA DE ASIGNACIÓN DE AGENTES
   // ============================================
 
-  // Lista de agentes disponibles
-  var agentsData = [
-    { id: 'ramirez', name: 'Agente Ramírez', shortName: 'A. Ramírez', transporte: 'Camioneta', status: 'Disponible', distancia: '0.8 km', coords: [-12.117, -76.998] },
-    { id: 'vega', name: 'Agente Vega', shortName: 'C. Vega', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.2 km', coords: [-12.118, -76.999] },
-    { id: 'suarez', name: 'Agente Suárez', shortName: 'D. Suárez', transporte: 'Camioneta', status: 'Disponible', distancia: '2.3 km', coords: [-12.119, -77.000] },
-    { id: 'torres', name: 'Agente Torres', shortName: 'E. Torres', transporte: 'Motocicleta', status: 'Disponible', distancia: '1.7 km', coords: [-12.116, -76.997] },
-    { id: 'lopez', name: 'Agente López', shortName: 'F. López', transporte: 'A pie', status: 'Disponible', distancia: '2.1 km', coords: [-12.115, -76.996] },
-    { id: 'garcia', name: 'Agente García', shortName: 'G. García', transporte: 'Camioneta', status: 'Disponible', distancia: '0.5 km', coords: [-12.120, -77.001] },
-    { id: 'martinez', name: 'Agente Martínez', shortName: 'H. Martínez', transporte: 'Bicicleta', status: 'Disponible', distancia: '1.8 km', coords: [-12.114, -76.995] },
-    { id: 'fernandez', name: 'Agente Fernández', shortName: 'I. Fernández', transporte: 'Camioneta', status: 'Disponible', distancia: '3.2 km', coords: [-12.113, -76.994] }
-  ];
+  // NOTA: agentsData ya está definido en línea ~1093
+  // No redefinir aquí para evitar conflictos
+
+  // Alias para renderizar marcadores de agentes
+  function renderAgentMarkers() {
+    renderAgentsOnMap();
+  }
 
   // Función para abrir modal de asignación de agentes
   function openAssignAgentModal() {
@@ -2713,11 +3551,21 @@
     var modal = document.getElementById('assignAgentModal');
     if (!modal) return;
 
+    // Actualizar información del ticket en el modal
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    var ticketInfo = document.getElementById('assignModalTicketInfo');
+    if (ticketInfo && ticket) {
+      ticketInfo.textContent = 'Ticket ' + ticket.id + ' - ' + ticket.incidentType;
+    }
+
     var searchInput = document.getElementById('agentSearchInput');
     if (searchInput) searchInput.value = '';
 
     renderAgentListForAssignment();
-    modal.classList.add('active');
+
+    // Mostrar modal usando el estilo del tema
+    modal.style.display = 'block';
+    modal.classList.add('in');
 
     setTimeout(function() {
       if (searchInput) searchInput.focus();
@@ -2727,7 +3575,10 @@
   // Función para cerrar modal de asignación
   function closeAssignAgentModal() {
     var modal = document.getElementById('assignAgentModal');
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('in');
+    }
   }
 
   // Función para filtrar agentes en el modal
@@ -3046,9 +3897,157 @@
       closeTicketBtn.addEventListener('click', closeTicketWithReason);
     }
 
+    // Vincular botón de guardar ticket
+    var saveTicketBtn = document.getElementById('saveTicketBtn');
+    if (saveTicketBtn) {
+      saveTicketBtn.addEventListener('click', saveTicketChanges);
+    }
+
+    // Vincular botón de subir evidencia
+    var uploadEvidenceBtn = document.getElementById('uploadEvidenceBtn');
+    var evidenceFileInput = document.getElementById('evidenceFileInput');
+
+    if (uploadEvidenceBtn && evidenceFileInput) {
+      uploadEvidenceBtn.addEventListener('click', function() {
+        evidenceFileInput.click();
+      });
+
+      evidenceFileInput.addEventListener('change', handleEvidenceUpload);
+    }
+
     // Cargar tickets de ejemplo al inicio
     initializeSampleTickets();
   });
+
+  // Función para manejar la subida de evidencia
+  function handleEvidenceUpload(event) {
+    var files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    if (!ticketsState.activeTicketId) {
+      showNotification('Debe seleccionar un ticket primero', 'warning');
+      event.target.value = '';
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) {
+      event.target.value = '';
+      return;
+    }
+
+    // Inicializar array de evidencias si no existe
+    if (!ticket.evidence) {
+      ticket.evidence = [];
+    }
+
+    // Verificar límite de 10 archivos
+    if (ticket.evidence.length + files.length > 10) {
+      showNotification('Solo puede subir un máximo de 10 archivos', 'warning');
+      event.target.value = '';
+      return;
+    }
+
+    // Agregar archivos
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      var fileObj = {
+        name: file.name,
+        size: formatFileSize(file.size),
+        type: getFileType(file.type),
+        uploadDate: new Date().toLocaleString('es-ES')
+      };
+      ticket.evidence.push(fileObj);
+    }
+
+    // Actualizar lista visual
+    renderEvidenceList(ticket);
+
+    // Limpiar input
+    event.target.value = '';
+
+    showNotification(files.length + ' archivo(s) agregado(s) exitosamente', 'success');
+  }
+
+  // Función para renderizar la lista de evidencias
+  function renderEvidenceList(ticket) {
+    var container = document.getElementById('formEvidenceList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (!ticket.evidence || ticket.evidence.length === 0) {
+      return;
+    }
+
+    ticket.evidence.forEach(function(file, index) {
+      var fileItem = document.createElement('div');
+      fileItem.style.cssText = 'padding: 10px 12px; background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;';
+
+      var fileIcon = getFileIcon(file.type);
+
+      fileItem.innerHTML =
+        '<div style="display: flex; align-items: center; gap: 10px; flex: 1;">' +
+          '<span style="font-size: 20px;">' + fileIcon + '</span>' +
+          '<div style="flex: 1;">' +
+            '<div style="font-size: 13px; font-weight: 600; color: #e5e7eb;">' + file.name + '</div>' +
+            '<div style="font-size: 11px; color: #9ca3af;">' + file.size + ' • ' + file.uploadDate + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<button onclick="removeEvidence(' + index + ')" class="btn btn-sm btn-danger" style="padding: 4px 8px; font-size: 11px;">' +
+          '<i class="pe-7s-trash"></i>' +
+        '</button>';
+
+      container.appendChild(fileItem);
+    });
+  }
+
+  // Función para remover evidencia
+  function removeEvidence(index) {
+    if (!ticketsState.activeTicketId) return;
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket || !ticket.evidence) return;
+
+    ticket.evidence.splice(index, 1);
+    renderEvidenceList(ticket);
+
+    showNotification('Archivo eliminado', 'info');
+  }
+
+  // Hacer función global
+  window.removeEvidence = removeEvidence;
+
+  // Función para formatear tamaño de archivo
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    var k = 1024;
+    var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  // Función para obtener tipo de archivo
+  function getFileType(mimeType) {
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
+    if (mimeType.includes('pdf')) return 'pdf';
+    if (mimeType.includes('document') || mimeType.includes('word')) return 'document';
+    return 'file';
+  }
+
+  // Función para obtener icono según tipo de archivo
+  function getFileIcon(type) {
+    switch(type) {
+      case 'image': return '🖼️';
+      case 'video': return '🎥';
+      case 'audio': return '🎵';
+      case 'pdf': return '📄';
+      case 'document': return '📝';
+      default: return '📎';
+    }
+  }
 
   // Inicializar tickets de ejemplo
   function initializeSampleTickets() {
@@ -3224,14 +4223,96 @@
     }
   }
 
-  // Función para guardar cambios del formulario
+  // Función para guardar cambios del ticket (botón Guardar)
+  function saveTicketChanges() {
+    if (!ticketsState.activeTicketId) {
+      showNotification('No hay ningún ticket activo para guardar', 'warning');
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    // Guardar todos los campos del formulario principal
+    ticket.alertLevel = document.getElementById('formAlertLevel')?.value || ticket.alertLevel;
+    ticket.incidentType = document.getElementById('formIncidentType')?.value || ticket.incidentType;
+    ticket.reporterName = document.getElementById('formReporterName')?.value || ticket.reporterName;
+    ticket.reporterDNI = document.getElementById('formReporterDNI')?.value || ticket.reporterDNI;
+    ticket.reporterPhone = document.getElementById('formReporterPhone')?.value || ticket.reporterPhone;
+    ticket.reporterEmail = document.getElementById('formReporterEmail')?.value || ticket.reporterEmail;
+    ticket.reporterRelation = document.getElementById('formReporterRelation')?.value || ticket.reporterRelation;
+
+    // Guardar campos de ubicación
+    if (!ticket.location) {
+      ticket.location = {};
+    }
+    ticket.location.address = document.getElementById('formLocationAddress')?.value || ticket.location.address || '';
+    ticket.location.district = document.getElementById('formLocationDistrict')?.value || ticket.location.district || '';
+    ticket.location.province = document.getElementById('formLocationProvince')?.value || ticket.location.province || '';
+    ticket.location.reference = document.getElementById('formLocationReference')?.value || ticket.location.reference || '';
+    ticket.location.coordinates = document.getElementById('formLocationCoordinates')?.value || ticket.location.coordinates || '';
+
+    // Guardar campos específicos según tipo de incidencia
+    if (ticket.incidentType === 'persona-desaparecida') {
+      ticket.missingPerson = {
+        name: document.getElementById('formMissingName')?.value || '',
+        age: document.getElementById('formMissingAge')?.value || '',
+        gender: document.getElementById('formMissingGender')?.value || '',
+        dni: document.getElementById('formMissingDNI')?.value || '',
+        lastSeen: document.getElementById('formMissingLastSeen')?.value || '',
+        lastLocation: document.getElementById('formMissingLastLocation')?.value || '',
+        description: document.getElementById('formMissingDescription')?.value || '',
+        medical: document.getElementById('formMissingMedical')?.value || ''
+      };
+    } else if (ticket.incidentType === 'persona-sospechosa') {
+      ticket.suspiciousPerson = {
+        name: document.getElementById('formSuspiciousName')?.value || '',
+        alias: document.getElementById('formSuspiciousAlias')?.value || '',
+        description: document.getElementById('formSuspiciousDescription')?.value || '',
+        reason: document.getElementById('formSuspiciousReason')?.value || '',
+        location: document.getElementById('formSuspiciousLocation')?.value || '',
+        linked: document.getElementById('formSuspiciousLinked')?.value || ''
+      };
+    } else if (ticket.incidentType === 'vehiculo-sospechoso') {
+      ticket.suspiciousVehicle = {
+        plate: document.getElementById('formSuspVehiclePlate')?.value || '',
+        type: document.getElementById('formSuspVehicleType')?.value || '',
+        color: document.getElementById('formSuspVehicleColor')?.value || '',
+        details: document.getElementById('formSuspVehicleDetails')?.value || '',
+        location: document.getElementById('formSuspVehicleLocation')?.value || '',
+        time: document.getElementById('formSuspVehicleTime')?.value || '',
+        behavior: document.getElementById('formSuspVehicleBehavior')?.value || ''
+      };
+    } else if (ticket.incidentType === 'robo-vehiculo') {
+      ticket.stolenVehicle = {
+        type: document.getElementById('formVehicleType')?.value || '',
+        brand: document.getElementById('formVehicleBrand')?.value || '',
+        plate: document.getElementById('formVehiclePlate')?.value || '',
+        color: document.getElementById('formVehicleColor')?.value || '',
+        year: document.getElementById('formVehicleYear')?.value || '',
+        location: document.getElementById('formVehicleLocation')?.value || '',
+        dateTime: document.getElementById('formVehicleDateTime')?.value || '',
+        gps: document.getElementById('formVehicleGPS')?.value || ''
+      };
+    }
+
+    // Marcar como modificado
+    ticket.lastModified = new Date().toLocaleString('es-ES');
+
+    // Actualizar tabs para reflejar cambios
+    renderTicketTabs();
+
+    showNotification('Cambios guardados exitosamente en el ticket ' + ticket.id, 'success');
+  }
+
+  // Función para guardar cambios del formulario automáticamente
   function saveFormChanges() {
     if (!ticketsState.activeTicketId) return;
 
     var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
     if (!ticket) return;
 
-    // Guardar todos los campos del formulario
+    // Guardar solo campos básicos (sin notificación)
     ticket.alertLevel = document.getElementById('formAlertLevel')?.value || ticket.alertLevel;
     ticket.incidentType = document.getElementById('formIncidentType')?.value || ticket.incidentType;
     ticket.reporterName = document.getElementById('formReporterName')?.value || ticket.reporterName;
@@ -3242,6 +4323,54 @@
 
     // Actualizar tabs para reflejar cambios
     renderTicketTabs();
+  }
+
+  // Función para renderizar agentes asignados a ESTE ticket específico
+  function renderTicketAssignedAgents() {
+    var container = document.getElementById('ticketAssignedAgentsList');
+    if (!container) return;
+
+    // Si no hay ticket activo, limpiar
+    if (!ticketsState.activeTicketId) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px;">Seleccione un ticket</div>';
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px;">Ticket no encontrado</div>';
+      return;
+    }
+
+    // Filtrar agentes que tienen asignado ESTE ticket específico
+    var ticketAgents = agentsData.filter(function(agent) {
+      return agent.assignedTicket === ticket.id;
+    });
+
+    // Limpiar contenedor
+    container.innerHTML = '';
+
+    if (ticketAgents.length === 0) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px;">No hay agentes asignados a este ticket</div>';
+      return;
+    }
+
+    // Renderizar cada agente asignado
+    ticketAgents.forEach(function(agent) {
+      var agentCard = document.createElement('div');
+      agentCard.style.cssText = 'padding: 12px 15px; border-bottom: 1px solid #1e293b;';
+
+      agentCard.innerHTML =
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+          '<strong style="font-size: 14px; color: #e5e7eb;">' + agent.name + '</strong>' +
+          '<span style="font-size: 11px; padding: 2px 6px; background: #1e3a1e; border-radius: 4px; color: #22c55e;">En este ticket</span>' +
+        '</div>' +
+        '<div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">🚗 ' + agent.transporte + '</div>' +
+        '<div style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">📍 ' + agent.distancia + '</div>' +
+        '<button onclick="releaseAgentFromTicket(\'' + agent.id + '\')" class="btn btn-sm" style="width: 100%; padding: 6px; font-size: 11px; background: #dc2626; color: white; border: none;">Liberar Agente</button>';
+
+      container.appendChild(agentCard);
+    });
   }
 
   // Vincular eventos del formulario

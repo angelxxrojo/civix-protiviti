@@ -63,6 +63,83 @@
   .cad-badge-media { background: #ffc107; color: #000; }
   .cad-badge-baja { background: #28a745; color: white; }
 
+  /* Círculos de alerta para tabs */
+  .alert-circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+  }
+
+  .alert-circle-critica {
+    background: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+  }
+
+  .alert-circle-alta {
+    background: #ff7a2f;
+    box-shadow: 0 0 8px rgba(255, 122, 47, 0.6);
+  }
+
+  .alert-circle-media {
+    background: #ffc107;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+  }
+
+  .alert-circle-baja {
+    background: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+  }
+
+  /* Badge de mensajes sin leer */
+  .unread-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #dc3545;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    border: 2px solid #1a1a1a;
+  }
+
+  /* Tab con mensajes sin leer - animación de iluminación */
+  .ticket-has-unread {
+    animation: pulse-glow 2s ease-in-out infinite;
+    border: 2px solid rgba(246, 114, 0, 0.5) !important;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(246, 114, 0, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(246, 114, 0, 0.6), 0 0 30px rgba(246, 114, 0, 0.4);
+    }
+  }
+
+  /* Estilo para tabs de tickets */
+  .ticket-tab {
+    position: relative !important;
+    padding: 12px 14px;
+    min-width: 180px;
+    text-align: left;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    overflow: visible !important;
+  }
+
+  .ticket-tab:hover {
+    transform: translateY(-2px);
+  }
+
   .map-grid-cell {
     border: 1px solid #444;
     background: #1a1a1a;
@@ -89,76 +166,96 @@
   }
 
   .chat-message {
-    padding: 12px 16px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    border-left: 3px solid transparent;
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    max-width: 75%;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 
   .chat-message.from-operator {
-    background: #1a2332;
-    border-left-color: #3b82f6;
-    margin-right: 40px;
+    background: #005c4b;
+    margin-left: auto;
+    margin-right: 8px;
+    border-bottom-right-radius: 4px;
   }
 
   .chat-message.from-agent {
-    background: #1e3a1e;
-    border-left-color: #22c55e;
-    margin-left: 40px;
+    background: #1f2937;
+    margin-right: auto;
+    margin-left: 8px;
+    border-bottom-left-radius: 4px;
   }
 
   .chat-message-author {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    margin-bottom: 6px;
-    color: #e5e7eb;
+    margin-bottom: 4px;
+    color: #a7f3d0;
+  }
+
+  .chat-message.from-agent .chat-message-author {
+    color: #fbbf24;
   }
 
   .chat-message-role {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 400;
     color: #9ca3af;
+    margin-left: 6px;
   }
 
   .chat-message-text {
     font-size: 14px;
-    line-height: 1.5;
-    color: #e5e7eb;
-    margin-bottom: 6px;
+    line-height: 1.4;
+    color: #ffffff;
+    margin-bottom: 4px;
+    word-wrap: break-word;
   }
 
   .chat-message-meta {
-    font-size: 11px;
-    color: #6b7280;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
     text-align: right;
+    margin-top: 4px;
   }
 
   .chat-attachments {
-    margin-top: 8px;
+    margin-top: 6px;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
   }
 
   .chat-attachment {
-    font-size: 12px;
-    padding: 4px 10px;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    border-radius: 6px;
-    color: #60a5fa;
+    font-size: 11px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #a7f3d0;
     display: inline-block;
+  }
+
+  /* Estilo para el contenedor de mensajes (tipo WhatsApp) */
+  #chatTimeline {
+    padding: 8px 0;
   }
 
   .chat-event {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
-    background: #0f172a;
-    border-radius: 8px;
-    border: 1px solid #1e293b;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    margin: 12px auto;
+    background: rgba(41, 41, 41, 0.6);
+    border-radius: 20px;
+    border: 1px solid rgb(111 111 111 / 50%);
+    max-width: 85%;
+    font-size: 12px;
+    color: #9ca3af;
   }
 
   .event-icon {
@@ -957,26 +1054,27 @@
       </div>
 
       <!-- Área de mensajes -->
-      <div class="panel-body cad-scrollable" style="flex: 1;">
-        <div id="chatTimeline">
+      <div class="panel-body cad-scrollable" style="flex: 1; background: #111111; padding: 16px 12px;">
+        <div id="chatTimeline" style="display: flex; flex-direction: column;">
           <!-- Los mensajes se renderizan aquí con JS -->
         </div>
       </div>
 
       <!-- Input de mensaje -->
-      <div class="panel-footer">
-        <div style="display: flex; gap: 8px;">
+      <div class="panel-footer" style="background: #252525; border-top: 1px solid #374151; padding: 12px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
           <input
             type="text"
             id="chatComposerInput"
-            class="form-control rounded-input"
+            class="form-control"
             placeholder="Escribe un mensaje..."
-            style="flex: 1;"
+            style="flex: 1; background: #1a1a1a; border: 1px solid #374151; color: #fff; border-radius: 20px; padding: 10px 16px;"
           >
           <button
             type="button"
             id="chatSendButton"
-            class="btn btn-accent btn-rounded"
+            class="btn btn-accent"
+            style="border-radius: 50%; width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center;"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path>
@@ -1061,6 +1159,7 @@
         </div>
     </div>
 </div>
+
 <div class="row">
   <div class="col-md-4">
 
@@ -1673,462 +1772,7 @@
       { id: 'fernandez', name: 'Agente Fernández', shortName: 'I. Fernández', transporte: 'Camioneta', status: 'Disponible', distancia: '4.2 km', incidenteActual: null },
       { id: 'diaz', name: 'Agente Díaz', shortName: 'J. Díaz', transporte: 'A pie', status: 'Ocupado', distancia: '8.1 km', incidenteActual: '#2048' }
     ];
-    const chatTimelineByIncident = {
-      'INC-2025-001': [
-        { id: 'evt-001', type: 'event', icon: '⚡️', title: 'Incidente creado', detail: 'Registrado vía llamada 105', timestamp: '10:30' },
-        { id: 'evt-002', type: 'event', icon: '👮', title: 'Agente A. Ramírez asignado', detail: 'Camioneta • 0.8 km', timestamp: '10:32' },
-        { id: 'evt-003', type: 'event', icon: '👮', title: 'Agente B. Torres asignado', detail: 'Motocicleta • 1.1 km', timestamp: '10:32' },
-        { id: 'msg-001', type: 'message', from: 'operator', name: 'Operadora Carla Q.', role: 'CAD', text: 'Equipo, confirmen arribo y bloqueo del carril derecho.', timestamp: '10:33' },
-        { id: 'msg-002', type: 'message', from: 'agent', name: 'A. Ramírez', role: 'En ruta', text: 'Ingresando por Primavera. Congestión moderada, pido apoyo de tránsito.', timestamp: '10:35', attachments: [{ type: 'foto', name: 'Congestion_Primavera.jpg' }] },
-        { id: 'msg-003', type: 'message', from: 'agent', name: 'B. Torres', role: 'Motocicleta', text: 'Llego en 2 min. Tomo desvío lateral para liberar carril izquierdo.', timestamp: '10:37' },
-        { id: 'evt-004', type: 'event', icon: '📎', title: 'Evidencia cargada', detail: 'Unidad Ramírez compartió 1 archivo.', timestamp: '10:38' },
-        { id: 'msg-004', type: 'message', from: 'operator', name: 'Operadora Carla Q.', role: 'CAD', text: 'Listo, ambulancia privada en camino. Mantengan despejado.', timestamp: '10:39' }
-      ],
-      'INC-2025-014': [
-        { id: 'evt-101', type: 'event', icon: '⚡️', title: 'Incidente creado', detail: 'Robo en Plaza Central', timestamp: '09:10' },
-        { id: 'evt-102', type: 'event', icon: '👮', title: 'Agente C. Vega asignado', detail: 'Bicicleta • 1.2 km', timestamp: '09:12' },
-        { id: 'msg-101', type: 'message', from: 'agent', name: 'C. Vega', role: 'En patrullaje', text: 'Persiguiendo a sospechoso hacia Av. Grau, solicito cierre en la cuadra 4.', timestamp: '09:13' },
-        { id: 'msg-102', type: 'message', from: 'operator', name: 'Operador Luis', role: 'CAD', text: 'Se coordinó cerco con Serenazgo sector 2.', timestamp: '09:14' },
-        { id: 'evt-103', type: 'event', icon: '📍', title: 'Testigo contactado', detail: 'Operador Jiménez en llamada con comerciante.', timestamp: '09:16' }
-      ],
-      'INC-2025-022': [
-        { id: 'evt-201', type: 'event', icon: '⚡️', title: 'Incidente creado', detail: 'Manifestación no autorizada', timestamp: '07:45' },
-        { id: 'evt-202', type: 'event', icon: '👮', title: 'Agente D. Suárez asignado', detail: 'Camioneta • 5.3 km', timestamp: '07:47' },
-        { id: 'msg-201', type: 'message', from: 'operator', name: 'Operadora Elena', role: 'CAD', text: 'Recordatorio: documentar aforo y bloqueos.', timestamp: '07:51' },
-        { id: 'msg-202', type: 'message', from: 'agent', name: 'D. Suárez', role: 'Jefe de patrulla', text: 'Grupo de 50 personas, sin disturbios. Envío video corto.', timestamp: '07:53', attachments: [{ type: 'video', name: 'Manifestacion_022.mp4' }] }
-      ],
-      'INC-2025-027': [
-        { id: 'evt-301', type: 'event', icon: '⚡️', title: 'Incidente creado', detail: 'Corte de electricidad sector Los Álamos', timestamp: '06:05' },
-        { id: 'msg-301', type: 'message', from: 'operator', name: 'Operador Luis', role: 'CAD', text: 'Se coordina con empresa eléctrica para restablecer servicio.', timestamp: '06:07' }
-      ]
-    };
-    let chatFilterTerm = '';
-    let chatAutoScroll = true;
-    const chatStreamEl = byId('chatStream');
-    const chatTimelineEl = byId('chatTimeline');
-    const chatIncidentLabelEl = byId('chatIncidentLabel');
-    const chatSearchInput = byId('chatSearchInput');
-    const chatComposerInput = byId('chatComposerInput');
-    const chatSendButton = byId('chatSendButton');
-    const chatScrollCta = byId('chatScrollCta');
-    const chatGoBottomBtn = byId('chatGoBottom');
-    const chatDayPillEl = byId('chatDayPill');
-    const chatKpiRefs = {
-      mensajes: byId('chatKpiMensajes'),
-      eventos: byId('chatKpiEventos'),
-      archivos: byId('chatKpiArchivos'),
-      agentes: byId('chatKpiAgentes')
-    };
 
-    try {
-      if (byId('cg-id')) byId('cg-id').textContent = data.id;
-      if (byId('cg-title')) byId('cg-title').textContent = data.titulo;
-      if (byId('cg-estado')) byId('cg-estado').textContent = data.estado;
-      if (byId('cg-prioridad')) byId('cg-prioridad').textContent = data.prioridad || data.severidad || '—';
-      if (byId('cg-creacion')) byId('cg-creacion').textContent = data.fechaCreacion;
-      if (byId('cg-tiempo')) byId('cg-tiempo').textContent = data.tiempoTranscurrido;
-      if (byId('cg-sla-text')) byId('cg-sla-text').textContent = (data.slaPorcentaje ?? 0) + '%';
-      const estadoBtns = document.querySelectorAll('.estado-btn');
-      estadoBtns.forEach(btn => {
-        if (btn.dataset.state === data.estado) btn.classList.add('is-active');
-        else btn.classList.remove('is-active');
-      });
-      dibujarSlaPie(data.slaPorcentaje);
-      if (byId('cg-direccion')) byId('cg-direccion').textContent = data.direccion;
-      if (byId('cg-clasificacion')) byId('cg-clasificacion').textContent = data.clasificacion;
-      if (byId('cg-tipo')) byId('cg-tipo').textContent = data.tipo;
-      if (byId('cg-subtipo')) byId('cg-subtipo').textContent = data.subtipo;
-      if (byId('cg-desc')) byId('cg-desc').textContent = data.descripcion;
-
-      // Sections for agentes/personas/cámaras are managed in dedicated tabs; omitted here.
-      renderPersonasTab(data);
-      renderIncidentTabs();
-      renderAssignedAgents();
-      renderChatTimeline();
-    } catch(_) {}
-
-    function dibujarSlaPie(porcentaje){
-      var canvas = document.getElementById('cg-sla-pie');
-      if (!canvas || !canvas.getContext) return;
-      var ctx = canvas.getContext('2d');
-      var pct = Math.max(0, Math.min(100, Number(porcentaje) || 0)) / 100;
-      var cx = canvas.width / 2;
-      var cy = canvas.height / 2;
-      var radius = Math.min(canvas.width, canvas.height) / 2 - 4;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = '#3a3a3a';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, radius, -Math.PI / 2, (Math.PI * 2 * pct) - Math.PI / 2);
-      ctx.closePath();
-      ctx.fillStyle = '#ef4444';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius - 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#2b2b2b';
-      ctx.fill();
-    }
-
-    function renderPersonasTab(info){
-      var denSection = byId('denunciante-section');
-      if (!denSection) return;
-      var denunciante = info && info.denunciante;
-      if (denunciante) {
-        var dn = byId('denunciante-nombre');
-        var dt = byId('denunciante-telefono');
-        var dd = byId('denunciante-documento');
-        if (dn) dn.textContent = denunciante.nombre || '—';
-        if (dt) dt.textContent = denunciante.telefono || '—';
-        if (dd) dd.textContent = denunciante.documento || '—';
-        denSection.style.display = '';
-      } else {
-        denSection.style.display = 'none';
-      }
-    }
-
-    function formatTransportLabel(text){
-      if (!text) return '';
-      var upper = text.toString().trim().toUpperCase();
-      if (upper.startsWith('A ') || upper.startsWith('EN ')) return upper;
-      return 'EN ' + upper;
-    }
-
-    function renderIncidentTabs() {
-      var container = byId('incidentTabs');
-      var countEl = byId('ticketsCount');
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (countEl) {
-        countEl.textContent = incidentTabsData.length + ' ticket' + (incidentTabsData.length !== 1 ? 's' : '');
-      }
-
-      incidentTabsData.forEach(function(tab) {
-        var button = document.createElement('button');
-        button.type = 'button';
-
-        // Clases CIVIX
-        var isActive = tab.id === activeIncidentTab;
-        button.className = isActive
-          ? 'btn btn-accent'
-          : 'btn btn-default';
-
-        // Determinar badge según status
-        var badgeClass = 'badge cad-badge-baja'; // default: low
-        var badgeText = '●';
-        if (tab.status === 'critical') {
-          badgeClass = 'badge cad-badge-critica';
-        } else if (tab.status === 'high') {
-          badgeClass = 'badge cad-badge-alta';
-        } else if (tab.status === 'medium') {
-          badgeClass = 'badge cad-badge-media';
-        }
-
-        button.innerHTML =
-          '<div class="cad-tab" style="min-width: 180px; text-align: left;">' +
-            '<div  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
-              '<h5 style="margin: 0; font-size: 16px;">' + tab.id + '</h5>' +
-              '<span class="' + badgeClass + '" style="font-size: 14px; padding: 2px 6px;">' + badgeText + '</span>' +
-            '</div>' +
-            '<p class="m-t">' + tab.title + '</p>' +
-          '</div>';
-
-        button.addEventListener('click', function() {
-          activeIncidentTab = tab.id;
-          tab.unread = 0;
-          chatAutoScroll = true;
-          renderIncidentTabs();
-          renderChatTimeline();
-          updateTicketForm(tab.id);
-        });
-
-        container.appendChild(button);
-      });
-
-      updateChatIncidentContext();
-    }
-    
-    function updateChatIncidentContext(){
-      if (!chatIncidentLabelEl) return;
-      var active = incidentTabsData.find(function(tab){ return tab.id === activeIncidentTab; });
-      chatIncidentLabelEl.textContent = active ? (active.id + ' • ' + active.title) : '—';
-    }
-    
-    function getChatTimelineForIncident(incidentId){
-      if (!chatTimelineByIncident[incidentId]) chatTimelineByIncident[incidentId] = [];
-      return chatTimelineByIncident[incidentId];
-    }
-    
-    function formatChatTime(date){
-      return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
-    }
-    
-    function buildChatEvent(item){
-      var wrapper = document.createElement('div');
-      wrapper.className = 'chat-event';
-      var icon = document.createElement('div');
-      icon.className = 'event-icon';
-      icon.textContent = item.icon || '⚙️';
-      var body = document.createElement('div');
-      var title = document.createElement('div');
-      title.className = 'event-title';
-      title.textContent = item.title || 'Evento del sistema';
-      var detail = document.createElement('div');
-      detail.className = 'event-detail';
-      detail.textContent = item.detail || '';
-      var meta = document.createElement('div');
-      meta.className = 'event-meta';
-      meta.textContent = item.timestamp || formatChatTime(new Date());
-      body.appendChild(title);
-      if (item.detail) body.appendChild(detail);
-      body.appendChild(meta);
-      wrapper.appendChild(icon);
-      wrapper.appendChild(body);
-      return wrapper;
-    }
-    
-    function buildChatMessage(item){
-      var wrapper = document.createElement('div');
-      wrapper.className = 'chat-message ' + (item.from === 'operator' ? 'from-operator' : 'from-agent');
-      var author = document.createElement('div');
-      author.className = 'chat-message-author';
-      var authorName = document.createElement('span');
-      authorName.className = 'chat-message-name';
-      authorName.textContent = item.name || (item.from === 'operator' ? 'Operador CAD' : 'Agente de campo');
-      author.appendChild(authorName);
-      if (item.role){
-        var role = document.createElement('span');
-        role.className = 'chat-message-role';
-        role.textContent = item.role;
-        author.appendChild(role);
-      }
-      var text = document.createElement('div');
-      text.className = 'chat-message-text';
-      text.textContent = item.text || '';
-      wrapper.appendChild(author);
-      wrapper.appendChild(text);
-      if (item.attachments && item.attachments.length){
-        var attBox = document.createElement('div');
-        attBox.className = 'chat-attachments';
-        item.attachments.forEach(function(att){
-          var tag = document.createElement('div');
-          tag.className = 'chat-attachment';
-          var typeLabel = att.type ? att.type.toString().toUpperCase() : 'ARCHIVO';
-          tag.textContent = typeLabel + ' · ' + (att.name || 'Adjunto');
-          attBox.appendChild(tag);
-        });
-        wrapper.appendChild(attBox);
-      }
-      var meta = document.createElement('div');
-      meta.className = 'chat-message-meta';
-      meta.textContent = item.timestamp || formatChatTime(new Date());
-      wrapper.appendChild(meta);
-      return wrapper;
-    }
-    
-    function renderChatTimeline(){
-      if (!chatTimelineEl) return;
-      var items = getChatTimelineForIncident(activeIncidentTab);
-      var term = chatFilterTerm.trim().toLowerCase();
-      chatTimelineEl.innerHTML = '';
-      var hasVisible = false;
-      items.forEach(function(item){
-        var searchable = [
-          item.title || '',
-          item.detail || '',
-          item.text || '',
-          item.name || ''
-        ].join(' ').toLowerCase();
-        if (term && searchable.indexOf(term) === -1) return;
-        hasVisible = true;
-        chatTimelineEl.appendChild(item.type === 'event' ? buildChatEvent(item) : buildChatMessage(item));
-      });
-      if (!hasVisible){
-        var empty = document.createElement('div');
-        empty.className = 'chat-stream-empty';
-        empty.textContent = 'No hay actividad que coincida con el filtro.';
-        chatTimelineEl.appendChild(empty);
-      }
-      if (chatDayPillEl){
-        var now = new Date();
-        chatDayPillEl.textContent = 'Hoy · ' + now.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
-      }
-      updateChatKpis();
-      if (chatAutoScroll && chatStreamEl){
-        requestAnimationFrame(function(){
-          chatStreamEl.scrollTop = chatStreamEl.scrollHeight;
-          if (chatScrollCta) chatScrollCta.style.display = 'none';
-        });
-      } else if (chatScrollCta && chatStreamEl){
-        var nearBottom = chatStreamEl.scrollHeight - chatStreamEl.scrollTop - chatStreamEl.clientHeight < 40;
-        chatScrollCta.style.display = nearBottom ? 'none' : 'flex';
-      }
-    }
-    
-    function updateChatKpis(){
-      var timeline = getChatTimelineForIncident(activeIncidentTab);
-      var totalMensajes = timeline.filter(function(item){ return item.type === 'message'; }).length;
-      var totalEventos = timeline.filter(function(item){ return item.type === 'event'; }).length;
-      var totalArchivos = timeline.reduce(function(acc, item){
-        return acc + ((item.attachments && item.attachments.length) || 0);
-      }, 0);
-      if (chatKpiRefs.mensajes) chatKpiRefs.mensajes.textContent = totalMensajes;
-      if (chatKpiRefs.eventos) chatKpiRefs.eventos.textContent = totalEventos;
-      if (chatKpiRefs.archivos) chatKpiRefs.archivos.textContent = totalArchivos;
-      if (chatKpiRefs.agentes) chatKpiRefs.agentes.textContent = assignedAgents.length;
-    }
-    
-    function addChatEntry(incidentId, entry){
-      var timeline = getChatTimelineForIncident(incidentId);
-      timeline.push(entry);
-      if (incidentId === activeIncidentTab){
-        renderChatTimeline();
-      }
-    }
-    
-    function addChatMessage(incidentId, payload){
-      addChatEntry(incidentId, Object.assign({
-        id: 'msg-' + Date.now(),
-        type: 'message',
-        timestamp: formatChatTime(new Date())
-      }, payload));
-    }
-    
-    function addChatEvent(incidentId, payload){
-      addChatEntry(incidentId, Object.assign({
-        id: 'evt-' + Date.now(),
-        type: 'event',
-        timestamp: formatChatTime(new Date()),
-        icon: '⚙️'
-      }, payload));
-    }
-    
-    function handleChatSend(){
-      if (!chatComposerInput) return;
-      var message = chatComposerInput.value.trim();
-      if (!message) return;
-      chatComposerInput.value = '';
-      chatAutoScroll = true;
-      addChatMessage(activeIncidentTab, {
-        from: 'operator',
-        name: 'Operadora CAD',
-        role: 'CAD',
-        text: message
-      });
-      scheduleAgentResponse(activeIncidentTab);
-    }
-    
-    function scheduleAgentResponse(targetIncident){
-      if (!assignedAgents.length) return;
-      var replies = [
-        'Recibido, seguimos en el punto.',
-        'Coordinando con tránsito local.',
-        'Atención completada, pendientes de nueva indicación.'
-      ];
-      var responder = assignedAgents[Math.floor(Math.random() * assignedAgents.length)];
-      setTimeout(function(){
-        addChatMessage(targetIncident, {
-          from: 'agent',
-          name: responder.shortName,
-          role: responder.status || 'En campo',
-          text: replies[Math.floor(Math.random() * replies.length)]
-        });
-      }, 1500);
-    }
-
-    function renderAssignedAgents(){
-      var container = byId('assignedAgentsContainer');
-      if (!container) return;
-      container.innerHTML = '';
-      if (!assignedAgents.length) {
-        var empty = document.createElement('div');
-        empty.className = 'personas-empty';
-        empty.textContent = 'Sin agentes asignados.';
-        container.appendChild(empty);
-        updateChatKpis();
-        return;
-      }
-      assignedAgents.forEach(function(agent){
-        var tag = document.createElement('div');
-        tag.className = 'agent-tag';
-        var infoBlock = document.createElement('div');
-        infoBlock.className = 'agent-info-block';
-        var name = document.createElement('div');
-        name.className = 'agent-name';
-        name.textContent = agent.shortName;
-        var meta = document.createElement('div');
-        meta.className = 'agent-meta-chip';
-        var transportText = formatTransportLabel(agent.transporte || '');
-        var statusText = agent.status ? ' • ' + agent.status.toUpperCase() : '';
-        meta.textContent = (transportText + statusText).trim();
-        infoBlock.appendChild(name);
-        if (meta.textContent) infoBlock.appendChild(meta);
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'btn btn-default btn-rounded release-agent-btn';
-        btn.textContent = 'Liberar';
-        btn.addEventListener('click', function(){ releaseAgent(agent.shortName); });
-        tag.appendChild(infoBlock);
-        tag.appendChild(btn);
-        container.appendChild(tag);
-      });
-      updateChatKpis();
-    }
-
-    function releaseAgent(agentName){
-      var idx = assignedAgents.findIndex(function(agent){ return agent.shortName === agentName; });
-      if (idx === -1) return;
-      var removed = assignedAgents[idx];
-      assignedAgents.splice(idx, 1);
-      renderAssignedAgents();
-      renderAgentList(currentAgentSearchTerm.length > 0, currentAgentSearchTerm);
-      addChatEvent(activeIncidentTab, {
-        icon: '↩️',
-        title: 'Agente liberado',
-        detail: (removed ? removed.shortName : agentName) + ' salió del incidente.'
-      });
-    }
-
-    let currentAgentSearchTerm = '';
-    if (chatSearchInput){
-      chatSearchInput.addEventListener('input', function(evt){
-        chatFilterTerm = evt.target.value || '';
-        chatAutoScroll = true;
-        renderChatTimeline();
-      });
-    }
-    if (chatSendButton){
-      chatSendButton.addEventListener('click', handleChatSend);
-    }
-    if (chatComposerInput){
-      chatComposerInput.addEventListener('keydown', function(evt){
-        if (evt.key === 'Enter' && !evt.shiftKey){
-          evt.preventDefault();
-          handleChatSend();
-        }
-      });
-    }
-    if (chatStreamEl){
-      chatStreamEl.addEventListener('scroll', function(){
-        var nearBottom = chatStreamEl.scrollHeight - chatStreamEl.scrollTop - chatStreamEl.clientHeight < 40;
-        chatAutoScroll = nearBottom;
-        if (chatScrollCta) chatScrollCta.style.display = nearBottom ? 'none' : 'flex';
-      });
-    }
-    if (chatGoBottomBtn){
-      chatGoBottomBtn.addEventListener('click', function(){
-        chatAutoScroll = true;
-        if (chatStreamEl) chatStreamEl.scrollTo({ top: chatStreamEl.scrollHeight, behavior: 'smooth' });
-        if (chatScrollCta) chatScrollCta.style.display = 'none';
-      });
-    }
 
     function openAssignAgentModal(){
       var modal = byId('assignAgentModal');
@@ -3135,26 +2779,25 @@
       button.type = 'button';
 
       var isActive = ticket.id === ticketsState.activeTicketId;
-      button.className = isActive ? 'btn btn-accent' : 'btn btn-default';
+      button.className = isActive ? 'btn btn-accent ticket-tab' : 'btn btn-default ticket-tab';
 
-      // Badge según nivel de alerta
-      var badgeClass = 'badge cad-badge-baja';
-      var badgeText = '●';
+      // Determinar color del círculo según nivel de alerta
+      var circleClass = 'alert-circle alert-circle-baja';
       if (ticket.alertLevel === 'critica') {
-        badgeClass = 'badge cad-badge-critica';
+        circleClass = 'alert-circle alert-circle-critica';
       } else if (ticket.alertLevel === 'alta') {
-        badgeClass = 'badge cad-badge-alta';
+        circleClass = 'alert-circle alert-circle-alta';
       } else if (ticket.alertLevel === 'media') {
-        badgeClass = 'badge cad-badge-media';
+        circleClass = 'alert-circle alert-circle-media';
       }
 
-      // Obtener nombre del tipo de incidencia
+      // Obtener nombre del tipo de incidencia (sin emoji)
       var incidentTypeNames = {
-        'robo-vehiculo': '🚗 Robo de Vehículo',
-        'persona-sospechosa': '👤 Persona Sospechosa',
-        'persona-desaparecida': '🔍 Persona Desaparecida',
-        'vehiculo-sospechoso': '🚙 Vehículo Sospechoso',
-        'otra': '📋 Otra incidencia'
+        'robo-vehiculo': 'Robo de Vehículo',
+        'persona-sospechosa': 'Persona Sospechosa',
+        'persona-desaparecida': 'Persona Desaparecida',
+        'vehiculo-sospechoso': 'Vehículo Sospechoso',
+        'otra': 'Otra incidencia'
       };
       var incidentTypeName = incidentTypeNames[ticket.incidentType] || 'Sin tipo';
 
@@ -3163,20 +2806,19 @@
         button.classList.add('ticket-has-unread');
       }
 
+      // Badge de mensajes sin leer en esquina superior derecha
       var unreadBadge = '';
       if (ticket.unread > 0 && !isActive) {
-        unreadBadge = '<span class="badge badge-unread" style="margin-left: 8px; padding: 3px 8px; font-size: 11px; position: absolute; top: 8px; right: 8px;">' + ticket.unread + '</span>';
+        unreadBadge = '<span class="unread-badge">' + ticket.unread + '</span>';
       }
 
       button.innerHTML =
-        '<div class="cad-tab" style="min-width: 180px; text-align: left; position: relative;">' +
-          '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
-            '<h5 style="margin: 0; font-size: 16px;">' + ticket.id + '</h5>' +
-            '<span class="' + badgeClass + '" style="font-size: 14px; padding: 2px 6px;">' + badgeText + '</span>' +
-          '</div>' +
-          '<p class="m-t" style="margin-bottom: 0;">' + incidentTypeName + '</p>' +
-          unreadBadge +
-        '</div>';
+        unreadBadge +
+        '<div style="display: flex; align-items: center; margin-bottom: 4px;">' +
+          '<span class="' + circleClass + '"></span>' +
+          '<h5 style="margin: 0; font-size: 14px; font-weight: 600;">' + ticket.id + '</h5>' +
+        '</div>' +
+        '<p style="margin: 0; font-size: 12px; color: #9ca3af; padding-left: 20px;">' + incidentTypeName + '</p>';
 
       button.addEventListener('click', function() {
         selectTicket(ticket.id);
@@ -3297,9 +2939,19 @@
     var chatTimeline = document.getElementById('chatTimeline');
     var chatTicketId = document.getElementById('chatTicketId');
     var chatTicketStatus = document.getElementById('chatTicketStatus');
+    var chatAgentName = document.getElementById('chatAgentName');
 
     if (chatTicketId) chatTicketId.textContent = ticket.id;
     if (chatTicketStatus) chatTicketStatus.textContent = ticket.status;
+
+    // Actualizar nombre del agente
+    if (chatAgentName) {
+      if (ticket.assignedAgent) {
+        chatAgentName.textContent = ticket.assignedAgent;
+      } else {
+        chatAgentName.textContent = 'No asignado';
+      }
+    }
 
     if (!chatTimeline) return;
 
@@ -3339,12 +2991,10 @@
     var div = document.createElement('div');
     div.className = 'chat-event';
     div.innerHTML =
-      '<div class="event-icon">' + (event.icon || '⚡️') + '</div>' +
-      '<div style="flex: 1;">' +
-        '<div class="event-title">' + event.title + '</div>' +
-        '<div class="event-detail">' + event.detail + '</div>' +
-        '<div class="event-meta">' + event.timestamp + '</div>' +
-      '</div>';
+      '<span style="font-size: 14px;">' + (event.icon || '⚡️') + '</span>' +
+      '<span style="font-weight: 500; color: #d1d5db;">' + event.title + '</span>' +
+      '<span style="color: #6b7280;">•</span>' +
+      '<span style="color: #9ca3af; font-size: 11px;">' + event.timestamp + '</span>';
     return div;
   }
 
@@ -4161,7 +3811,7 @@
             from: 'operator',
             name: 'Operador',
             role: 'CAD',
-            text: 'Unidad Ramírez, favor dirigirse a Av. Principal 123. Robo de vehículo reportado hace 10 minutos.',
+            text: 'A todos las agentes, favor dirigirse a Av. Principal 123. Robo de vehículo reportado hace 10 minutos.',
             timestamp: '7:21'
           },
           {

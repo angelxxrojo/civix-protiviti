@@ -1,0 +1,1011 @@
+<div id="incidentes-supervisor-dashboard" class="civix-view">
+    <style>
+        /* Scoped styles for supervisor dashboard */
+        #incidentes-supervisor-dashboard {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+        }
+
+        #incidentes-supervisor-dashboard .dashboard-header {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        #incidentes-supervisor-dashboard .dashboard-title {
+            font-size: 1.8rem;
+            color: #FFFFFF;
+            margin: 0 0 5px 0;
+        }
+
+        #incidentes-supervisor-dashboard .dashboard-subtitle {
+            font-size: 0.9rem;
+            color: #a6adbb;
+            margin: 0;
+        }
+
+        /* Sección de operadores */
+        #incidentes-supervisor-dashboard .section {
+            margin-bottom: 30px;
+        }
+
+        #incidentes-supervisor-dashboard .section-title {
+            font-size: 1.3rem;
+            color: #FFFFFF;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #incidentes-supervisor-dashboard .section-title .badge {
+            background: #f67200;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Grid de operadores */
+        #incidentes-supervisor-dashboard .operators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        #incidentes-supervisor-dashboard .operator-card {
+            background: #1a1a1a;
+            border: 2px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        #incidentes-supervisor-dashboard .operator-card:hover {
+            border-color: #f67200;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(246, 114, 0, 0.2);
+        }
+
+        #incidentes-supervisor-dashboard .operator-card.active {
+            border-color: #f67200;
+            background: #252525;
+            box-shadow: 0 0 20px rgba(246, 114, 0, 0.3);
+        }
+
+        #incidentes-supervisor-dashboard .operator-card.ending-shift {
+            border-color: #ffc107;
+            animation: pulse-warning 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.6); }
+        }
+
+        #incidentes-supervisor-dashboard .operator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        #incidentes-supervisor-dashboard .operator-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin: 0;
+        }
+
+        #incidentes-supervisor-dashboard .operator-status {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        #incidentes-supervisor-dashboard .operator-status.active {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid #28a745;
+        }
+
+        #incidentes-supervisor-dashboard .operator-status.ending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        #incidentes-supervisor-dashboard .operator-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #incidentes-supervisor-dashboard .stat-item {
+            text-align: center;
+        }
+
+        #incidentes-supervisor-dashboard .stat-label {
+            font-size: 0.75rem;
+            color: #a6adbb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        #incidentes-supervisor-dashboard .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f67200;
+        }
+
+        /* Lista de tickets */
+        #incidentes-supervisor-dashboard .tickets-container {
+            background: #1a1a1a;
+            border: 2px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        #incidentes-supervisor-dashboard .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a6adbb;
+        }
+
+        #incidentes-supervisor-dashboard .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        #incidentes-supervisor-dashboard .empty-state p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        #incidentes-supervisor-dashboard .tickets-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-card {
+            background: #252525;
+            border: 2px solid #2a2a2a;
+            border-left: 4px solid #f67200;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-card:hover {
+            background: #2a2a2a;
+            transform: translateX(4px);
+        }
+
+        #incidentes-supervisor-dashboard .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-id {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #incidentes-supervisor-dashboard .priority-circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #incidentes-supervisor-dashboard .priority-critica {
+            background: #dc3545;
+            box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+        }
+
+        #incidentes-supervisor-dashboard .priority-alta {
+            background: #ff7a2f;
+            box-shadow: 0 0 8px rgba(255, 122, 47, 0.6);
+        }
+
+        #incidentes-supervisor-dashboard .priority-media {
+            background: #ffc107;
+            box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+        }
+
+        #incidentes-supervisor-dashboard .priority-baja {
+            background: #28a745;
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+        }
+
+        #incidentes-supervisor-dashboard .ticket-status {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-status.abierto {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-status.asignado {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-status.en-atencion {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-body {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-top: 12px;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        #incidentes-supervisor-dashboard .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #a6adbb;
+        }
+
+        #incidentes-supervisor-dashboard .info-row i {
+            color: #f67200;
+            width: 16px;
+        }
+
+        #incidentes-supervisor-dashboard .info-row strong {
+            color: #FFFFFF;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-time {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        #incidentes-supervisor-dashboard .time-label {
+            font-size: 0.7rem;
+            color: #a6adbb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        #incidentes-supervisor-dashboard .time-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #f67200;
+        }
+
+        /* Buscador de operadores */
+        #incidentes-supervisor-dashboard .search-box {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        #incidentes-supervisor-dashboard .search-input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            background: #1a1a1a;
+            border: 2px solid #2a2a2a;
+            border-radius: 8px;
+            color: #FFFFFF;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        #incidentes-supervisor-dashboard .search-input:focus {
+            outline: none;
+            border-color: #f67200;
+            box-shadow: 0 0 0 3px rgba(246, 114, 0, 0.1);
+        }
+
+        #incidentes-supervisor-dashboard .search-input::placeholder {
+            color: #6b7280;
+        }
+
+        #incidentes-supervisor-dashboard .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            pointer-events: none;
+        }
+
+        /* Checkbox circular para selección de tickets */
+        .ticket-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #666;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .ticket-checkbox:checked {
+            border-color: #f67200;
+            background: #f67200;
+        }
+
+        .ticket-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ticket-card.selected {
+            border-left-color: #f67200;
+            background: rgba(246, 114, 0, 0.05);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #incidentes-supervisor-dashboard .operators-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #incidentes-supervisor-dashboard .ticket-body {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Dashboard del Supervisor</h1>
+        <p class="dashboard-subtitle">Sistema de Gestión de Incidentes - Monitoreo en Tiempo Real</p>
+    </div>
+
+    <!-- Sección de Operadores -->
+    <div class="section">
+        <h2 class="section-title">
+            <i class="pe-7s-users" aria-hidden="true"></i>
+            Operadores Activos
+            <span class="badge" id="operatorsCount">0</span>
+        </h2>
+        <div class="search-box">
+            <input
+                type="text"
+                id="operatorSearch"
+                class="search-input"
+                placeholder="Buscar operador por nombre..."
+            />
+            <i class="pe-7s-search search-icon" aria-hidden="true"></i>
+        </div>
+        <div class="operators-grid" id="operatorsGrid">
+            <!-- Los operadores se renderizan aquí con JS -->
+        </div>
+    </div>
+
+    <!-- Sección de Tickets del Operador Seleccionado -->
+    <div class="section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 class="section-title" style="margin-bottom: 0;">
+                <i class="pe-7s-note2" aria-hidden="true"></i>
+                Tickets del Operador
+                <span class="badge" id="ticketsCount">0</span>
+                <span id="selectedOperatorName" style="font-size: 0.9rem; color: #a6adbb; margin-left: 10px;"></span>
+            </h2>
+            <button
+                id="reassignSelectedBtn"
+                class="btn btn-accent"
+                style="display: none;"
+                onclick="window.supervisorDashboard.openReassignModal()"
+            >
+                <i class="pe-7s-repeat" aria-hidden="true"></i> Reasignar Seleccionados (<span id="selectedTicketsCount">0</span>)
+            </button>
+        </div>
+        <div class="tickets-container" id="ticketsContainer">
+            <div class="empty-state">
+                <i class="pe-7s-search" aria-hidden="true"></i>
+                <p>Selecciona un operador para ver sus tickets</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Reasignación (Bootstrap) -->
+    <div class="modal fade" id="reassignModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header text-left">
+                    <h4 class="modal-title mb-0">Reasignar Tickets</h4>
+                    <h7 class="mb-0" id="reassignModalSubtitle">Seleccione el operador destino</h7>
+                </div>
+                <div class="modal-body">
+                    <div id="reassignModalBody">
+                        <!-- El contenido se renderiza dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-accent btn-rounded" id="confirmReassignBtn" disabled onclick="window.supervisorDashboard.confirmReassignment()">
+                        Confirmar Reasignación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        // Datos de ejemplo (estos vendrían del backend en tiempo real)
+        let operatorsData = [
+            {
+                id: 'op1',
+                name: 'Operador Juan Pérez',
+                status: 'active',
+                ticketsCount: 3,
+                endingShift: false,
+                tickets: [
+                    {
+                        id: 'INC-2025-001',
+                        name: 'Robo de Vehículo',
+                        priority: 'critica',
+                        status: 'en-atencion',
+                        startTime: new Date(Date.now() - 45 * 60000), // 45 min ago
+                        assignedAgent: 'Agente Ramírez'
+                    },
+                    {
+                        id: 'INC-2025-005',
+                        name: 'Persona Sospechosa',
+                        priority: 'media',
+                        status: 'asignado',
+                        startTime: new Date(Date.now() - 20 * 60000), // 20 min ago
+                        assignedAgent: 'Agente Torres'
+                    },
+                    {
+                        id: 'INC-2025-008',
+                        name: 'Vehículo Sospechoso',
+                        priority: 'alta',
+                        status: 'abierto',
+                        startTime: new Date(Date.now() - 10 * 60000), // 10 min ago
+                        assignedAgent: null
+                    },
+                    {
+                        id: 'INC-2025-011',
+                        name: 'Persona Desaparecida',
+                        priority: 'alta',
+                        status: 'cerrado',
+                        startTime: new Date(Date.now() - 120 * 60000), // 2 hours ago
+                        assignedAgent: 'Agente Ramírez'
+                    }
+                ]
+            },
+            {
+                id: 'op2',
+                name: 'Operadora María González',
+                status: 'active',
+                ticketsCount: 2,
+                endingShift: true,
+                tickets: [
+                    {
+                        id: 'INC-2025-003',
+                        name: 'Persona Desaparecida',
+                        priority: 'alta',
+                        status: 'en-atencion',
+                        startTime: new Date(Date.now() - 90 * 60000), // 1.5 hours ago
+                        assignedAgent: 'Agente Vega'
+                    },
+                    {
+                        id: 'INC-2025-007',
+                        name: 'Robo de Vehículo',
+                        priority: 'critica',
+                        status: 'asignado',
+                        startTime: new Date(Date.now() - 5 * 60000), // 5 min ago
+                        assignedAgent: 'Agente López'
+                    }
+                ]
+            },
+            {
+                id: 'op3',
+                name: 'Operador Carlos Ruiz',
+                status: 'active',
+                ticketsCount: 5,
+                endingShift: false,
+                tickets: [
+                    {
+                        id: 'INC-2025-002',
+                        name: 'Persona Requisitoriada',
+                        priority: 'alta',
+                        status: 'en-atencion',
+                        startTime: new Date(Date.now() - 120 * 60000), // 2 hours ago
+                        assignedAgent: 'Agente García'
+                    },
+                    {
+                        id: 'INC-2025-004',
+                        name: 'Otra Incidencia',
+                        priority: 'baja',
+                        status: 'abierto',
+                        startTime: new Date(Date.now() - 15 * 60000),
+                        assignedAgent: null
+                    },
+                    {
+                        id: 'INC-2025-006',
+                        name: 'Vehículo Sospechoso',
+                        priority: 'media',
+                        status: 'asignado',
+                        startTime: new Date(Date.now() - 30 * 60000),
+                        assignedAgent: 'Agente Martínez'
+                    },
+                    {
+                        id: 'INC-2025-009',
+                        name: 'Robo de Vehículo',
+                        priority: 'critica',
+                        status: 'en-atencion',
+                        startTime: new Date(Date.now() - 60 * 60000),
+                        assignedAgent: 'Agente Fernández'
+                    },
+                    {
+                        id: 'INC-2025-010',
+                        name: 'Persona Sospechosa',
+                        priority: 'alta',
+                        status: 'abierto',
+                        startTime: new Date(Date.now() - 8 * 60000),
+                        assignedAgent: null
+                    }
+                ]
+            },
+            {
+                id: 'op4',
+                name: 'Operadora Ana López',
+                status: 'active',
+                ticketsCount: 0,
+                endingShift: false,
+                tickets: []
+            }
+        ];
+
+        let selectedOperatorId = null;
+        let operatorSearchTerm = '';
+        let selectedTickets = []; // Array de IDs de tickets seleccionados
+        let selectedOperatorForReassign = null;
+
+        // Función para calcular tiempo transcurrido
+        function getElapsedTime(startTime) {
+            const now = new Date();
+            const diff = now - startTime;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+
+            if (hours > 0) {
+                return hours + 'h ' + mins + 'm';
+            }
+            return mins + 'm';
+        }
+
+        // Función para renderizar operadores
+        function renderOperators() {
+            const grid = document.getElementById('operatorsGrid');
+            const countBadge = document.getElementById('operatorsCount');
+
+            if (!grid) return;
+
+            // Filtrar operadores por búsqueda
+            const filteredOperators = operatorsData.filter(function(operator) {
+                if (operatorSearchTerm.trim() === '') return true;
+                return operator.name.toLowerCase().includes(operatorSearchTerm.toLowerCase());
+            });
+
+            grid.innerHTML = '';
+            countBadge.textContent = filteredOperators.length;
+
+            if (filteredOperators.length === 0) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><i class="pe-7s-search" aria-hidden="true"></i><p>No se encontraron operadores</p></div>';
+                return;
+            }
+
+            filteredOperators.forEach(function(operator) {
+                const card = document.createElement('div');
+                card.className = 'operator-card';
+
+                if (operator.endingShift) {
+                    card.classList.add('ending-shift');
+                }
+
+                if (selectedOperatorId === operator.id) {
+                    card.classList.add('active');
+                }
+
+                const statusClass = operator.endingShift ? 'ending' : 'active';
+                const statusText = operator.endingShift ? 'Terminando' : 'Activo';
+
+                card.innerHTML =
+                    '<div class="operator-header">' +
+                        '<h3 class="operator-name">' + operator.name + '</h3>' +
+                        '<span class="operator-status ' + statusClass + '">' + statusText + '</span>' +
+                    '</div>' +
+                    '<div class="operator-stats">' +
+                        '<div class="stat-item">' +
+                            '<div class="stat-label">Tickets</div>' +
+                            '<div class="stat-value">' + operator.ticketsCount + '</div>' +
+                        '</div>' +
+                        '<div class="stat-item">' +
+                            '<div class="stat-label">Agentes</div>' +
+                            '<div class="stat-value">' + operator.tickets.filter(t => t.assignedAgent).length + '</div>' +
+                        '</div>' +
+                    '</div>';
+
+                card.addEventListener('click', function() {
+                    selectOperator(operator.id);
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Función para renderizar tickets del operador seleccionado
+        function renderTickets(operatorId) {
+            const container = document.getElementById('ticketsContainer');
+            const countBadge = document.getElementById('ticketsCount');
+            const operatorNameEl = document.getElementById('selectedOperatorName');
+
+            if (!container) return;
+
+            const operator = operatorsData.find(op => op.id === operatorId);
+
+            if (!operator) {
+                container.innerHTML =
+                    '<div class="empty-state">' +
+                        '<i class="pe-7s-search" aria-hidden="true"></i>' +
+                        '<p>Selecciona un operador para ver sus tickets</p>' +
+                    '</div>';
+                countBadge.textContent = '0';
+                operatorNameEl.textContent = '';
+                return;
+            }
+
+            // Filtrar tickets cerrados - solo mostrar abiertos, asignados o en atención
+            const activeTickets = operator.tickets.filter(function(ticket) {
+                return ticket.status !== 'cerrado';
+            });
+
+            operatorNameEl.textContent = '- ' + operator.name;
+            countBadge.textContent = activeTickets.length;
+
+            if (activeTickets.length === 0) {
+                container.innerHTML =
+                    '<div class="empty-state">' +
+                        '<i class="pe-7s-check" aria-hidden="true"></i>' +
+                        '<p>El operador no tiene tickets activos</p>' +
+                    '</div>';
+                return;
+            }
+
+            const ticketsList = document.createElement('div');
+            ticketsList.className = 'tickets-list';
+
+            activeTickets.forEach(function(ticket) {
+                const ticketCard = document.createElement('div');
+                ticketCard.className = 'ticket-card';
+
+                const priorityClass = 'priority-' + ticket.priority;
+                const statusClass = ticket.status;
+                const elapsedTime = getElapsedTime(ticket.startTime);
+
+                const statusText = {
+                    'abierto': 'Abierto',
+                    'asignado': 'Asignado',
+                    'en-atencion': 'En Atención'
+                }[ticket.status] || ticket.status;
+
+                // Verificar si el ticket está seleccionado
+                const isSelected = selectedTickets.includes(ticket.id);
+                if (isSelected) {
+                    ticketCard.classList.add('selected');
+                }
+
+                ticketCard.innerHTML =
+                    '<div class="ticket-header">' +
+                        '<div style="display: flex; align-items: center; gap: 10px;">' +
+                            '<input type="checkbox" class="ticket-checkbox" data-ticket-id="' + ticket.id + '" ' + (isSelected ? 'checked' : '') + '>' +
+                            '<div class="ticket-id">' +
+                                '<span class="priority-circle ' + priorityClass + '"></span>' +
+                                ticket.id +
+                            '</div>' +
+                        '</div>' +
+                        '<span class="ticket-status ' + statusClass + '">' + statusText + '</span>' +
+                    '</div>' +
+                    '<div class="ticket-body">' +
+                        '<div class="ticket-info">' +
+                            '<div class="info-row">' +
+                                '<i class="pe-7s-note" aria-hidden="true"></i>' +
+                                '<strong>' + ticket.name + '</strong>' +
+                            '</div>' +
+                            '<div class="info-row">' +
+                                '<i class="pe-7s-user" aria-hidden="true"></i>' +
+                                'Agente: ' + (ticket.assignedAgent || '<em>Sin asignar</em>') +
+                            '</div>' +
+                            '<div class="info-row">' +
+                                '<i class="pe-7s-clock" aria-hidden="true"></i>' +
+                                'Inicio: ' + ticket.startTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="ticket-time">' +
+                            '<div class="time-label">Transcurrido</div>' +
+                            '<div class="time-value">' + elapsedTime + '</div>' +
+                        '</div>' +
+                    '</div>';
+
+                ticketsList.appendChild(ticketCard);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(ticketsList);
+
+            // Event delegation para checkboxes
+            ticketsList.addEventListener('change', function(e) {
+                if (e.target.classList.contains('ticket-checkbox')) {
+                    const ticketId = e.target.getAttribute('data-ticket-id');
+                    handleTicketSelection(ticketId, e.target.checked);
+                }
+            });
+        }
+
+        // Función para manejar selección/deselección de tickets
+        function handleTicketSelection(ticketId, isChecked) {
+            if (isChecked) {
+                // Agregar a seleccionados si no está
+                if (!selectedTickets.includes(ticketId)) {
+                    selectedTickets.push(ticketId);
+                }
+            } else {
+                // Remover de seleccionados
+                selectedTickets = selectedTickets.filter(function(id) {
+                    return id !== ticketId;
+                });
+            }
+
+            // Actualizar UI
+            updateReassignButton();
+            renderTickets(selectedOperatorId);
+        }
+
+        // Función para actualizar botón de reasignación
+        function updateReassignButton() {
+            const btn = document.getElementById('reassignSelectedBtn');
+            const countSpan = document.getElementById('selectedTicketsCount');
+
+            if (!btn || !countSpan) return;
+
+            if (selectedTickets.length > 0) {
+                btn.style.display = 'block';
+                countSpan.textContent = selectedTickets.length;
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        // Función para seleccionar operador
+        function selectOperator(operatorId) {
+            selectedOperatorId = operatorId;
+            selectedTickets = []; // Limpiar selección al cambiar de operador
+            renderOperators();
+            renderTickets(operatorId);
+            updateReassignButton();
+        }
+
+        // Función para abrir modal de reasignación
+        function openReassignModal() {
+            if (selectedTickets.length === 0 || !selectedOperatorId) return;
+
+            const fromOperator = operatorsData.find(op => op.id === selectedOperatorId);
+            if (!fromOperator) return;
+
+            // Resetear selección de operador
+            selectedOperatorForReassign = null;
+
+            const modalBody = document.getElementById('reassignModalBody');
+            const subtitle = document.getElementById('reassignModalSubtitle');
+            const confirmBtn = document.getElementById('confirmReassignBtn');
+
+            // Actualizar subtítulo
+            subtitle.textContent = 'Reasignando ' + selectedTickets.length + ' ticket(s) de ' + fromOperator.name;
+
+            // Obtener otros operadores (excepto el actual)
+            const otherOperators = operatorsData.filter(op => op.id !== selectedOperatorId);
+
+            let html = '';
+
+            // Mostrar tickets que se van a reasignar
+            html += '<div class="row"><div class="col-lg-12">';
+            html += '<div class="panel panel-filled panel-c-accent" style="border-radius: 15px; margin-bottom: 20px;">';
+            html += '<div class="panel-heading"><h5>TICKETS A REASIGNAR</h5></div>';
+            html += '<div class="panel-body" style="max-height: 200px; overflow-y: auto;">';
+
+            selectedTickets.forEach(function(ticketId) {
+                const ticket = fromOperator.tickets.find(t => t.id === ticketId);
+                if (ticket) {
+                    html += '<div style="padding: 8px 12px; border-bottom: 1px solid #2a2a2a; display: flex; justify-content: space-between;">';
+                    html += '<span style="font-weight: 600;">' + ticket.id + '</span>';
+                    html += '<span style="color: #a6adbb;">' + ticket.name + '</span>';
+                    html += '</div>';
+                }
+            });
+
+            html += '</div></div></div></div>';
+
+            // Mostrar dropdown de operadores destino
+            html += '<div class="row"><div class="col-lg-12">';
+            html += '<div class="panel panel-filled panel-c-accent" style="border-radius: 15px;">';
+            html += '<div class="panel-heading"><h5>SELECCIONAR OPERADOR DESTINO</h5></div>';
+            html += '<div class="panel-body">';
+            html += '<div class="form-group">';
+            html += '<label>Operador *</label>';
+            html += '<select id="operatorDestinationSelect" class="form-control rounded-input">';
+            html += '<option value="">Seleccione un operador</option>';
+
+            otherOperators.forEach(function(operator) {
+                const activeTicketsCount = operator.tickets.filter(t => t.status !== 'cerrado').length;
+                html += '<option value="' + operator.id + '">' + operator.name + ' (' + activeTicketsCount + ' tickets activos)</option>';
+            });
+
+            html += '</select>';
+            html += '</div>';
+            html += '</div></div></div></div>';
+
+            modalBody.innerHTML = html;
+
+            // Deshabilitar botón de confirmar
+            confirmBtn.disabled = true;
+
+            // Event listener para el select
+            const selectElement = document.getElementById('operatorDestinationSelect');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    const selectedValue = this.value;
+                    if (selectedValue) {
+                        selectedOperatorForReassign = selectedValue;
+                        confirmBtn.disabled = false;
+                    } else {
+                        selectedOperatorForReassign = null;
+                        confirmBtn.disabled = true;
+                    }
+                });
+            }
+
+            // Abrir modal con Bootstrap
+            if (window.$ && typeof window.$('#reassignModal').modal === 'function') {
+                window.$('#reassignModal').modal('show');
+            }
+        }
+
+        // Función para confirmar reasignación
+        function confirmReassignment() {
+            if (!selectedOperatorForReassign || selectedTickets.length === 0 || !selectedOperatorId) return;
+
+            const fromOperator = operatorsData.find(op => op.id === selectedOperatorId);
+            const toOperator = operatorsData.find(op => op.id === selectedOperatorForReassign);
+
+            if (!fromOperator || !toOperator) return;
+
+            let movedCount = 0;
+
+            // Reasignar cada ticket seleccionado
+            selectedTickets.forEach(function(ticketId) {
+                const ticketIndex = fromOperator.tickets.findIndex(t => t.id === ticketId);
+                if (ticketIndex !== -1) {
+                    // Remover del operador origen
+                    const ticket = fromOperator.tickets.splice(ticketIndex, 1)[0];
+
+                    // Agregar al operador destino
+                    toOperator.tickets.push(ticket);
+
+                    movedCount++;
+                }
+            });
+
+            // Actualizar contadores
+            fromOperator.ticketsCount = fromOperator.tickets.filter(t => t.status !== 'cerrado').length;
+            toOperator.ticketsCount = toOperator.tickets.filter(t => t.status !== 'cerrado').length;
+
+            // Limpiar selección
+            selectedTickets = [];
+            selectedOperatorForReassign = null;
+
+            // Cerrar modal con Bootstrap
+            if (window.$ && typeof window.$('#reassignModal').modal === 'function') {
+                window.$('#reassignModal').modal('hide');
+            }
+
+            // Actualizar vistas
+            renderOperators();
+            renderTickets(selectedOperatorId);
+            updateReassignButton();
+
+            // Mostrar notificación
+            console.log(movedCount + ' ticket(s) reasignado(s) de ' + fromOperator.name + ' a ' + toOperator.name);
+        }
+
+        // Función para manejar búsqueda de operadores
+        function handleOperatorSearch(event) {
+            operatorSearchTerm = event.target.value;
+            renderOperators();
+        }
+
+        // Inicializar dashboard
+        function init() {
+            renderOperators();
+
+            // Event listener para búsqueda
+            const searchInput = document.getElementById('operatorSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', handleOperatorSearch);
+            }
+
+            // Actualizar tiempos cada minuto
+            setInterval(function() {
+                if (selectedOperatorId) {
+                    renderTickets(selectedOperatorId);
+                }
+            }, 60000); // 60 segundos
+        }
+
+        // Ejecutar al cargar
+        init();
+
+        // Exponer funciones globalmente si es necesario
+        window.supervisorDashboard = {
+            refresh: function() {
+                renderOperators();
+                if (selectedOperatorId) {
+                    renderTickets(selectedOperatorId);
+                }
+            },
+            updateData: function(newData) {
+                operatorsData = newData;
+                renderOperators();
+                if (selectedOperatorId) {
+                    renderTickets(selectedOperatorId);
+                }
+            },
+            openReassignModal: openReassignModal,
+            confirmReassignment: confirmReassignment
+        };
+    })();
+    </script>
+</div>

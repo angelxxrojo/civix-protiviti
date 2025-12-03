@@ -43,106 +43,143 @@
             color: white;
             padding: 4px 12px;
             border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 1.2rem;
             font-weight: 600;
         }
 
-        /* Grid de operadores */
-        #incidentes-supervisor-dashboard .operators-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
+        /* Grid vertical de operadores en columna */
+        #incidentes-supervisor-dashboard .operators-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            padding: 5px;
+            scrollbar-width: thin;
+            scrollbar-color: #666 #222;
         }
 
-        #incidentes-supervisor-dashboard .operator-card {
+        #incidentes-supervisor-dashboard .operators-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #incidentes-supervisor-dashboard .operators-list::-webkit-scrollbar-track {
+            background: #222;
+        }
+
+        #incidentes-supervisor-dashboard .operators-list::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 3px;
+        }
+
+        #incidentes-supervisor-dashboard .operator-item {
             background: #1a1a1a;
             border: 2px solid #2a2a2a;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 8px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             position: relative;
-        }
-
-        #incidentes-supervisor-dashboard .operator-card:hover {
-            border-color: #f67200;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(246, 114, 0, 0.2);
-        }
-
-        #incidentes-supervisor-dashboard .operator-card.active {
-            border-color: #f67200;
-            background: #252525;
-            box-shadow: 0 0 20px rgba(246, 114, 0, 0.3);
-        }
-
-        #incidentes-supervisor-dashboard .operator-card.ending-shift {
-            border-color: #ffc107;
-            animation: pulse-warning 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-warning {
-            0%, 100% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.3); }
-            50% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.6); }
-        }
-
-        #incidentes-supervisor-dashboard .operator-header {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #incidentes-supervisor-dashboard .operator-item:hover {
+            background: #252525;
+            border-color: #3a3a3a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #incidentes-supervisor-dashboard .operator-item.ending-shift {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        #incidentes-supervisor-dashboard .operator-item.ending-shift::before {
+            content: '⚠️';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 1.2rem;
+        }
+
+        #incidentes-supervisor-dashboard .operator-icon {
+            width: 40px;
+            height: 40px;
+            background: #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        #incidentes-supervisor-dashboard .operator-info {
+            flex: 1;
+            min-width: 0;
         }
 
         #incidentes-supervisor-dashboard .operator-name {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: #FFFFFF;
-            margin: 0;
+            margin-bottom: 3px;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        #incidentes-supervisor-dashboard .operator-status {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        #incidentes-supervisor-dashboard .operator-status.active {
-            background: rgba(40, 167, 69, 0.2);
-            color: #28a745;
-            border: 1px solid #28a745;
-        }
-
-        #incidentes-supervisor-dashboard .operator-status.ending {
-            background: rgba(255, 193, 7, 0.2);
-            color: #ffc107;
-            border: 1px solid #ffc107;
-        }
-
-        #incidentes-supervisor-dashboard .operator-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        #incidentes-supervisor-dashboard .stat-item {
-            text-align: center;
-        }
-
-        #incidentes-supervisor-dashboard .stat-label {
-            font-size: 0.75rem;
+        #incidentes-supervisor-dashboard .operator-meta {
+            font-size: 1rem;
             color: #a6adbb;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        #incidentes-supervisor-dashboard .stat-value {
-            font-size: 1.5rem;
+        #incidentes-supervisor-dashboard .ticket-count {
+            background: #f67200;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 1.2rem;
             font-weight: 700;
-            color: #f67200;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        #incidentes-supervisor-dashboard .ticket-count i {
+            font-size: 0.75rem;
+        }
+
+        #incidentes-supervisor-dashboard .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #incidentes-supervisor-dashboard .status-dot.active {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+        }
+
+        #incidentes-supervisor-dashboard .status-dot.ending {
+            background: #ffc107;
+            box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         /* Lista de tickets */
@@ -150,8 +187,24 @@
             background: #1a1a1a;
             border: 2px solid #2a2a2a;
             border-radius: 12px;
-            padding: 20px;
-            min-height: 400px;
+            padding: 15px;
+            max-height: calc(100vh - 400px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #666 #222;
+        }
+
+        #incidentes-supervisor-dashboard .tickets-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #incidentes-supervisor-dashboard .tickets-container::-webkit-scrollbar-track {
+            background: #222;
+        }
+
+        #incidentes-supervisor-dashboard .tickets-container::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 3px;
         }
 
         #incidentes-supervisor-dashboard .empty-state {
@@ -167,7 +220,7 @@
         }
 
         #incidentes-supervisor-dashboard .empty-state p {
-            font-size: 1.1rem;
+            font-size: 1.1.2rem;
             margin: 0;
         }
 
@@ -198,7 +251,7 @@
         }
 
         #incidentes-supervisor-dashboard .ticket-id {
-            font-size: 1rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: #FFFFFF;
             display: flex;
@@ -276,7 +329,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.85rem;
+            font-size: 1.2rem;
             color: #a6adbb;
         }
 
@@ -300,7 +353,7 @@
         }
 
         #incidentes-supervisor-dashboard .time-label {
-            font-size: 0.7rem;
+            font-size: 1rem;
             color: #a6adbb;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -326,7 +379,7 @@
             border: 2px solid #2a2a2a;
             border-radius: 8px;
             color: #FFFFFF;
-            font-size: 0.95rem;
+            font-size: 1.2rem;
             transition: all 0.3s ease;
         }
 
@@ -395,40 +448,63 @@
         }
     </style>
 
-    <div class="dashboard-header">
-        <h1 class="dashboard-title">Dashboard del Supervisor</h1>
-        <p class="dashboard-subtitle">Sistema de Gestión de Incidentes - Monitoreo en Tiempo Real</p>
-    </div>
+    <!-- Layout de 2 columnas -->
+    <div style="display: grid; grid-template-columns: 30% 70%; gap: 20px; height: calc(100vh - 200px);">
 
-    <!-- Sección de Operadores -->
-    <div class="section">
-        <h2 class="section-title">
-            <i class="pe-7s-users" aria-hidden="true"></i>
-            Operadores Activos
-            <span class="badge" id="operatorsCount">0</span>
-        </h2>
-        <div class="search-box">
-            <input
-                type="text"
-                id="operatorSearch"
-                class="search-input"
-                placeholder="Buscar operador por nombre..."
-            />
-            <i class="pe-7s-search search-icon" aria-hidden="true"></i>
-        </div>
-        <div class="operators-grid" id="operatorsGrid">
-            <!-- Los operadores se renderizan aquí con JS -->
-        </div>
-    </div>
+        <!-- COLUMNA IZQUIERDA: Operadores -->
+        <div class="section" style="margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 class="section-title" style="margin-bottom: 0;">
+                    <i class="pe-7s-users" aria-hidden="true"></i>
+                    Operadores en Turno
+                    <span class="badge" id="operatorsCount">0</span>
+                </h2>
+                <div class="search-box" style="margin-bottom: 0; max-width: 250px;">
+                    <input
+                        type="text"
+                        id="operatorSearch"
+                        class="search-input"
+                        placeholder="Buscar operador..."
+                    />
+                    <i class="pe-7s-search search-icon" aria-hidden="true"></i>
+                </div>
+            </div>
+            <!-- Filtros de operadores -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 2px solid #2a2a2a; padding-bottom: 8px;">
+                <button
+                    class="operator-filter-tab active"
+                    data-filter="all"
+                    style="background: none; border: none; color: #FFFFFF; font-size: 1.2rem; padding: 6px 12px; cursor: pointer; border-bottom: 2px solid #f67200; transition: all 0.3s;"
+                >
+                    Todos <span class="badge" style="background: #555; font-size: 1rem; padding: 2px 6px;" id="allOperatorsCount">0</span>
+                </button>
+                <button
+                    class="operator-filter-tab"
+                    data-filter="active"
+                    style="background: none; border: none; color: #a6adbb; font-size: 1.2rem; padding: 6px 12px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s;"
+                >
+                    Activos <span class="badge" style="background: #555; font-size: 1rem; padding: 2px 6px;" id="activeOperatorsCount">0</span>
+                </button>
+                <button
+                    class="operator-filter-tab"
+                    data-filter="ending"
+                    style="background: none; border: none; color: #a6adbb; font-size: 1.2rem; padding: 6px 12px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s;"
+                >
+                    Terminando <span class="badge" style="background: #555; font-size: 1rem; padding: 2px 6px;" id="endingOperatorsCount">0</span>
+                </button>
+            </div>
 
-    <!-- Sección de Tickets del Operador Seleccionado -->
-    <div class="section">
+            <div class="operators-list" id="operatorsList">
+                <!-- Los operadores se renderizan aquí con JS -->
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: Tickets -->
+        <div class="section" style="margin-bottom: 0;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 class="section-title" style="margin-bottom: 0;">
                 <i class="pe-7s-note2" aria-hidden="true"></i>
-                Tickets del Operador
-                <span class="badge" id="ticketsCount">0</span>
-                <span id="selectedOperatorName" style="font-size: 0.9rem; color: #a6adbb; margin-left: 10px;"></span>
+                Gestión de Tickets
             </h2>
             <button
                 id="reassignSelectedBtn"
@@ -439,11 +515,54 @@
                 <i class="pe-7s-repeat" aria-hidden="true"></i> Reasignar Seleccionados (<span id="selectedTicketsCount">0</span>)
             </button>
         </div>
+
+        <!-- Tabs de Tickets (dinámicos) -->
+        <div id="ticketTabsContainer" style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #2a2a2a; padding-bottom: 5px; overflow-x: auto; white-space: nowrap;">
+            <button
+                class="ticket-filter-tab active"
+                data-filter="all"
+                data-operator=""
+                style="background: none; border: none; color: #FFFFFF; font-size: 1.2rem; padding: 8px 16px; cursor: pointer; border-bottom: 3px solid #f67200; transition: all 0.3s;"
+            >
+                Todos <small><span class="badge" id="allTicketsCount">0</span></small>
+            </button>
+            <button
+                class="ticket-filter-tab"
+                data-filter="reassigned"
+                data-operator=""
+                style="background: none; border: none; color: #a6adbb; font-size: 1.2rem; padding: 8px 16px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;"
+            >
+                Reasignados <small><span class="badge" id="reassignedTicketsCount">0</span></small>
+            </button>
+            <button
+                class="ticket-filter-tab"
+                data-filter="not-reassigned"
+                data-operator=""
+                style="background: none; border: none; color: #a6adbb; font-size: 1.2rem; padding: 8px 16px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;"
+            >
+                No Reasignados <small><span class="badge" id="notReassignedTicketsCount">0</span></small>
+            </button>
+            <!-- Los tabs de operadores se agregarán aquí dinámicamente -->
+        </div>
+
+        <!-- Buscador de tickets -->
+        <div class="search-box" style="margin-bottom: 15px;">
+            <input
+                type="text"
+                id="ticketSearch"
+                class="search-input"
+                placeholder="Buscar ticket por ID, tipo o agente..."
+            />
+            <i class="pe-7s-search search-icon" aria-hidden="true"></i>
+        </div>
+
         <div class="tickets-container" id="ticketsContainer">
             <div class="empty-state">
-                <i class="pe-7s-search" aria-hidden="true"></i>
-                <p>Selecciona un operador para ver sus tickets</p>
+                <i class="pe-7s-note2" aria-hidden="true"></i>
+                <p>No hay tickets activos</p>
             </div>
+        </div>
+
         </div>
     </div>
 
@@ -476,7 +595,7 @@
         let operatorsData = [
             {
                 id: 'op1',
-                name: 'Operador Juan Pérez',
+                name: 'Juan Pérez',
                 status: 'active',
                 ticketsCount: 3,
                 endingShift: false,
@@ -517,7 +636,7 @@
             },
             {
                 id: 'op2',
-                name: 'Operadora María González',
+                name: 'María González',
                 status: 'active',
                 ticketsCount: 2,
                 endingShift: true,
@@ -542,7 +661,7 @@
             },
             {
                 id: 'op3',
-                name: 'Operador Carlos Ruiz',
+                name: 'Carlos Ruiz',
                 status: 'active',
                 ticketsCount: 5,
                 endingShift: false,
@@ -591,18 +710,182 @@
             },
             {
                 id: 'op4',
-                name: 'Operadora Ana López',
+                name: 'Ana López',
+                status: 'active',
+                ticketsCount: 1,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op5',
+                name: 'Pedro Martínez',
+                status: 'active',
+                ticketsCount: 4,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op6',
+                name: 'Laura Torres',
+                status: 'active',
+                ticketsCount: 2,
+                endingShift: true,
+                tickets: []
+            },
+            {
+                id: 'op7',
+                name: 'Diego Ramírez',
+                status: 'active',
+                ticketsCount: 3,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op8',
+                name: 'Carmen Silva',
                 status: 'active',
                 ticketsCount: 0,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op9',
+                name: 'Roberto Vega',
+                status: 'active',
+                ticketsCount: 6,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op10',
+                name: 'Isabel Castro',
+                status: 'active',
+                ticketsCount: 2,
+                endingShift: true,
+                tickets: []
+            },
+            {
+                id: 'op11',
+                name: 'Miguel Flores',
+                status: 'active',
+                ticketsCount: 3,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op12',
+                name: 'Patricia Rojas',
+                status: 'active',
+                ticketsCount: 1,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op13',
+                name: 'Fernando Díaz',
+                status: 'active',
+                ticketsCount: 5,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op14',
+                name: 'Sofía Mendoza',
+                status: 'active',
+                ticketsCount: 2,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op15',
+                name: 'Andrés Herrera',
+                status: 'active',
+                ticketsCount: 4,
+                endingShift: true,
+                tickets: []
+            },
+            {
+                id: 'op16',
+                name: 'Valentina Ortiz',
+                status: 'active',
+                ticketsCount: 3,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op17',
+                name: 'Ricardo Núñez',
+                status: 'active',
+                ticketsCount: 2,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op18',
+                name: 'Elena Vargas',
+                status: 'active',
+                ticketsCount: 1,
+                endingShift: true,
+                tickets: []
+            },
+            {
+                id: 'op19',
+                name: 'Javier Morales',
+                status: 'active',
+                ticketsCount: 5,
+                endingShift: false,
+                tickets: []
+            },
+            {
+                id: 'op20',
+                name: 'Lucía Reyes',
+                status: 'active',
+                ticketsCount: 3,
                 endingShift: false,
                 tickets: []
             }
         ];
 
-        let selectedOperatorId = null;
+        // Generar 50 tickets distribuidos entre operadores
+        (function generateTickets() {
+            const ticketTypes = ['Robo de Vehículo', 'Persona Sospechosa', 'Persona Desaparecida', 'Vehículo Sospechoso', 'Otra Incidencia', 'Accidente de Tránsito', 'Disturbios', 'Incendio'];
+            const priorities = ['critica', 'alta', 'media', 'baja'];
+            const statuses = ['abierto', 'asignado', 'en-atencion'];
+            const agents = ['Agente Ramírez', 'Agente Vega', 'Agente Torres', 'Agente López', 'Agente García', 'Agente Martínez', 'Agente Fernández', 'Agente Castro', 'Agente Silva', null];
+
+            let ticketCounter = 1;
+
+            operatorsData.forEach(function(operator) {
+                const numTickets = operator.ticketsCount;
+                operator.tickets = [];
+
+                for (let i = 0; i < numTickets; i++) {
+                    const ticketId = 'INC-2025-' + String(ticketCounter).padStart(3, '0');
+                    const randomMinutes = Math.floor(Math.random() * 180); // Random 0-180 minutos
+
+                    operator.tickets.push({
+                        id: ticketId,
+                        name: ticketTypes[Math.floor(Math.random() * ticketTypes.length)],
+                        priority: priorities[Math.floor(Math.random() * priorities.length)],
+                        status: statuses[Math.floor(Math.random() * statuses.length)],
+                        startTime: new Date(Date.now() - randomMinutes * 60000),
+                        assignedAgent: agents[Math.floor(Math.random() * agents.length)]
+                    });
+
+                    ticketCounter++;
+                }
+            });
+        })();
+
         let operatorSearchTerm = '';
+        let operatorFilter = 'all'; // Filtro de operadores: 'all', 'active', 'ending'
         let selectedTickets = []; // Array de IDs de tickets seleccionados
         let selectedOperatorForReassign = null;
+        let reassignmentHistory = []; // Historial de reasignaciones del día
+        let ticketFilter = 'all'; // Filtro de tickets: 'all', 'reassigned', 'not-reassigned'
+        let activeOperatorTab = null; // ID del operador del tab activo (null = vista general)
+        let openOperatorTabs = []; // Array de IDs de operadores con tabs abiertos
+        let ticketSearchTerm = ''; // Término de búsqueda de tickets
 
         // Función para calcular tiempo transcurrido
         function getElapsedTime(startTime) {
@@ -620,98 +903,262 @@
 
         // Función para renderizar operadores
         function renderOperators() {
-            const grid = document.getElementById('operatorsGrid');
+            const list = document.getElementById('operatorsList');
             const countBadge = document.getElementById('operatorsCount');
 
-            if (!grid) return;
+            if (!list) return;
 
-            // Filtrar operadores por búsqueda
-            const filteredOperators = operatorsData.filter(function(operator) {
-                if (operatorSearchTerm.trim() === '') return true;
-                return operator.name.toLowerCase().includes(operatorSearchTerm.toLowerCase());
+            // Filtrar operadores por búsqueda y filtro de estado
+            let filteredOperators = operatorsData.filter(function(operator) {
+                // Filtro de búsqueda
+                const matchesSearch = operatorSearchTerm.trim() === '' ||
+                    operator.name.toLowerCase().includes(operatorSearchTerm.toLowerCase());
+
+                // Filtro de estado
+                let matchesFilter = true;
+                if (operatorFilter === 'active') {
+                    matchesFilter = !operator.endingShift;
+                } else if (operatorFilter === 'ending') {
+                    matchesFilter = operator.endingShift;
+                }
+
+                return matchesSearch && matchesFilter;
             });
 
-            grid.innerHTML = '';
+            // Actualizar contadores
+            const allCount = operatorsData.length;
+            const activeCount = operatorsData.filter(op => !op.endingShift).length;
+            const endingCount = operatorsData.filter(op => op.endingShift).length;
+
+            document.getElementById('allOperatorsCount').textContent = allCount;
+            document.getElementById('activeOperatorsCount').textContent = activeCount;
+            document.getElementById('endingOperatorsCount').textContent = endingCount;
+
+            list.innerHTML = '';
             countBadge.textContent = filteredOperators.length;
 
             if (filteredOperators.length === 0) {
-                grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><i class="pe-7s-search" aria-hidden="true"></i><p>No se encontraron operadores</p></div>';
+                list.innerHTML = '<div class="empty-state"><i class="pe-7s-search" aria-hidden="true"></i><p>No se encontraron operadores</p></div>';
                 return;
             }
 
             filteredOperators.forEach(function(operator) {
-                const card = document.createElement('div');
-                card.className = 'operator-card';
+                const item = document.createElement('div');
+                item.className = 'operator-item';
 
                 if (operator.endingShift) {
-                    card.classList.add('ending-shift');
+                    item.classList.add('ending-shift');
                 }
 
-                if (selectedOperatorId === operator.id) {
-                    card.classList.add('active');
-                }
+                const statusDotClass = operator.endingShift ? 'ending' : 'active';
+                const statusText = operator.endingShift ? 'Turno terminando' : 'Activo';
 
-                const statusClass = operator.endingShift ? 'ending' : 'active';
-                const statusText = operator.endingShift ? 'Terminando' : 'Activo';
-
-                card.innerHTML =
-                    '<div class="operator-header">' +
-                        '<h3 class="operator-name">' + operator.name + '</h3>' +
-                        '<span class="operator-status ' + statusClass + '">' + statusText + '</span>' +
+                item.innerHTML =
+                    '<div class="operator-icon">' +
+                        '👤' +
+                        '<span class="status-dot ' + statusDotClass + '" style="position: absolute; bottom: 2px; right: 2px;"></span>' +
                     '</div>' +
-                    '<div class="operator-stats">' +
-                        '<div class="stat-item">' +
-                            '<div class="stat-label">Tickets</div>' +
-                            '<div class="stat-value">' + operator.ticketsCount + '</div>' +
+                    '<div class="operator-info">' +
+                        '<div class="operator-name" title="' + operator.name + '">' + operator.name + '</div>' +
+                        '<div class="operator-meta">' +
+                            '<span class="status-dot ' + statusDotClass + '"></span>' +
+                            statusText +
                         '</div>' +
-                        '<div class="stat-item">' +
-                            '<div class="stat-label">Agentes</div>' +
-                            '<div class="stat-value">' + operator.tickets.filter(t => t.assignedAgent).length + '</div>' +
-                        '</div>' +
+                    '</div>' +
+                    '<div class="ticket-count">' +
+                        '<i class="pe-7s-note2" aria-hidden="true"></i>' +
+                        operator.ticketsCount +
                     '</div>';
 
-                card.addEventListener('click', function() {
-                    selectOperator(operator.id);
+                // Click en operador para abrir su tab
+                item.addEventListener('click', function() {
+                    openOperatorTab(operator.id, operator.name);
                 });
 
-                grid.appendChild(card);
+                list.appendChild(item);
             });
         }
 
-        // Función para renderizar tickets del operador seleccionado
-        function renderTickets(operatorId) {
-            const container = document.getElementById('ticketsContainer');
-            const countBadge = document.getElementById('ticketsCount');
-            const operatorNameEl = document.getElementById('selectedOperatorName');
-
-            if (!container) return;
-
-            const operator = operatorsData.find(op => op.id === operatorId);
-
-            if (!operator) {
-                container.innerHTML =
-                    '<div class="empty-state">' +
-                        '<i class="pe-7s-search" aria-hidden="true"></i>' +
-                        '<p>Selecciona un operador para ver sus tickets</p>' +
-                    '</div>';
-                countBadge.textContent = '0';
-                operatorNameEl.textContent = '';
+        // Función para abrir tab de operador
+        function openOperatorTab(operatorId, operatorName) {
+            // Si ya está abierto, solo activarlo
+            if (openOperatorTabs.includes(operatorId)) {
+                activeOperatorTab = operatorId;
+                updateTicketTabs();
+                renderTickets();
                 return;
             }
 
-            // Filtrar tickets cerrados - solo mostrar abiertos, asignados o en atención
-            const activeTickets = operator.tickets.filter(function(ticket) {
+            // Agregar a tabs abiertos
+            openOperatorTabs.push(operatorId);
+            activeOperatorTab = operatorId;
+
+            // Renderizar tabs y tickets
+            updateTicketTabs();
+            renderTickets();
+        }
+
+        // Función para cerrar tab de operador
+        function closeOperatorTab(operatorId) {
+            openOperatorTabs = openOperatorTabs.filter(id => id !== operatorId);
+
+            // Si cerramos el tab activo, volver a "Todos"
+            if (activeOperatorTab === operatorId) {
+                activeOperatorTab = null;
+                ticketFilter = 'all';
+            }
+
+            updateTicketTabs();
+            renderTickets();
+        }
+
+        // Función para actualizar los tabs de tickets
+        function updateTicketTabs() {
+            const container = document.getElementById('ticketTabsContainer');
+            if (!container) return;
+
+            // Mantener los tabs fijos (Todos, Reasignados, No Reasignados)
+            const fixedTabs = Array.from(container.querySelectorAll('[data-filter]'));
+
+            // Limpiar tabs de operadores
+            container.querySelectorAll('[data-operator]:not([data-operator=""])').forEach(tab => tab.remove());
+
+            // Agregar tabs de operadores abiertos
+            openOperatorTabs.forEach(function(operatorId) {
+                const operator = operatorsData.find(op => op.id === operatorId);
+                if (!operator) return;
+
+                const tab = document.createElement('button');
+                tab.className = 'ticket-filter-tab';
+                tab.setAttribute('data-operator', operatorId);
+                tab.setAttribute('data-filter', 'operator');
+
+                if (activeOperatorTab === operatorId) {
+                    tab.classList.add('active');
+                    tab.style.color = '#FFFFFF';
+                    tab.style.borderBottomColor = '#f67200';
+                } else {
+                    tab.style.color = '#a6adbb';
+                    tab.style.borderBottomColor = 'transparent';
+                }
+
+                tab.style.background = 'none';
+                tab.style.border = 'none';
+                tab.style.fontSize = '1.2rem';
+                tab.style.padding = '8px 16px';
+                tab.style.paddingRight = '8px';
+                tab.style.cursor = 'pointer';
+                tab.style.borderBottom = '3px solid';
+                tab.style.transition = 'all 0.3s';
+                tab.style.display = 'flex';
+                tab.style.alignItems = 'center';
+                tab.style.gap = '8px';
+
+                const ticketCount = operator.tickets.filter(t => t.status !== 'cerrado').length;
+
+                tab.innerHTML =
+                    '<span>👤 ' + operator.name + '</span>' +
+                    '<small><span class="badge">' + ticketCount + '</span></small>' +
+                    '<button onclick="event.stopPropagation(); window.supervisorDashboard.closeOperatorTab(\'' + operatorId + '\')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 4px; margin-left: 4px; font-size: 1.1.2rem;">×</button>';
+
+                tab.addEventListener('click', function() {
+                    activeOperatorTab = operatorId;
+                    ticketFilter = 'all'; // Reset filter when switching to operator tab
+                    updateTicketTabs();
+                    renderTickets();
+                });
+
+                container.appendChild(tab);
+            });
+
+            // Actualizar estado de tabs fijos
+            fixedTabs.forEach(function(tab) {
+                if (activeOperatorTab === null && tab.getAttribute('data-filter') === ticketFilter) {
+                    tab.classList.add('active');
+                    tab.style.color = '#FFFFFF';
+                    tab.style.borderBottomColor = '#f67200';
+                } else {
+                    tab.classList.remove('active');
+                    tab.style.color = '#a6adbb';
+                    tab.style.borderBottomColor = 'transparent';
+                }
+            });
+        }
+
+        // Función para renderizar todos los tickets
+        function renderTickets() {
+            const container = document.getElementById('ticketsContainer');
+            if (!container) return;
+
+            // Recopilar tickets según el tab activo
+            let allTickets = [];
+
+            if (activeOperatorTab) {
+                // Mostrar solo tickets del operador seleccionado
+                const operator = operatorsData.find(op => op.id === activeOperatorTab);
+                if (operator) {
+                    operator.tickets.forEach(function(ticket) {
+                        allTickets.push({
+                            ...ticket,
+                            operatorId: operator.id,
+                            operatorName: operator.name,
+                            isReassigned: reassignmentHistory.some(function(h) {
+                                return h.ticketId === ticket.id;
+                            })
+                        });
+                    });
+                }
+            } else {
+                // Mostrar todos los tickets
+                operatorsData.forEach(function(operator) {
+                    operator.tickets.forEach(function(ticket) {
+                        allTickets.push({
+                            ...ticket,
+                            operatorId: operator.id,
+                            operatorName: operator.name,
+                            isReassigned: reassignmentHistory.some(function(h) {
+                                return h.ticketId === ticket.id;
+                            })
+                        });
+                    });
+                });
+            }
+
+            // Filtrar tickets cerrados
+            allTickets = allTickets.filter(function(ticket) {
                 return ticket.status !== 'cerrado';
             });
 
-            operatorNameEl.textContent = '- ' + operator.name;
-            countBadge.textContent = activeTickets.length;
+            // Aplicar filtro de reasignación
+            if (ticketFilter === 'reassigned') {
+                allTickets = allTickets.filter(function(ticket) {
+                    return ticket.isReassigned;
+                });
+            } else if (ticketFilter === 'not-reassigned') {
+                allTickets = allTickets.filter(function(ticket) {
+                    return !ticket.isReassigned;
+                });
+            }
 
-            if (activeTickets.length === 0) {
+            // Aplicar búsqueda
+            if (ticketSearchTerm.trim() !== '') {
+                const searchLower = ticketSearchTerm.toLowerCase();
+                allTickets = allTickets.filter(function(ticket) {
+                    return ticket.id.toLowerCase().includes(searchLower) ||
+                           ticket.name.toLowerCase().includes(searchLower) ||
+                           (ticket.assignedAgent && ticket.assignedAgent.toLowerCase().includes(searchLower)) ||
+                           ticket.operatorName.toLowerCase().includes(searchLower);
+                });
+            }
+
+            // Actualizar contadores
+            updateTicketCounts(allTickets);
+
+            if (allTickets.length === 0) {
                 container.innerHTML =
                     '<div class="empty-state">' +
-                        '<i class="pe-7s-check" aria-hidden="true"></i>' +
-                        '<p>El operador no tiene tickets activos</p>' +
+                        '<i class="pe-7s-note2" aria-hidden="true"></i>' +
+                        '<p>No hay tickets que mostrar</p>' +
                     '</div>';
                 return;
             }
@@ -719,7 +1166,7 @@
             const ticketsList = document.createElement('div');
             ticketsList.className = 'tickets-list';
 
-            activeTickets.forEach(function(ticket) {
+            allTickets.forEach(function(ticket) {
                 const ticketCard = document.createElement('div');
                 ticketCard.className = 'ticket-card';
 
@@ -739,13 +1186,18 @@
                     ticketCard.classList.add('selected');
                 }
 
+                // Badge de reasignado
+                const reassignedBadge = ticket.isReassigned
+                    ? '<span style="background: #8b5cf6; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 8px; margin-left: 6px;">REASIGNADO</span>'
+                    : '';
+
                 ticketCard.innerHTML =
                     '<div class="ticket-header">' +
                         '<div style="display: flex; align-items: center; gap: 10px;">' +
                             '<input type="checkbox" class="ticket-checkbox" data-ticket-id="' + ticket.id + '" ' + (isSelected ? 'checked' : '') + '>' +
                             '<div class="ticket-id">' +
                                 '<span class="priority-circle ' + priorityClass + '"></span>' +
-                                ticket.id +
+                                ticket.id + reassignedBadge +
                             '</div>' +
                         '</div>' +
                         '<span class="ticket-status ' + statusClass + '">' + statusText + '</span>' +
@@ -757,6 +1209,10 @@
                                 '<strong>' + ticket.name + '</strong>' +
                             '</div>' +
                             '<div class="info-row">' +
+                                '<i class="pe-7s-id" aria-hidden="true"></i>' +
+                                'Operador: <strong>' + ticket.operatorName + '</strong>' +
+                            '</div>' +
+                            '<div class="info-row">' +
                                 '<i class="pe-7s-user" aria-hidden="true"></i>' +
                                 'Agente: ' + (ticket.assignedAgent || '<em>Sin asignar</em>') +
                             '</div>' +
@@ -766,7 +1222,7 @@
                             '</div>' +
                         '</div>' +
                         '<div class="ticket-time">' +
-                            '<div class="time-label">Transcurrido</div>' +
+                            '<div class="time-label"><small>TRANSCURRIDO</small></div>' +
                             '<div class="time-value">' + elapsedTime + '</div>' +
                         '</div>' +
                     '</div>';
@@ -786,6 +1242,29 @@
             });
         }
 
+        // Función para actualizar contadores de tickets
+        function updateTicketCounts(allTickets) {
+            // Todos los tickets activos
+            const totalTickets = allTickets.length;
+
+            // Tickets reasignados
+            const reassignedTickets = allTickets.filter(function(ticket) {
+                return ticket.isReassigned;
+            }).length;
+
+            // Tickets no reasignados
+            const notReassignedTickets = totalTickets - reassignedTickets;
+
+            // Actualizar badges
+            const allCount = document.getElementById('allTicketsCount');
+            const reassignedCount = document.getElementById('reassignedTicketsCount');
+            const notReassignedCount = document.getElementById('notReassignedTicketsCount');
+
+            if (allCount) allCount.textContent = totalTickets;
+            if (reassignedCount) reassignedCount.textContent = reassignedTickets;
+            if (notReassignedCount) notReassignedCount.textContent = notReassignedTickets;
+        }
+
         // Función para manejar selección/deselección de tickets
         function handleTicketSelection(ticketId, isChecked) {
             if (isChecked) {
@@ -802,7 +1281,7 @@
 
             // Actualizar UI
             updateReassignButton();
-            renderTickets(selectedOperatorId);
+            renderTickets();
         }
 
         // Función para actualizar botón de reasignación
@@ -820,21 +1299,9 @@
             }
         }
 
-        // Función para seleccionar operador
-        function selectOperator(operatorId) {
-            selectedOperatorId = operatorId;
-            selectedTickets = []; // Limpiar selección al cambiar de operador
-            renderOperators();
-            renderTickets(operatorId);
-            updateReassignButton();
-        }
-
         // Función para abrir modal de reasignación
         function openReassignModal() {
-            if (selectedTickets.length === 0 || !selectedOperatorId) return;
-
-            const fromOperator = operatorsData.find(op => op.id === selectedOperatorId);
-            if (!fromOperator) return;
+            if (selectedTickets.length === 0) return;
 
             // Resetear selección de operador
             selectedOperatorForReassign = null;
@@ -844,10 +1311,10 @@
             const confirmBtn = document.getElementById('confirmReassignBtn');
 
             // Actualizar subtítulo
-            subtitle.textContent = 'Reasignando ' + selectedTickets.length + ' ticket(s) de ' + fromOperator.name;
+            subtitle.textContent = 'Seleccione el operador destino para ' + selectedTickets.length + ' ticket(s)';
 
-            // Obtener otros operadores (excepto el actual)
-            const otherOperators = operatorsData.filter(op => op.id !== selectedOperatorId);
+            // Obtener todos los operadores
+            const availableOperators = operatorsData;
 
             let html = '';
 
@@ -858,11 +1325,21 @@
             html += '<div class="panel-body" style="max-height: 200px; overflow-y: auto;">';
 
             selectedTickets.forEach(function(ticketId) {
-                const ticket = fromOperator.tickets.find(t => t.id === ticketId);
-                if (ticket) {
+                // Buscar el ticket en todos los operadores
+                let foundTicket = null;
+                let foundOperator = null;
+                operatorsData.forEach(function(op) {
+                    const ticket = op.tickets.find(t => t.id === ticketId);
+                    if (ticket) {
+                        foundTicket = ticket;
+                        foundOperator = op;
+                    }
+                });
+
+                if (foundTicket) {
                     html += '<div style="padding: 8px 12px; border-bottom: 1px solid #2a2a2a; display: flex; justify-content: space-between;">';
-                    html += '<span style="font-weight: 600;">' + ticket.id + '</span>';
-                    html += '<span style="color: #a6adbb;">' + ticket.name + '</span>';
+                    html += '<div><span style="font-weight: 600;">' + foundTicket.id + '</span> <small style="color: #8b5cf6;">(' + foundOperator.name + ')</small></div>';
+                    html += '<span style="color: #a6adbb;">' + foundTicket.name + '</span>';
                     html += '</div>';
                 }
             });
@@ -879,7 +1356,7 @@
             html += '<select id="operatorDestinationSelect" class="form-control rounded-input">';
             html += '<option value="">Seleccione un operador</option>';
 
-            otherOperators.forEach(function(operator) {
+            availableOperators.forEach(function(operator) {
                 const activeTicketsCount = operator.tickets.filter(t => t.status !== 'cerrado').length;
                 html += '<option value="' + operator.id + '">' + operator.name + ' (' + activeTicketsCount + ' tickets activos)</option>';
             });
@@ -916,31 +1393,46 @@
 
         // Función para confirmar reasignación
         function confirmReassignment() {
-            if (!selectedOperatorForReassign || selectedTickets.length === 0 || !selectedOperatorId) return;
+            if (!selectedOperatorForReassign || selectedTickets.length === 0) return;
 
-            const fromOperator = operatorsData.find(op => op.id === selectedOperatorId);
             const toOperator = operatorsData.find(op => op.id === selectedOperatorForReassign);
-
-            if (!fromOperator || !toOperator) return;
+            if (!toOperator) return;
 
             let movedCount = 0;
 
             // Reasignar cada ticket seleccionado
             selectedTickets.forEach(function(ticketId) {
-                const ticketIndex = fromOperator.tickets.findIndex(t => t.id === ticketId);
-                if (ticketIndex !== -1) {
-                    // Remover del operador origen
-                    const ticket = fromOperator.tickets.splice(ticketIndex, 1)[0];
+                // Buscar el ticket en todos los operadores
+                operatorsData.forEach(function(fromOperator) {
+                    const ticketIndex = fromOperator.tickets.findIndex(t => t.id === ticketId);
+                    if (ticketIndex !== -1) {
+                        // Remover del operador origen
+                        const ticket = fromOperator.tickets.splice(ticketIndex, 1)[0];
 
-                    // Agregar al operador destino
-                    toOperator.tickets.push(ticket);
+                        // Agregar al operador destino
+                        toOperator.tickets.push(ticket);
 
-                    movedCount++;
-                }
+                        // Agregar al historial de reasignaciones
+                        reassignmentHistory.push({
+                            ticketId: ticket.id,
+                            ticketName: ticket.name,
+                            priority: ticket.priority,
+                            status: ticket.status,
+                            fromOperator: fromOperator.name,
+                            toOperator: toOperator.name,
+                            reassignedAt: new Date(),
+                            assignedAgent: ticket.assignedAgent
+                        });
+
+                        // Actualizar contador del operador origen
+                        fromOperator.ticketsCount = fromOperator.tickets.filter(t => t.status !== 'cerrado').length;
+
+                        movedCount++;
+                    }
+                });
             });
 
-            // Actualizar contadores
-            fromOperator.ticketsCount = fromOperator.tickets.filter(t => t.status !== 'cerrado').length;
+            // Actualizar contador del operador destino
             toOperator.ticketsCount = toOperator.tickets.filter(t => t.status !== 'cerrado').length;
 
             // Limpiar selección
@@ -954,11 +1446,18 @@
 
             // Actualizar vistas
             renderOperators();
-            renderTickets(selectedOperatorId);
+            renderTickets();
             updateReassignButton();
+            updateReassignedCount();
 
             // Mostrar notificación
-            console.log(movedCount + ' ticket(s) reasignado(s) de ' + fromOperator.name + ' a ' + toOperator.name);
+            console.log(movedCount + ' ticket(s) reasignado(s) a ' + toOperator.name);
+        }
+
+        // Función para actualizar contador de tickets reasignados
+        function updateReassignedCount() {
+            // Esta función actualiza el badge de tickets reasignados en los filtros
+            // Se llama automáticamente cuando se actualiza renderTickets()
         }
 
         // Función para manejar búsqueda de operadores
@@ -967,21 +1466,93 @@
             renderOperators();
         }
 
+        // Función para manejar búsqueda de tickets
+        function handleTicketSearch(event) {
+            ticketSearchTerm = event.target.value;
+            renderTickets();
+        }
+
+        // Función para cambiar filtro de tickets
+        function switchTicketFilter(filter) {
+            ticketFilter = filter;
+
+            // Actualizar estilos de tabs
+            const tabs = document.querySelectorAll('.ticket-filter-tab');
+            tabs.forEach(function(tab) {
+                const tabFilter = tab.getAttribute('data-filter');
+                if (tabFilter === filter) {
+                    tab.style.color = '#FFFFFF';
+                    tab.style.borderBottomColor = '#f67200';
+                    tab.classList.add('active');
+                } else {
+                    tab.style.color = '#a6adbb';
+                    tab.style.borderBottomColor = 'transparent';
+                    tab.classList.remove('active');
+                }
+            });
+
+            // Limpiar selección de tickets al cambiar filtro
+            selectedTickets = [];
+            updateReassignButton();
+
+            // Renderizar tickets con nuevo filtro
+            renderTickets();
+        }
+
         // Inicializar dashboard
         function init() {
             renderOperators();
+            renderTickets(); // Renderizar tickets al inicio
+            updateReassignedCount();
 
-            // Event listener para búsqueda
+            // Event listener para búsqueda de operadores
             const searchInput = document.getElementById('operatorSearch');
             if (searchInput) {
                 searchInput.addEventListener('input', handleOperatorSearch);
             }
 
+            // Event listener para búsqueda de tickets
+            const ticketSearchInput = document.getElementById('ticketSearch');
+            if (ticketSearchInput) {
+                ticketSearchInput.addEventListener('input', handleTicketSearch);
+            }
+
+            // Event listeners para filtros de tickets
+            const filterTabs = document.querySelectorAll('.ticket-filter-tab');
+            filterTabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    switchTicketFilter(filter);
+                });
+            });
+
+            // Event listeners para filtros de operadores
+            const operatorFilterTabs = document.querySelectorAll('.operator-filter-tab');
+            operatorFilterTabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    operatorFilter = filter;
+
+                    // Actualizar estilos de tabs
+                    operatorFilterTabs.forEach(function(t) {
+                        if (t.getAttribute('data-filter') === filter) {
+                            t.classList.add('active');
+                            t.style.color = '#FFFFFF';
+                            t.style.borderBottomColor = '#f67200';
+                        } else {
+                            t.classList.remove('active');
+                            t.style.color = '#a6adbb';
+                            t.style.borderBottomColor = 'transparent';
+                        }
+                    });
+
+                    renderOperators();
+                });
+            });
+
             // Actualizar tiempos cada minuto
             setInterval(function() {
-                if (selectedOperatorId) {
-                    renderTickets(selectedOperatorId);
-                }
+                renderTickets();
             }, 60000); // 60 segundos
         }
 
@@ -1004,7 +1575,8 @@
                 }
             },
             openReassignModal: openReassignModal,
-            confirmReassignment: confirmReassignment
+            confirmReassignment: confirmReassignment,
+            closeOperatorTab: closeOperatorTab
         };
     })();
     </script>

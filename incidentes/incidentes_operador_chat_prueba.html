@@ -516,17 +516,6 @@
 
 <div class="row">
   <div class="col-md-12">
-    <div class="new-incident-wrapper " style="display:flex; justify-content:space-between; align-items:center;">
-      <div> </div>
-      <button class="btn btn-accent" id="addticket" type="button">
-        <i class="pe-7s-plus" aria-hidden="true"></i> Crear Ticket
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-12">
     <div class="">
       <div class="panel-heading">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -535,7 +524,8 @@
         </div>
       </div>
       <div class="panel-body" style="overflow-x: auto; white-space: nowrap;">
-        <div id="incidentTabs"></div>
+        <div id="incidentTabs">
+        </div>
       </div>
     </div>
   </div>
@@ -2701,6 +2691,232 @@
     tickets: []
   };
 
+  // Función para cargar incidencias desde la API
+  function loadIncidencesFromAPI() {
+    console.log('🔄 Cargando incidencias desde API...');
+
+    callAPI({
+      method: 'getincidences',
+      params: {
+        
+      },
+      ok: function(data) {
+        console.log('✅ Incidencias recibidas:', data);
+        console.log('📊 Total de incidencias:', data.length);
+
+        // Validar que data sea un array
+        if (!Array.isArray(data)) {
+          console.error('❌ Error: La respuesta no es un array:', data);
+          loadMockTickets();
+          return;
+        }
+
+        // Convertir incidencias a formato de tickets
+        ticketsState.tickets = data.map(function(incidence) {
+          return convertIncidenceToTicket(incidence);
+        });
+
+        console.log('🎫 Tickets convertidos:', ticketsState.tickets);
+
+        // Renderizar tickets en la UI
+        renderTicketTabs();
+
+        // Seleccionar el primer ticket si existe
+        if (ticketsState.tickets.length > 0) {
+          selectTicket(ticketsState.tickets[0].id);
+        }
+
+        showNotification('✅ ' + ticketsState.tickets.length + ' tickets cargados desde la base de datos', 'success');
+      },
+      error: function(error) {
+        console.error('❌ Error cargando incidencias:', error);
+        showNotification('⚠️ Error al cargar tickets. Usando datos de ejemplo.', 'warning');
+
+        // Cargar tickets de ejemplo si falla la API
+        loadMockTickets();
+      }
+    });
+  }
+
+  // Función para convertir incidencia de BD a formato de ticket del frontend
+  function convertIncidenceToTicket(incidence) {
+    // Calcular nivel de alerta basado en el tipo o clasificación
+    var alertLevel = 'media';
+    if (incidence.classification_name) {
+      var classification = incidence.classification_name.toLowerCase();
+      if (classification.includes('critic') || classification.includes('urgent')) {
+        alertLevel = 'critica';
+      } else if (classification.includes('alta') || classification.includes('high')) {
+        alertLevel = 'alta';
+      } else if (classification.includes('baja') || classification.includes('low')) {
+        alertLevel = 'baja';
+      }
+    }
+
+    // Mapear tipo de incidencia
+    var incidentType = 'otra';
+    if (incidence.type_name) {
+      var typeName = incidence.type_name.toLowerCase();
+      if (typeName.includes('robo') && typeName.includes('vehic')) {
+        incidentType = 'robo-vehiculo';
+      } else if (typeName.includes('persona') && typeName.includes('sospech')) {
+        incidentType = 'persona-sospechosa';
+      } else if (typeName.includes('persona') && typeName.includes('desaparec')) {
+        incidentType = 'persona-desaparecida';
+      } else if (typeName.includes('vehic') && typeName.includes('sospech')) {
+        incidentType = 'vehiculo-sospechoso';
+      }
+    }
+
+    return {
+      id: '#' + incidence.incidence_id,
+      alertLevel: alertLevel,
+      status: incidence.state_name || 'abierto',
+      created: incidence.created_at || incidence.incidence_date,
+      lastModified: incidence.updated_at || incidence.created_at,
+
+      // Datos del reportante
+      reporterName: incidence.complainant || 'Sin nombre',
+      reporterDNI: incidence.document_number || '',
+      reporterPhone: incidence.contact_number || '',
+      reporterEmail: '',
+      reporterRelation: 'victima',
+
+      // Tipo de incidencia
+      incidentType: incidentType,
+      classification: incidence.classification_name || '',
+      subtype: incidence.subtype_name || '',
+
+      // Ubicación
+      location: {
+        address: incidence.location || '',
+        district: '',
+        province: '',
+        reference: incidence.location_reference || '',
+        coordinates: incidence.latitude && incidence.longitude
+          ? incidence.latitude + ', ' + incidence.longitude
+          : '',
+        lat: incidence.latitude || null,
+        lon: incidence.longitude || null
+      },
+
+      // Descripción
+      description: incidence.description_incidence || '',
+
+      // Datos adicionales
+      operator: incidence.operator || '',
+      origin: incidence.origin_name || '',
+      unit: incidence.unit_name || '',
+
+      // Chat y agentes
+      chatMessages: [],
+      unreadCount: 0
+    };
+  }
+
+  // Función para cargar tickets de ejemplo (fallback)
+  function loadMockTickets() {
+    console.log('📦 Cargando tickets de ejemplo...');
+
+    ticketsState.tickets = [
+      {
+        id: '#3242',
+        alertLevel: 'alta',
+        status: 'abierto',
+        created: '2025-11-27 07:24:24',
+        lastModified: '2025-11-27 07:24:24',
+        reporterName: 'Juan Pérez García',
+        reporterDNI: '12345678',
+        reporterPhone: '55 9876 5432',
+        reporterEmail: 'juan@example.com',
+        reporterRelation: 'victima',
+        incidentType: 'robo-vehiculo',
+        classification: 'Seguridad Ciudadana',
+        subtype: 'Robo con violencia',
+        location: {
+          address: 'Av. Primavera 123, Santiago de Surco',
+          district: 'Santiago de Surco',
+          province: 'Lima',
+          reference: 'Frente al parque',
+          coordinates: '-12.1175, -76.9990',
+          lat: -12.1175,
+          lon: -76.9990
+        },
+        description: 'Robo de vehículo marca Toyota color rojo',
+        operator: 'Operadora Carla Q.',
+        origin: 'Llamada 105',
+        unit: 'Unidad Norte',
+        chatMessages: [],
+        unreadCount: 0
+      },
+      {
+        id: '#3243',
+        alertLevel: 'media',
+        status: 'en_atencion',
+        created: '2025-11-27 08:15:00',
+        lastModified: '2025-11-27 08:30:00',
+        reporterName: 'María López',
+        reporterDNI: '87654321',
+        reporterPhone: '55 1234 5678',
+        reporterEmail: '',
+        reporterRelation: 'testigo',
+        incidentType: 'persona-sospechosa',
+        classification: 'Seguridad Ciudadana',
+        subtype: 'Comportamiento extraño',
+        location: {
+          address: 'Jr. Los Olivos 456',
+          district: 'Lima',
+          province: 'Lima',
+          reference: 'Cerca del colegio',
+          coordinates: '-12.1185, -77.0000',
+          lat: -12.1185,
+          lon: -77.0000
+        },
+        description: 'Persona merodeando en zona residencial',
+        operator: 'Operador Luis',
+        origin: 'Aplicación móvil',
+        unit: 'Unidad Sur',
+        chatMessages: [],
+        unreadCount: 2
+      },
+      {
+        id: '#3244',
+        alertLevel: 'critica',
+        status: 'critico',
+        created: '2025-11-27 09:00:00',
+        lastModified: '2025-11-27 09:05:00',
+        reporterName: 'Carlos Gómez',
+        reporterDNI: '11223344',
+        reporterPhone: '55 9999 8888',
+        reporterEmail: '',
+        reporterRelation: 'victima',
+        incidentType: 'persona-desaparecida',
+        classification: 'Emergencia',
+        subtype: 'Menor de edad',
+        location: {
+          address: 'Av. Arequipa 789',
+          district: 'Lima',
+          province: 'Lima',
+          reference: 'Centro comercial',
+          coordinates: '-12.1150, -76.9980',
+          lat: -12.1150,
+          lon: -76.9980
+        },
+        description: 'Niña de 8 años desaparecida desde esta mañana',
+        operator: 'Operadora Elena',
+        origin: 'Llamada 105',
+        unit: 'Unidad Central',
+        chatMessages: [],
+        unreadCount: 5
+      }
+    ];
+
+    renderTicketTabs();
+    if (ticketsState.tickets.length > 0) {
+      selectTicket(ticketsState.tickets[0].id);
+    }
+  }
+
   // Función para generar un nuevo ID de ticket
   function generateTicketId() {
     var year = new Date().getFullYear();
@@ -2766,7 +2982,45 @@
 
     if (!container) return;
 
+    // Limpiar contenedor
     container.innerHTML = '';
+
+    // Crear botón de crear ticket con createElement para mantener event listeners
+    var addTicketBtn = document.createElement('button');
+    addTicketBtn.id = 'addticket';
+    addTicketBtn.type = 'button';
+    addTicketBtn.className = 'btn btn-warning';
+    addTicketBtn.style.cssText = 'align-items: center; gap: 8px; padding: 12px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease;';
+
+    var icon = document.createElement('i');
+    icon.className = 'pe-7s-plus';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.style.fontSize = '2.5rem';
+
+    var span = document.createElement('span');
+    span.textContent = '';
+
+    addTicketBtn.appendChild(icon);
+    addTicketBtn.appendChild(span);
+
+    // Efectos hover
+    addTicketBtn.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+    });
+    addTicketBtn.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = 'none';
+    });
+
+    // Asignar evento click para crear nuevo ticket
+    addTicketBtn.addEventListener('click', function() {
+      if (typeof window.$ !== 'undefined' && window.$('#newTicketModal').length) {
+        window.$('#newTicketModal').modal('show');
+      }
+    });
+
+    container.appendChild(addTicketBtn);
 
     // Actualizar contador
     if (countEl) {
@@ -3912,6 +4166,20 @@
       selectTicket(sampleTickets[0].id);
     }
   }
+
+  // Inicializar carga de tickets desde la API
+  // Se ejecuta automáticamente al cargar la página
+  (function initializeTickets() {
+    // Esperar a que el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        loadIncidencesFromAPI();
+      });
+    } else {
+      // El DOM ya está listo
+      loadIncidencesFromAPI();
+    }
+  })();
 
   // ============================================
   // FORMULARIO DINÁMICO SEGÚN TIPO DE INCIDENCIA

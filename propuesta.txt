@@ -1,0 +1,278 @@
+CIVIX
+Sistema de Gestión de Incidencias
+Documento de Arquitectura y Diseño de Base de Datos
+1. Visión General del Sistema
+CIVIX es una plataforma integral para la gestión, seguimiento y control de incidentes atendidos por operadores, agentes de campo y supervisores. El sistema centraliza la información de reportes, optimiza la atención de casos y asegura continuidad operativa durante todo el flujo de respuesta.
+1.1 Roles del Sistema
+•	Operador: Registra incidentes mediante formulario web, coordina con agentes vía chat, asigna tickets y gestiona el ciclo de vida de las incidencias.
+•	Agente de Campo: Recibe tickets vía Telegram, reporta actualizaciones (texto, fotos, videos, ubicación GPS), confirma resolución de incidentes.
+•	Supervisor: Monitorea operadores y agentes, visualiza métricas, reasigna tickets pendientes, gestiona turnos.
+1.2 Arquitectura de Tres Columnas (Operador)
+La interfaz del operador está estructurada en tres columnas principales:
+1.	Columna 1 - Formulario del Ticket: Crear/editar incidencias, datos del reportante, tipo de incidencia, ubicación, lista de agentes asignados.
+2.	Columna 2 - Chat del Ticket: Comunicación bidireccional con agentes, historial de mensajes, notificaciones en tiempo real.
+3.	Columna 3 - Mapa Interactivo: Visualización de agentes disponibles, cámaras de seguridad, búsqueda de direcciones, geolocalización.
+ 
+2. Funcionamiento de Componentes del Frontend
+2.1 Formulario de Registro de Incidencias
+Propósito: Capturar toda la información relevante de un incidente para su posterior gestión y seguimiento.
+Campos del Formulario
+Sección	Campo	Descripción
+Información General	ID de Incidencia	Generado automáticamente (readonly)
+	Nivel de Alerta	Crítica, Alta, Media, Baja
+Datos del Reportante	Nombre completo	Requerido
+	DNI/Identificación	Requerido
+	Teléfono	Requerido
+	Correo electrónico	Opcional
+	Relación con el hecho	Víctima, Testigo, Tercero
+Tipo de Incidencia	Tipo	Robo de Vehículo, Persona Sospechosa, Persona Desaparecida, Vehículo Sospechoso, Otra
+Ubicación	Dirección	Autocompletado desde mapa
+	Distrito/Provincia	Selección desde catálogo
+	Referencia	Texto libre
+	Coordenadas	Lat, Lng desde mapa
+Secciones Dinámicas según Tipo de Incidencia
+El formulario muestra campos adicionales dependiendo del tipo de incidencia seleccionado:
+•	Persona Desaparecida: Nombre, edad, género, DNI, última vez vista, descripción física, condiciones médicas.
+•	Persona Sospechosa: Nombre/alias, descripción física, motivo de sospecha, último lugar visto, vínculos.
+•	Vehículo Sospechoso: Placa, tipo, color, detalles, ubicación, hora, comportamiento.
+•	Robo de Vehículo: Tipo, marca, placa, color, año, ubicación del robo, fecha/hora, GPS.
+APIs Necesarias para el Formulario
+Método	Endpoint	Descripción
+POST	/api/tickets	Crear nuevo ticket
+PUT	/api/tickets/:id	Actualizar ticket existente
+GET	/api/tickets	Listar tickets del operador
+GET	/api/tickets/:id	Obtener detalle de un ticket
+GET	/api/incident-types	Listar tipos de incidencia
+GET	/api/alert-levels	Listar niveles de alerta
+POST	/api/tickets/:id/close	Cerrar ticket
+ 
+2.2 Chat de Telegram (Integración)
+Propósito: Permitir comunicación bidireccional entre operadores y agentes de campo usando Telegram como canal principal para los agentes.
+Flujo de Comunicación
+OPERADOR (Web)
+↓ Escribe mensaje
+NODE-RED (API + Bot Telegram)
+↓ Envía al agente vía Telegram API
+AGENTE (Telegram)
+↓ Responde con texto/foto/video/ubicación
+NODE-RED (Webhook Telegram)
+↓ Guarda en BD + Envía por WebSocket
+OPERADOR (Ve mensaje en tiempo real)
+Comandos del Bot de Telegram
+Comando	Acción
+/activo	Marca al agente como disponible para recibir tickets
+/inactivo	Marca al agente como no disponible
+/resuelto	Indica que el incidente ha sido solucionado
+/encamino	Indica que el agente va en camino al incidente
+/enlugar	Indica que el agente llegó al lugar del incidente
+/tickets	Lista los tickets asignados al agente
+/ubicacion	Comparte la ubicación GPS actual
+APIs Necesarias para el Chat
+Método	Endpoint	Descripción
+GET	/api/tickets/:id/messages	Obtener historial de mensajes
+POST	/api/tickets/:id/messages	Enviar mensaje del operador
+POST	/api/broadcast	Enviar mensaje a múltiples agentes
+GET	/api/agents/:id/status	Obtener estado del agente
+ 
+2.3 Mapa Interactivo
+Propósito: Visualizar la ubicación de agentes, cámaras y puntos de incidencia en tiempo real para facilitar la asignación y coordinación.
+Funcionalidades del Mapa
+•	Vista de Agentes: Muestra agentes disponibles (sin ticket asignado) como marcadores en el mapa con información de nombre, transporte y distancia.
+•	Vista de Cámaras: Muestra cámaras de vigilancia con capacidad de búsqueda por placa vehicular (simulación de IA de detección).
+•	Búsqueda de Direcciones: Geocodificación para encontrar ubicaciones y autocompletar el campo de ubicación del incidente.
+•	Marcador de Incidente: Muestra la ubicación del incidente actual y permite seleccionar coordenadas desde el mapa.
+APIs Necesarias para el Mapa
+Método	Endpoint	Descripción
+GET	/api/agents/available	Listar agentes disponibles con ubicación
+GET	/api/cameras	Listar cámaras de vigilancia
+GET	/api/geocode?address=...	Geocodificar dirección
+POST	/api/tickets/:id/assign-agent	Asignar agente a ticket
+POST	/api/tickets/:id/release-agent	Liberar agente de ticket
+ 
+3. Arquitectura del Backend con Node-RED
+Node-RED actuará como el middleware que conecta el frontend web con la base de datos y el bot de Telegram. A continuación se detallan los flujos necesarios:
+3.1 Flujos para el Formulario de Incidencias
+Flujo	Descripción
+crear-ticket	HTTP In → Validar datos → Insert MySQL → Generar ID → HTTP Response
+actualizar-ticket	HTTP In → Validar ID → Update MySQL → HTTP Response
+listar-tickets	HTTP In → Query MySQL con filtros → HTTP Response (JSON)
+cerrar-ticket	HTTP In → Update estado → Notificar agente → HTTP Response
+catalogos	HTTP In → Query tablas maestras → HTTP Response
+3.2 Flujos para el Chat de Telegram
+Flujo	Descripción
+enviar-mensaje-op	HTTP In → Insert BD → Telegram API sendMessage → WebSocket notify → HTTP Response
+recibir-telegram	Telegram Webhook → Identificar agente → Asociar ticket → Insert BD → WebSocket notify
+procesar-comando	Detectar /comando → Ejecutar acción → Update estado agente → Responder Telegram
+procesar-media	Recibir foto/video → Descargar archivo → Guardar en storage → Insert referencia BD
+broadcast	HTTP In → Loop agentes → Telegram API sendMessage cada uno → HTTP Response
+3.3 Flujos para el Mapa
+Flujo	Descripción
+agentes-disponibles	HTTP In → Query agentes activos sin ticket → HTTP Response con coords
+actualizar-ubicacion	Telegram location → Update mstr_agent coords → Insert history → WebSocket notify
+asignar-agente	HTTP In → Update ticket + agente → Notificar Telegram → WebSocket notify → HTTP Response
+geocodificacion	HTTP In → API externa (Nominatim/Google) → HTTP Response con coords
+3.4 WebSocket para Tiempo Real
+Para las actualizaciones en tiempo real, Node-RED debe implementar conexiones WebSocket:
+•	ws://servidor/chat: Canal para mensajes del chat entre operador y agentes.
+•	ws://servidor/agents: Canal para actualizaciones de posición y estado de agentes.
+•	ws://servidor/tickets: Canal para notificaciones de cambios en tickets.
+ 
+4. Propuesta de Base de Datos
+4.1 Análisis del Schema Existente (a2c)
+El schema existente ya cuenta con tablas reutilizables:
+•	mstr_agent: Información de agentes (nombre, documento, ubicación GPS, unidad, estado activo/asignado).
+•	mstr_citizen: Datos de ciudadanos/reportantes.
+•	trx_incidence: Registro principal de incidencias con todos los campos necesarios.
+•	trx_incidence_agent: Relación entre agentes e incidencias asignadas.
+•	Tablas maestras: mstr_incidence_type, mstr_incidence_subtype, mstr_incidence_state, mstr_origin, mstr_unit, mstr_mode.
+Tablas que faltan o requieren modificación: 
+4.2 Nuevas Tablas Propuestas
+Tabla: trx_chat_messages
+Propósito: Almacenar todos los mensajes del chat entre operadores y agentes.
+Columna	Tipo	Descripción
+message_id	INT AUTO_INCREMENT	PK - Identificador único
+incidence_id	INT	FK → trx_incidence
+sender_type	ENUM	'operator', 'agent'
+sender_id	INT	ID del operador o agente
+message_text	TEXT	Contenido del mensaje
+telegram_message_id	BIGINT	ID del mensaje en Telegram (opcional)
+is_read	TINYINT	1=leído, 0=no leído
+created_at	TIMESTAMP	Fecha/hora de envío
+Tabla: trx_chat_attachments
+Propósito: Almacenar archivos adjuntos (fotos, videos, audio, documentos) enviados en el chat.
+Columna	Tipo	Descripción
+attachment_id	INT AUTO_INCREMENT	PK
+message_id	INT	FK → trx_chat_messages
+file_type	ENUM	'image', 'video', 'audio', 'document', 'location'
+file_path	VARCHAR(500)	Ruta del archivo en servidor
+telegram_file_id	VARCHAR(255)	File ID de Telegram
+latitude	DECIMAL(18,15)	Para type='location'
+longitude	DECIMAL(18,15)	Para type='location'
+created_at	TIMESTAMP	Fecha de creación
+ 
+Tabla: mstr_telegram_agent
+Propósito: Vincular agentes del sistema con sus cuentas de Telegram.
+Columna	Tipo	Descripción
+telegram_agent_id	INT AUTO_INCREMENT	PK
+agent_id	INT	FK → mstr_agent
+telegram_user_id	BIGINT	ID de usuario de Telegram (único)
+telegram_username	VARCHAR(100)	Username de Telegram
+telegram_chat_id	BIGINT	Chat ID para enviar mensajes
+is_verified	TINYINT	1=verificado, 0=pendiente
+created_at	TIMESTAMP	Fecha de registro
+Tabla: mstr_operator
+Propósito: Información de los operadores del sistema.
+Columna	Tipo	Descripción
+operator_id	INT AUTO_INCREMENT	PK
+document_number	VARCHAR(20)	DNI del operador
+operator_name	VARCHAR(100)	Nombre completo
+email	VARCHAR(100)	Correo electrónico
+password_hash	VARCHAR(255)	Contraseña hasheada
+shift_start	TIME	Hora inicio de turno
+shift_end	TIME	Hora fin de turno
+is_active	TINYINT	Estado activo
+created_at	TIMESTAMP	Fecha de creación
+Tabla: trx_ticket_history
+Propósito: Registrar historial de cambios en tickets (asignaciones, reasignaciones, cambios de estado).
+Columna	Tipo	Descripción
+history_id	INT AUTO_INCREMENT	PK
+incidence_id	INT	FK → trx_incidence
+action_type	ENUM	'created', 'assigned', 'reassigned', 'status_change', 'closed'
+from_operator_id	INT	Operador origen (para reasignaciones)
+to_operator_id	INT	Operador destino
+from_agent_id	INT	Agente origen
+to_agent_id	INT	Agente destino
+previous_state	VARCHAR(45)	Estado anterior
+new_state	VARCHAR(45)	Estado nuevo
+notes	TEXT	Notas adicionales
+created_at	TIMESTAMP	Fecha del cambio
+created_by	VARCHAR(50)	Usuario que realizó el cambio
+Tabla: mstr_camera
+Propósito: Información de cámaras de vigilancia para el mapa.
+Columna	Tipo	Descripción
+camera_id	INT AUTO_INCREMENT	PK
+camera_name	VARCHAR(100)	Nombre identificador
+camera_address	VARCHAR(255)	Dirección física
+latitude	DECIMAL(18,15)	Coordenada latitud
+longitude	DECIMAL(18,15)	Coordenada longitud
+camera_type	VARCHAR(50)	Tipo de cámara
+zone_id	INT	Zona/cuadrante
+is_active	TINYINT	Estado operativo
+created_at	TIMESTAMP	Fecha de registro
+Tabla: trx_agent_location_history
+Propósito: Historial de ubicaciones de agentes para tracking.
+Columna	Tipo	Descripción
+location_id	INT AUTO_INCREMENT	PK
+agent_id	INT	FK → mstr_agent
+latitude	DECIMAL(18,15)	Latitud GPS
+longitude	DECIMAL(18,15)	Longitud GPS
+accuracy	DECIMAL(10,2)	Precisión en metros
+source	VARCHAR(20)	'telegram', 'app', 'manual'
+created_at	TIMESTAMP	Fecha/hora del registro
+ 
+4.3 Modificaciones al Schema Existente
+Modificaciones a mstr_agent
+Agregar columnas para integración con Telegram y seguimiento de estado:
+Nueva Columna	Tipo	Descripción
+status	ENUM	'disponible', 'ocupado', 'inactivo', 'en_camino', 'en_lugar'
+transport_type	VARCHAR(50)	'camioneta', 'motocicleta', 'bicicleta', 'a_pie'
+last_location_update	TIMESTAMP	Última actualización de ubicación
+current_incidence_id	INT	FK → ticket actual asignado
+Modificaciones a trx_incidence
+Agregar columnas para mejor seguimiento de tickets:
+Nueva Columna	Tipo	Descripción
+alert_level	ENUM	'critica', 'alta', 'media', 'baja'
+reporter_name	VARCHAR(150)	Nombre del reportante
+reporter_dni	VARCHAR(20)	DNI del reportante
+reporter_phone	VARCHAR(20)	Teléfono del reportante
+reporter_email	VARCHAR(100)	Email del reportante
+reporter_relation	VARCHAR(50)	'victima', 'testigo', 'tercero'
+specific_data	JSON	Datos específicos según tipo (persona desaparecida, vehículo, etc.)
+closed_at	TIMESTAMP	Fecha de cierre
+closed_by	VARCHAR(50)	Usuario que cerró el ticket
+close_notes	TEXT	Notas de cierre
+ 
+4.4 Diagrama de Relaciones
+A continuación se presenta el diagrama de relaciones entre las tablas principales del sistema:
+┌─────────────────┐         ┌──────────────────┐
+│   mstr_agent    │─────────│ mstr_telegram    │
+│   (Agentes)     │         │    _agent        │
+└────────┬────────┘         └──────────────────┘
+         │                                      
+         │ 1:N                                  
+         ▼                                      
+┌─────────────────┐         ┌──────────────────┐
+│ trx_incidence   │─────────│ mstr_operator    │
+│   (Tickets)     │  N:1    │  (Operadores)    │
+└────────┬────────┘         └──────────────────┘
+         │                                      
+    ┌────┴────┬─────────────┐                   
+    │ 1:N    │ 1:N         │ 1:N               
+    ▼         ▼             ▼                   
+┌────────┐ ┌─────────┐ ┌──────────────┐        
+│trx_chat│ │trx_ticket│ │trx_incidence │        
+│messages│ │_history  │ │   _agent     │        
+└────────┘ └──────────┘ └──────────────┘        
+ 
+5. Scripts SQL de Implementación
+Los scripts SQL completos para crear las nuevas tablas y modificar las existentes se encuentran en el archivo adjunto: civix_schema_extension.sql
+5.1 Orden de Ejecución
+1.	Crear nuevas tablas maestras (mstr_telegram_agent, mstr_operator, mstr_camera)
+2.	Modificar tabla mstr_agent (agregar nuevas columnas)
+3.	Modificar tabla trx_incidence (agregar nuevas columnas)
+4.	Crear tablas transaccionales (trx_chat_messages, trx_chat_attachments, trx_ticket_history, trx_agent_location_history)
+5.	Crear índices para optimización de consultas
+6. Resumen y Próximos Pasos
+6.1 Resumen de la Arquitectura
+•	Frontend: HTML/CSS/JS con Bootstrap (Luna template) y Tailwind para el dashboard del operador y supervisor.
+•	Backend: Node-RED para crear APIs REST y manejar la lógica de integración con Telegram.
+•	Base de Datos: MySQL con el schema a2c extendido con nuevas tablas para chat, telegram y tracking.
+•	Comunicación en Tiempo Real: WebSockets para actualizaciones de chat, posición de agentes y notificaciones.
+•	Bot de Telegram: Integrado con Node-RED para recibir y enviar mensajes a los agentes de campo.
+6.2 Próximos Pasos
+1.	Ejecutar los scripts SQL para extender la base de datos existente.
+2.	Configurar los flujos de Node-RED para las APIs documentadas.
+3.	Implementar el bot de Telegram y registrarlo con BotFather.
+4.	Conectar el frontend con las APIs mediante fetch/axios.
+5.	Implementar las conexiones WebSocket para tiempo real.
+6.	Realizar pruebas de integración entre todos los componentes.

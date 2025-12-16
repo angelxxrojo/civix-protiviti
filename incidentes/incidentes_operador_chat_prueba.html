@@ -1103,10 +1103,6 @@
                     </svg>
                 </button>
                 </div>
-                <!-- Mensaje informativo para búsqueda de placas -->
-                <div id="plateSearchInfo" style="display: none; margin-top: 10px; padding: 10px; background: #1e3a1e; border-radius: 6px; font-size: 12px; color: #22c55e;">
-                  <strong>🤖 IA de Detección:</strong> Las cámaras que detectaron esta placa se marcarán en el mapa
-                </div>
             </div>
         
             <!-- Tabs: Agentes / Cámaras -->
@@ -1949,7 +1945,6 @@
           mapEl.dataset.leaflet = '1';
           mapEl._leafletMap = map;
         } catch(error){
-          console.error('Leaflet init error', error);
         }
       });
     }
@@ -2193,7 +2188,6 @@
         }
       })
       .catch(function(error) {
-        console.error('Error en búsqueda de dirección:', error);
         showNotification('Error al buscar la dirección', 'error');
       });
   }
@@ -2263,7 +2257,6 @@
         }
       })
       .catch(function(error) {
-        console.error('Error en reverse geocoding:', error);
         // Si falla el reverse geocoding, al menos guardar lo básico
         var formLocationAddress = document.getElementById('formLocationAddress');
         var formLocationCoordinates = document.getElementById('formLocationCoordinates');
@@ -2374,7 +2367,6 @@
     // Actualizar marcadores en el mapa
     renderAgentsOnMap();
 
-    console.log('Agentes regenerados: ' + newAvailableAgents.length + ' nuevos disponibles alrededor del punto (' + incidentLat + ', ' + incidentLon + ')');
   }
 
   // ============================================
@@ -2693,20 +2685,14 @@
 
   // Función para cargar incidencias desde la API
   function loadIncidencesFromAPI() {
-    console.log('🔄 Cargando incidencias desde API...');
 
     callAPI({
-      method: 'getincidences',
-      params: {
-        
-      },
+      method: 'gestincidencias/getincidences',
+      params: {}, // Sin parámetros para obtener todas
       ok: function(data) {
-        console.log('✅ Incidencias recibidas:', data);
-        console.log('📊 Total de incidencias:', data.length);
 
         // Validar que data sea un array
         if (!Array.isArray(data)) {
-          console.error('❌ Error: La respuesta no es un array:', data);
           loadMockTickets();
           return;
         }
@@ -2716,7 +2702,6 @@
           return convertIncidenceToTicket(incidence);
         });
 
-        console.log('🎫 Tickets convertidos:', ticketsState.tickets);
 
         // Renderizar tickets en la UI
         renderTicketTabs();
@@ -2725,11 +2710,8 @@
         if (ticketsState.tickets.length > 0) {
           selectTicket(ticketsState.tickets[0].id);
         }
-
-        showNotification('✅ ' + ticketsState.tickets.length + ' tickets cargados desde la base de datos', 'success');
       },
       error: function(error) {
-        console.error('❌ Error cargando incidencias:', error);
         showNotification('⚠️ Error al cargar tickets. Usando datos de ejemplo.', 'warning');
 
         // Cargar tickets de ejemplo si falla la API
@@ -2739,177 +2721,270 @@
   }
 
   // Función para convertir incidencia de BD a formato de ticket del frontend
+  // NIVEL 1: Información BÁSICA desde getincidences (para la lista de tickets)
   function convertIncidenceToTicket(incidence) {
-    // Calcular nivel de alerta basado en el tipo o clasificación
+    // Mapear alert_level_code a valores del formulario (si existe)
+    // En el listado NO viene alert_level_code, por eso usamos 'media' por defecto
     var alertLevel = 'media';
-    if (incidence.classification_name) {
-      var classification = incidence.classification_name.toLowerCase();
-      if (classification.includes('critic') || classification.includes('urgent')) {
-        alertLevel = 'critica';
-      } else if (classification.includes('alta') || classification.includes('high')) {
-        alertLevel = 'alta';
-      } else if (classification.includes('baja') || classification.includes('low')) {
-        alertLevel = 'baja';
-      }
+    if (incidence.alert_level_code) {
+      var alertMap = {
+        'low': 'baja',
+        'medium': 'media',
+        'high': 'alta'
+      };
+      alertLevel = alertMap[incidence.alert_level_code] || 'media';
     }
 
-    // Mapear tipo de incidencia
-    var incidentType = 'otra';
-    if (incidence.type_name) {
-      var typeName = incidence.type_name.toLowerCase();
-      if (typeName.includes('robo') && typeName.includes('vehic')) {
-        incidentType = 'robo-vehiculo';
-      } else if (typeName.includes('persona') && typeName.includes('sospech')) {
-        incidentType = 'persona-sospechosa';
-      } else if (typeName.includes('persona') && typeName.includes('desaparec')) {
-        incidentType = 'persona-desaparecida';
-      } else if (typeName.includes('vehic') && typeName.includes('sospech')) {
-        incidentType = 'vehiculo-sospechoso';
-      }
-    }
+    // NIVEL 1: Información básica para mostrar en la lista de tickets
+    // Basado en la respuesta real del API de listado (líneas 3-140 de respuesta_api.txt)
+
+    // Detectar si es un borrador (incidence_state_id = 6)
+    var isDraft = incidence.incidence_state_id === 6;
 
     return {
-      id: '#' + incidence.incidence_id,
-      alertLevel: alertLevel,
-      status: incidence.state_name || 'abierto',
+      // ========== IDs ==========
+      id: incidence.incidence_code,                    // INC-20251215-000016
+      incidence_id: incidence.incidence_id,            // 15 (numérico para detalle)
+
+      // ========== ESTADO Y ALERTA ==========
+      alertLevel: alertLevel,                          // baja, media, alta
+      status: incidence.state_name || 'Pendiente',     // Pendiente, En proceso, Borrador, etc.
+      state_name: incidence.state_name || 'Pendiente',
+      incidence_state_id: incidence.incidence_state_id || 1,
+
+      // ========== FECHAS ==========
       created: incidence.created_at || incidence.incidence_date,
       lastModified: incidence.updated_at || incidence.created_at,
 
-      // Datos del reportante
-      reporterName: incidence.complainant || 'Sin nombre',
-      reporterDNI: incidence.document_number || '',
-      reporterPhone: incidence.contact_number || '',
-      reporterEmail: '',
-      reporterRelation: 'victima',
+      // ========== INFORMACIÓN BÁSICA (para mostrar en lista) ==========
+      reporterName: incidence.complainant || '',
+      location: incidence.location || '',
 
-      // Tipo de incidencia
-      incidentType: incidentType,
-      classification: incidence.classification_name || '',
-      subtype: incidence.subtype_name || '',
+      // ========== CLASIFICACIÓN ==========
+      classification: incidence.classification_name || '',    // A. TURISTICO-APOYO CIUDADANO
+      type_name: incidence.type_name || '',                   // HECHO CONTRA EL PATRIMONIO
+      subtype_name: incidence.subtype_name || '',             // ABANDONO Y ACTOS DE CRUELDAD
 
-      // Ubicación
-      location: {
-        address: incidence.location || '',
-        district: '',
-        province: '',
-        reference: incidence.location_reference || '',
-        coordinates: incidence.latitude && incidence.longitude
-          ? incidence.latitude + ', ' + incidence.longitude
-          : '',
-        lat: incidence.latitude || null,
-        lon: incidence.longitude || null
-      },
+      // ========== ORIGEN ==========
+      origin: incidence.origin_name || '',                    // Aplicativo Móvil, CIVIX, etc.
 
-      // Descripción
-      description: incidence.description_incidence || '',
+      // ========== OPERADOR ==========
+      operator: incidence.operator || null,
+      operator_id: incidence.operator_id || null,
 
-      // Datos adicionales
-      operator: incidence.operator || '',
-      origin: incidence.origin_name || '',
-      unit: incidence.unit_name || '',
+      // ========== FLAGS ==========
+      isNew: false,           // NO es nuevo (ya existe en BD)
+      isDraft: isDraft,       // TRUE si es borrador (estado 6)
+      detailLoaded: false,    // Aún no se cargó el detalle completo
 
-      // Chat y agentes
+      // ========== CHAT ==========
       chatMessages: [],
       unreadCount: 0
     };
   }
 
-  // Función para cargar tickets de ejemplo (fallback)
-  function loadMockTickets() {
-    console.log('📦 Cargando tickets de ejemplo...');
+  // NIVEL 2: Cargar información COMPLETA de un ticket específico usando getincidence
+  function loadIncidenceDetail(incidenceId, callback) {
 
-    ticketsState.tickets = [
-      {
-        id: '#3242',
-        alertLevel: 'alta',
-        status: 'abierto',
-        created: '2025-11-27 07:24:24',
-        lastModified: '2025-11-27 07:24:24',
-        reporterName: 'Juan Pérez García',
-        reporterDNI: '12345678',
-        reporterPhone: '55 9876 5432',
-        reporterEmail: 'juan@example.com',
-        reporterRelation: 'victima',
-        incidentType: 'robo-vehiculo',
-        classification: 'Seguridad Ciudadana',
-        subtype: 'Robo con violencia',
-        location: {
-          address: 'Av. Primavera 123, Santiago de Surco',
-          district: 'Santiago de Surco',
-          province: 'Lima',
-          reference: 'Frente al parque',
-          coordinates: '-12.1175, -76.9990',
-          lat: -12.1175,
-          lon: -76.9990
-        },
-        description: 'Robo de vehículo marca Toyota color rojo',
-        operator: 'Operadora Carla Q.',
-        origin: 'Llamada 105',
-        unit: 'Unidad Norte',
-        chatMessages: [],
-        unreadCount: 0
+    callAPI({
+      method: 'gestincidencias/getincidence',
+      params: { incidence_id: incidenceId },
+      ok: function(data) {
+
+        // La API devuelve un array con un objeto, extraer el primer elemento
+        var detailData = Array.isArray(data) && data.length > 0 ? data[0] : data;
+
+        if (callback) {
+          callback(detailData);
+        }
       },
-      {
-        id: '#3243',
-        alertLevel: 'media',
-        status: 'en_atencion',
-        created: '2025-11-27 08:15:00',
-        lastModified: '2025-11-27 08:30:00',
-        reporterName: 'María López',
-        reporterDNI: '87654321',
-        reporterPhone: '55 1234 5678',
-        reporterEmail: '',
-        reporterRelation: 'testigo',
-        incidentType: 'persona-sospechosa',
-        classification: 'Seguridad Ciudadana',
-        subtype: 'Comportamiento extraño',
-        location: {
-          address: 'Jr. Los Olivos 456',
-          district: 'Lima',
-          province: 'Lima',
-          reference: 'Cerca del colegio',
-          coordinates: '-12.1185, -77.0000',
-          lat: -12.1185,
-          lon: -77.0000
-        },
-        description: 'Persona merodeando en zona residencial',
-        operator: 'Operador Luis',
-        origin: 'Aplicación móvil',
-        unit: 'Unidad Sur',
-        chatMessages: [],
-        unreadCount: 2
-      },
-      {
-        id: '#3244',
-        alertLevel: 'critica',
-        status: 'critico',
-        created: '2025-11-27 09:00:00',
-        lastModified: '2025-11-27 09:05:00',
-        reporterName: 'Carlos Gómez',
-        reporterDNI: '11223344',
-        reporterPhone: '55 9999 8888',
-        reporterEmail: '',
-        reporterRelation: 'victima',
-        incidentType: 'persona-desaparecida',
-        classification: 'Emergencia',
-        subtype: 'Menor de edad',
-        location: {
-          address: 'Av. Arequipa 789',
-          district: 'Lima',
-          province: 'Lima',
-          reference: 'Centro comercial',
-          coordinates: '-12.1150, -76.9980',
-          lat: -12.1150,
-          lon: -76.9980
-        },
-        description: 'Niña de 8 años desaparecida desde esta mañana',
-        operator: 'Operadora Elena',
-        origin: 'Llamada 105',
-        unit: 'Unidad Central',
-        chatMessages: [],
-        unreadCount: 5
+      error: function(error) {
+        if (callback) {
+          callback(null);
+        }
       }
-    ];
+    });
+  }
+
+  // Función para actualizar un ticket con su información completa
+  function updateTicketWithDetail(ticket, detailData) {
+    if (!detailData) return ticket;
+
+    // Actualizar con toda la información específica
+    ticket.alertLevel = detailData.alert_level || ticket.alertLevel;
+    ticket.reporterDNI = detailData.document_number || '';
+    ticket.reporterPhone = detailData.contact_number || '';
+    ticket.reporterEmail = detailData.reporter_email || '';
+    ticket.reporterRelation = detailData.reporter_relation || 'victima';
+    ticket.reporterName = detailData.complainant || ticket.reporterName;
+
+    ticket.subtype = detailData.subtype_name || '';
+    ticket.classification = detailData.classification_name || ticket.classification;
+    ticket.status = detailData.state_name || ticket.status;
+
+    ticket.location = {
+      address: detailData.location || '',
+      district: detailData.district || '',
+      province: detailData.province || '',
+      reference: detailData.location_reference || '',
+      coordinates: detailData.latitude && detailData.longitude
+        ? detailData.latitude + ', ' + detailData.longitude
+        : '',
+      lat: detailData.latitude || null,
+      lon: detailData.longitude || null
+    };
+
+    ticket.description = detailData.description_incidence || '';
+    ticket.operator_id = detailData.operator_id || null;
+    ticket.operator = detailData.operator || '';  // La API devuelve el nombre del operador
+    ticket.origin = detailData.origin_name || '';
+    ticket.unit = detailData.unit_name || '';
+
+    // Campos adicionales
+    ticket.incidence_code = detailData.incidence_code || '';
+    ticket.incidence_date = detailData.incidence_date || '';
+    ticket.closed_at = detailData.closed_at || null;
+    ticket.reason = detailData.reason || '';
+    ticket.created_at = detailData.created_at || ticket.created;
+    ticket.updated_at = detailData.updated_at || ticket.lastModified;
+
+    // Marcar como cargado
+    ticket.detailLoaded = true;
+
+    return ticket;
+  }
+
+  // 🎯 NUEVA FUNCIÓN SIMPLIFICADA: Poblar formulario directamente desde API
+  // Esta función toma el objeto de la API tal como viene y llena el formulario
+  function populateFormDirectlyFromAPI(apiData) {
+    if (!apiData) {
+      return;
+    }
+
+    // ========== ENCABEZADO DEL TICKET ==========
+    var formTicketHeader = document.getElementById('formTicketHeader');
+    var formIncidentId = document.getElementById('formIncidentId');
+
+    var ticketId = apiData.incidence_code || '#' + apiData.incidence_id;
+    var ticketDate = apiData.created_at || apiData.incidence_date || 'Sin fecha';
+
+    // Agregar badge de BORRADOR si aplica
+    var draftBadgeHtml = '';
+    if (apiData.incidence_state_id === 6 || apiData.isDraft) {
+      draftBadgeHtml = ' <span style="display: inline-block; background: #ffc107; color: #000; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px;">BORRADOR</span>';
+    }
+
+    if (formTicketHeader) {
+      formTicketHeader.innerHTML = 'Ticket ' + ticketId + draftBadgeHtml + ' • ' + ticketDate;
+    }
+    if (formIncidentId) {
+      formIncidentId.value = ticketId;
+    }
+
+    // ========== NIVEL DE ALERTA ==========
+    var formAlertLevel = document.getElementById('formAlertLevel');
+    if (formAlertLevel) {
+      // La API devuelve: alert_level_code = "low", "medium", "high"
+      // El formulario usa: baja, media, alta
+      var alertLevelMap = {
+        'low': 'baja',
+        'medium': 'media',
+        'high': 'alta'
+      };
+      var alertValue = alertLevelMap[apiData.alert_level_code] || 'media';
+      formAlertLevel.value = alertValue;
+    }
+
+    // ========== CLASIFICACIÓN DE INCIDENCIA ==========
+    var formIncidentType = document.getElementById('formIncidentType');
+    if (formIncidentType && apiData.incidence_type_id) {
+      formIncidentType.value = apiData.incidence_type_id;
+    }
+
+    // ========== DATOS DEL DENUNCIANTE ==========
+    var formReporterName = document.getElementById('formReporterName');
+    var formReporterDNI = document.getElementById('formReporterDNI');
+    var formReporterPhone = document.getElementById('formReporterPhone');
+    var formReporterEmail = document.getElementById('formReporterEmail');
+    var formReporterRelation = document.getElementById('formReporterRelation');
+
+    if (formReporterName) formReporterName.value = apiData.complainant || '';
+    if (formReporterDNI) formReporterDNI.value = apiData.document_number || '';
+    if (formReporterPhone) formReporterPhone.value = apiData.contact_number || '';
+    if (formReporterEmail) formReporterEmail.value = apiData.reporter_email || '';
+    if (formReporterRelation) formReporterRelation.value = apiData.reporter_relation || 'victima';
+
+    // ========== UBICACIÓN ==========
+    var formLocationAddress = document.getElementById('formLocationAddress');
+    var formLocationDistrict = document.getElementById('formLocationDistrict');
+    var formLocationProvince = document.getElementById('formLocationProvince');
+    var formLocationReference = document.getElementById('formLocationReference');
+    var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+
+    if (formLocationAddress) formLocationAddress.value = apiData.location || '';
+    if (formLocationDistrict) formLocationDistrict.value = apiData.district || '';
+    if (formLocationProvince) formLocationProvince.value = apiData.province || '';
+    if (formLocationReference) formLocationReference.value = apiData.location_reference || '';
+
+    // Coordenadas
+    var lat = apiData.latitude ? parseFloat(apiData.latitude) : null;
+    var lon = apiData.longitude ? parseFloat(apiData.longitude) : null;
+
+    if (formLocationCoordinates && lat && lon) {
+      formLocationCoordinates.value = lat + ', ' + lon;
+    }
+
+    // ========== MAPA: Marcar ubicación ==========
+    if (lat && lon && cadMap) {
+      // Remover marcador previo
+      if (currentLocationMarker) {
+        cadMap.removeLayer(currentLocationMarker);
+      }
+
+      var incidentIcon = L.divIcon({
+        className: 'incident-marker-icon',
+        html: '<div style="background: #ef4444; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">📍</div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+
+      currentLocationMarker = L.marker([lat, lon], { icon: incidentIcon })
+        .addTo(cadMap)
+        .bindPopup('<b>Ubicación del incidente</b><br>' + (apiData.location || 'Sin dirección'));
+
+      // Centrar mapa en la ubicación
+      cadMap.setView([lat, lon], 16);
+
+      // Regenerar agentes alrededor de esta ubicación
+      regenerateAgentsAroundIncident(lat, lon);
+
+      // Mostrar agentes cercanos disponibles
+      showNearbyAgents(lat, lon);
+    }
+
+    // ========== DESCRIPCIÓN ==========
+    var formDescription = document.getElementById('formDescription');
+    if (formDescription) {
+      formDescription.value = apiData.description_incidence || '';
+    }
+  }
+
+  // Función helper para obtener el ID del operador actual
+  function getCurrentOperatorId() {
+    // Intentar obtener desde sessionStorage o localStorage
+    var operatorId = sessionStorage.getItem('operator_id') || localStorage.getItem('operator_id');
+    if (operatorId) {
+      return parseInt(operatorId);
+    }
+    // Si no hay operador en sesión, retornar null
+    return null;
+  }
+
+  // Función para cargar tickets de ejemplo (fallback)
+  // ⚠️ SOLO se usa si falla la carga desde la API
+  function loadMockTickets() {
+    // ❌ NO CARGAR DATOS EN DURO - La API debe ser la fuente de verdad
+    ticketsState.tickets = [];
 
     renderTicketTabs();
     if (ticketsState.tickets.length > 0) {
@@ -2935,44 +3010,484 @@
     $('.modal-backdrop').remove();
   }
 
-  // Función para confirmar creación de ticket desde el modal
-  function confirmCreateTicket() {
-    createNewTicket();
-    $('#newTicketModal').modal('hide');
-    $('.modal-backdrop').remove();
-  }
+  // Función para crear un ticket vacío/borrador (SIN guardarlo en BD)
+  function createEmptyTicket() {
+    var year = new Date().getFullYear();
+    var ticketNumber = String(ticketsState.nextTicketId++).padStart(3, '0');
+    var newTicketId = 'NUEVO-' + year + '-' + ticketNumber;
 
-  // Función para crear un nuevo ticket
-  function createNewTicket() {
-    var newTicket = {
-      id: generateTicketId(),
-      timestamp: new Date().toLocaleString('es-ES'),
+    // Crear ticket vacío/borrador
+    var emptyTicket = {
+      id: newTicketId,
+      isNew: true, // Flag para indicar que es un ticket nuevo sin guardar
       alertLevel: 'media',
-      incidentType: '',
+      status: 'borrador',
+      created: new Date().toLocaleString('es-ES'),
+      lastModified: new Date().toLocaleString('es-ES'),
       reporterName: '',
       reporterDNI: '',
       reporterPhone: '',
       reporterEmail: '',
-      reporterRelation: '',
-      location: '',
-      status: 'abierto',
-      unread: 0,
-      chatMessages: []
+      reporterRelation: 'victima',
+      incidentType: '',
+      classification: '',
+      location: {
+        address: '',
+        district: '',
+        province: '',
+        reference: '',
+        coordinates: '',
+        lat: null,
+        lon: null
+      },
+      chatMessages: [],
+      unreadCount: 0,
+      detailLoaded: true
     };
 
     // Agregar ticket al estado
-    ticketsState.tickets.push(newTicket);
+    ticketsState.tickets.push(emptyTicket);
 
     // Actualizar la UI
     renderTicketTabs();
 
     // Activar el nuevo ticket
-    selectTicket(newTicket.id);
+    selectTicket(emptyTicket.id);
 
-    // Mostrar mensaje de confirmación
-    showNotification('Nuevo ticket ' + newTicket.id + ' creado exitosamente', 'success');
+    // Actualizar el texto del botón
+    updateSaveButtonText();
 
-    return newTicket;
+    showNotification('📝 Nuevo ticket creado. Complete los datos y presione "Crear Ticket"', 'info');
+  }
+
+  // Función para confirmar creación de ticket desde el modal
+  function confirmCreateTicket() {
+    // Cerrar modal
+    $('#newTicketModal').modal('hide');
+    $('.modal-backdrop').remove();
+
+    // Crear borrador en la BD
+    createDraftIncidence();
+  }
+
+  // ============================================
+  // SISTEMA DE BORRADORES DE INCIDENCIAS
+  // ============================================
+
+  // Función para crear un borrador de incidencia en la BD
+  function createDraftIncidence() {
+    // Llamar al API para crear borrador
+    callAPI({
+      method: 'gestincidencias/incidencenewdraft',
+      post: 1,
+      params: {}, // El backend crea todo automáticamente
+      ok: function(response) {
+        // Response esperado: { incidence_id, incidence_code, incidence_state_id }
+
+        // Crear ticket local con el borrador
+        var draftTicket = {
+          id: response.incidence_code,              // INC-2024-000001
+          incidence_id: response.incidence_id,       // ID numérico
+          isDraft: true,                             // Flag para indicar que es borrador
+          alertLevel: 'media',                       // Por defecto
+          status: 'Borrador',                        // Estado borrador
+          state_name: 'Borrador',
+          incidence_state_id: 6,                     // Estado 6 = Borrador
+          created: new Date().toISOString(),
+          lastModified: new Date().toISOString(),
+          reporterName: '',
+          location: '',
+          type_name: '',
+          classification: '',
+          origin: 'Manual',
+          operator_id: getCurrentOperatorId(),
+          detailLoaded: true,                        // Ya está "cargado" porque está vacío
+          chatMessages: [],
+          unreadCount: 0
+        };
+
+        // Agregar ticket al estado
+        ticketsState.tickets.unshift(draftTicket); // unshift para agregarlo al inicio
+
+        // Actualizar la UI
+        renderTicketTabs();
+
+        // Activar el nuevo ticket
+        selectTicket(draftTicket.id);
+
+        // Actualizar el texto del botón
+        updateSaveButtonText();
+
+        // Limpiar formulario
+        clearFormFields();
+      },
+      error: function(error) {
+        showNotification('❌ Error al crear borrador: ' + (error.message || 'Error desconocido'), 'error');
+      }
+    });
+  }
+
+  // Función para limpiar todos los campos del formulario
+  function clearFormFields() {
+    // Limpiar campos de denunciante
+    var formReporterName = document.getElementById('formReporterName');
+    var formReporterDNI = document.getElementById('formReporterDNI');
+    var formReporterPhone = document.getElementById('formReporterPhone');
+    var formReporterEmail = document.getElementById('formReporterEmail');
+    var formReporterRelation = document.getElementById('formReporterRelation');
+
+    if (formReporterName) formReporterName.value = '';
+    if (formReporterDNI) formReporterDNI.value = '';
+    if (formReporterPhone) formReporterPhone.value = '';
+    if (formReporterEmail) formReporterEmail.value = '';
+    if (formReporterRelation) formReporterRelation.value = 'victima';
+
+    // Limpiar campos de ubicación
+    var formLocationAddress = document.getElementById('formLocationAddress');
+    var formLocationDistrict = document.getElementById('formLocationDistrict');
+    var formLocationProvince = document.getElementById('formLocationProvince');
+    var formLocationReference = document.getElementById('formLocationReference');
+    var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+
+    if (formLocationAddress) formLocationAddress.value = '';
+    if (formLocationDistrict) formLocationDistrict.value = '';
+    if (formLocationProvince) formLocationProvince.value = '';
+    if (formLocationReference) formLocationReference.value = '';
+    if (formLocationCoordinates) formLocationCoordinates.value = '';
+
+    // Limpiar descripción
+    var formDescription = document.getElementById('formDescription');
+    if (formDescription) formDescription.value = '';
+
+    // Resetear tipo de incidencia
+    var formIncidentType = document.getElementById('formIncidentType');
+    if (formIncidentType) formIncidentType.value = '';
+
+    // Resetear nivel de alerta a media
+    var formAlertLevel = document.getElementById('formAlertLevel');
+    if (formAlertLevel) formAlertLevel.value = 'media';
+
+    // Limpiar marcador del mapa
+    if (currentLocationMarker && cadMap) {
+      cadMap.removeLayer(currentLocationMarker);
+      currentLocationMarker = null;
+    }
+  }
+
+  // Función para guardar cambios del borrador (PATCH)
+  function saveDraft() {
+    var ticket = ticketsState.tickets.find(function(t) {
+      return t.id === ticketsState.activeTicketId;
+    });
+
+    if (!ticket || !ticket.isDraft) {
+      showNotification('❌ No hay un borrador activo para guardar', 'error');
+      return;
+    }
+
+    // Recolectar datos del formulario
+    var formData = collectFormData();
+
+    // Llamar al API para actualizar el borrador
+    callAPI({
+      method: 'gestincidencias/incidenceupt',
+      post: 1,
+      params: {
+        incidence_id: ticket.incidence_id,
+        incidence_state_id: 6, // Mantener como borrador
+        ...formData
+      },
+      ok: function(response) {
+        // Actualizar ticket local con los nuevos datos
+        Object.assign(ticket, formData);
+        ticket.lastModified = new Date().toISOString();
+
+        // Actualizar UI
+        renderTicketTabs();
+
+        showNotification('✅ Borrador guardado correctamente', 'success');
+      },
+      error: function(error) {
+        showNotification('❌ Error al guardar borrador: ' + (error.message || 'Error desconocido'), 'error');
+      }
+    });
+  }
+
+  // Función para activar una incidencia (cambiar de borrador a pendiente)
+  function activateIncidence() {
+    var ticket = ticketsState.tickets.find(function(t) {
+      return t.id === ticketsState.activeTicketId;
+    });
+
+    if (!ticket || !ticket.isDraft) {
+      showNotification('❌ No hay un borrador activo para activar', 'error');
+      return;
+    }
+
+    // Validar campos obligatorios
+    var formIncidentType = document.getElementById('formIncidentType');
+    var formDescription = document.getElementById('formDescription');
+    var formAlertLevel = document.getElementById('formAlertLevel');
+
+    if (!formIncidentType || !formIncidentType.value) {
+      showNotification('❌ El tipo de incidencia es obligatorio para activar', 'error');
+      return;
+    }
+
+    if (!formDescription || !formDescription.value.trim()) {
+      showNotification('❌ La descripción es obligatoria para activar', 'error');
+      return;
+    }
+
+    // Recolectar datos del formulario
+    var formData = collectFormData();
+
+    // Llamar al API para actualizar y activar
+    callAPI({
+      method: 'gestincidencias/incidenceupt',
+      post: 1,
+      params: {
+        incidence_id: ticket.incidence_id,
+        incidence_state_id: 1, // Cambiar a Pendiente
+        ...formData
+      },
+      ok: function(response) {
+        // Actualizar ticket local
+        Object.assign(ticket, formData);
+        ticket.isDraft = false;
+        ticket.incidence_state_id = 1;
+        ticket.status = 'Pendiente';
+        ticket.state_name = 'Pendiente';
+        ticket.lastModified = new Date().toISOString();
+
+        // Actualizar UI
+        renderTicketTabs();
+        updateSaveButtonText();
+
+        showNotification('✅ Incidencia activada correctamente', 'success');
+      },
+      error: function(error) {
+        showNotification('❌ Error al activar incidencia: ' + (error.message || 'Error desconocido'), 'error');
+      }
+    });
+  }
+
+  // Función para recolectar datos del formulario
+  function collectFormData() {
+    // Obtener elementos del formulario
+    var formReporterName = document.getElementById('formReporterName');
+    var formReporterDNI = document.getElementById('formReporterDNI');
+    var formReporterPhone = document.getElementById('formReporterPhone');
+    var formReporterEmail = document.getElementById('formReporterEmail');
+    var formReporterRelation = document.getElementById('formReporterRelation');
+    var formLocationAddress = document.getElementById('formLocationAddress');
+    var formLocationDistrict = document.getElementById('formLocationDistrict');
+    var formLocationProvince = document.getElementById('formLocationProvince');
+    var formLocationReference = document.getElementById('formLocationReference');
+    var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+    var formDescription = document.getElementById('formDescription');
+    var formIncidentType = document.getElementById('formIncidentType');
+    var formAlertLevel = document.getElementById('formAlertLevel');
+
+    // Parsear coordenadas
+    var lat = null;
+    var lon = null;
+    if (formLocationCoordinates && formLocationCoordinates.value) {
+      var coords = formLocationCoordinates.value.split(',');
+      if (coords.length === 2) {
+        lat = parseFloat(coords[0].trim());
+        lon = parseFloat(coords[1].trim());
+      }
+    }
+
+    // Mapear alert_level de formulario a alert_level_id de la API
+    var alertLevelValue = formAlertLevel ? formAlertLevel.value : 'media';
+    var alertLevelIdMap = {
+      'baja': 3,    // low
+      'media': 2,   // medium
+      'alta': 1     // high
+    };
+    var alertLevelId = alertLevelIdMap[alertLevelValue] || 2;
+
+    return {
+      complainant: formReporterName ? formReporterName.value.trim() : '',
+      document_number: formReporterDNI ? formReporterDNI.value.trim() : '',
+      contact_number: formReporterPhone ? formReporterPhone.value.trim() : '',
+      reporter_email: formReporterEmail ? formReporterEmail.value.trim() : '',
+      reporter_relation: formReporterRelation ? formReporterRelation.value : 'victima',
+      location: formLocationAddress ? formLocationAddress.value.trim() : '',
+      district: formLocationDistrict ? formLocationDistrict.value.trim() : '',
+      province: formLocationProvince ? formLocationProvince.value.trim() : '',
+      location_reference: formLocationReference ? formLocationReference.value.trim() : '',
+      latitude: lat,
+      longitude: lon,
+      description_incidence: formDescription ? formDescription.value.trim() : '',
+      incidence_type_id: formIncidentType && formIncidentType.value ? parseInt(formIncidentType.value) : null,
+      alert_level_id: alertLevelId
+    };
+  }
+
+  // Función para crear un nuevo ticket usando el API desde el formulario
+  function createNewTicketFromForm() {
+    // Recolectar datos del formulario actual
+    var formAlertLevel = document.getElementById('formAlertLevel');
+    var formIncidentType = document.getElementById('formIncidentType');
+    var formReporterName = document.getElementById('formReporterName');
+    var formReporterDNI = document.getElementById('formReporterDNI');
+    var formReporterPhone = document.getElementById('formReporterPhone');
+    var formReporterEmail = document.getElementById('formReporterEmail');
+    var formReporterRelation = document.getElementById('formReporterRelation');
+    var formLocationAddress = document.getElementById('formLocationAddress');
+    var formLocationDistrict = document.getElementById('formLocationDistrict');
+    var formLocationProvince = document.getElementById('formLocationProvince');
+    var formLocationReference = document.getElementById('formLocationReference');
+    var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+    var formDescription = document.getElementById('formDescription');
+
+    // Obtener coordenadas
+    var coordinates = formLocationCoordinates ? formLocationCoordinates.value.split(',') : [];
+    var lat = coordinates.length > 0 ? parseFloat(coordinates[0].trim()) : null;
+    var lon = coordinates.length > 1 ? parseFloat(coordinates[1].trim()) : null;
+
+    // Validar campos obligatorios
+    if (!formReporterName || !formReporterName.value.trim()) {
+      showNotification('❌ El nombre del denunciante es obligatorio', 'error');
+      return;
+    }
+    if (!formLocationAddress || !formLocationAddress.value.trim()) {
+      showNotification('❌ La ubicación es obligatoria', 'error');
+      return;
+    }
+    if (!lat || !lon) {
+      showNotification('❌ Las coordenadas son obligatorias. Use el mapa para seleccionar la ubicación', 'error');
+      return;
+    }
+    if (!formIncidentType || !formIncidentType.value) {
+      showNotification('❌ El tipo de incidencia es obligatorio', 'error');
+      return;
+    }
+
+    // Mapear alert_level de formulario a alert_level_id de la API
+    var alertLevelValue = formAlertLevel ? formAlertLevel.value : 'media';
+    var alertLevelIdMap = {
+      'baja': 3,    // low
+      'media': 2,   // medium
+      'alta': 1     // high
+    };
+    var alertLevelId = alertLevelIdMap[alertLevelValue] || 2;
+
+    // Preparar datos para el API según estructura en respuesta_api.txt
+    var newIncidenceData = {
+      // ========== CAMPOS OBLIGATORIOS ==========
+      origin_id: 1,  // Por defecto: origen manual (ajustar según tus orígenes)
+      complainant: formReporterName.value.trim(),
+      location: formLocationAddress.value.trim(),
+      unit_id: 1,  // Por defecto (ajustar según tu sistema)
+      incidence_classification_id: 1,  // Por defecto (ajustar según tu sistema)
+      incidence_type_id: parseInt(formIncidentType.value),
+      incidence_subtype_id: 1,  // Por defecto (ajustar si tienes subtipos)
+      incidence_date: new Date().toISOString(),
+      latitude: lat,
+      longitude: lon,
+      incidence_state_id: 1,  // Estado: Pendiente
+
+      // ========== CAMPOS OPCIONALES ==========
+      description_incidence: formDescription ? formDescription.value.trim() : '',
+      contact_number: formReporterPhone ? formReporterPhone.value.trim() : '',
+      document_number: formReporterDNI ? formReporterDNI.value.trim() : '',
+      reporter_email: formReporterEmail ? formReporterEmail.value.trim() : null,
+      reporter_relation: formReporterRelation ? formReporterRelation.value : 'third_party',
+      alert_level_id: alertLevelId,
+      district: formLocationDistrict ? formLocationDistrict.value.trim() : null,
+      province: formLocationProvince ? formLocationProvince.value.trim() : null,
+      location_reference: formLocationReference ? formLocationReference.value.trim() : '',
+      telegram_chat_id: null,
+      created_by: getCurrentOperatorId() || null
+    };
+
+    // Llamar al API para crear la incidencia usando callAPI
+    callAPI({
+      method: 'gestincidencias/incidencenew',
+      post: 1,  // ✅ Indica que es un POST
+      params: newIncidenceData,
+      ok: function(response) {
+        // La API devuelve: { incidence_id: 123, incidence_code: "INC-20251211-000123" }
+
+        // Crear ticket local con los datos de respuesta
+        var newTicket = convertIncidenceToTicket({
+          incidence_id: response.incidence_id,
+          incidence_code: response.incidence_code,
+          complainant: newIncidenceData.complainant,
+          location: newIncidenceData.location,
+          latitude: newIncidenceData.latitude,
+          longitude: newIncidenceData.longitude,
+          contact_number: newIncidenceData.contact_number,
+          document_number: newIncidenceData.document_number,
+          reporter_email: newIncidenceData.reporter_email,
+          reporter_relation: newIncidenceData.reporter_relation,
+          description_incidence: newIncidenceData.description_incidence,
+          alert_level_code: alertLevelValue === 'baja' ? 'low' : (alertLevelValue === 'alta' ? 'high' : 'medium'),
+          incidence_type_id: newIncidenceData.incidence_type_id,
+          state_name: 'Pendiente',
+          created_at: newIncidenceData.incidence_date
+        });
+
+        // Agregar ticket al estado
+        ticketsState.tickets.push(newTicket);
+
+        // Actualizar la UI
+        renderTicketTabs();
+
+        // Activar el nuevo ticket
+        selectTicket(newTicket.id);
+      },
+      error: function(error) {
+        showNotification('❌ Error al crear el ticket: ' + (error.message || 'Error desconocido'), 'error');
+      }
+    });
+  }
+
+  // Función para actualizar el texto del botón de guardar según el estado del ticket
+  function updateSaveButtonText() {
+    var saveBtn = document.getElementById('saveTicketBtn');
+    if (!saveBtn) return;
+
+    // Obtener el ticket activo
+    var ticket = ticketsState.activeTicketId
+      ? ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; })
+      : null;
+
+    if (!ticket) {
+      // No hay ticket activo
+      saveBtn.innerHTML = '<i class="pe-7s-diskette" aria-hidden="true"></i> Guardar Cambios del Ticket';
+      return;
+    }
+
+    // Si es un borrador (isDraft = true), mostrar dos botones
+    if (ticket.isDraft === true) {
+      // Crear contenedor para los botones
+      saveBtn.innerHTML = `
+        <div style="display: flex; gap: 10px; width: 100%;">
+          <button type="button" class="btn btn-default" onclick="saveDraft()" style="flex: 1; padding: 12px; font-size: 14px; font-weight: 600;">
+            <i class="pe-7s-diskette" aria-hidden="true"></i> Guardar Borrador
+          </button>
+          <button type="button" class="btn btn-accent" onclick="activateIncidence()" style="flex: 1; padding: 12px; font-size: 14px; font-weight: 600;">
+            <i class="pe-7s-check" aria-hidden="true"></i> Finalizar y Activar
+          </button>
+        </div>
+      `;
+      saveBtn.style.cssText = 'width: 100%; padding: 0;';
+    } else if (ticket.isNew === true) {
+      // Ticket nuevo local (sin ID de BD)
+      saveBtn.innerHTML = '<i class="pe-7s-plus" aria-hidden="true"></i> Crear Ticket';
+      saveBtn.className = 'btn btn-accent';
+      saveBtn.style.cssText = 'width: 100%; padding: 12px; font-size: 15px; font-weight: 600;';
+    } else {
+      // Ticket existente (no es borrador)
+      saveBtn.innerHTML = '<i class="pe-7s-diskette" aria-hidden="true"></i> Guardar Cambios del Ticket';
+      saveBtn.className = 'btn btn-accent';
+      saveBtn.style.cssText = 'width: 100%; padding: 12px; font-size: 15px; font-weight: 600;';
+    }
   }
 
   // Función para renderizar los tabs de tickets
@@ -3045,15 +3560,9 @@
         circleClass = 'alert-circle alert-circle-media';
       }
 
-      // Obtener nombre del tipo de incidencia (sin emoji)
-      var incidentTypeNames = {
-        'robo-vehiculo': 'Robo de Vehículo',
-        'persona-sospechosa': 'Persona Sospechosa',
-        'persona-desaparecida': 'Persona Desaparecida',
-        'vehiculo-sospechoso': 'Vehículo Sospechoso',
-        'otra': 'Otra incidencia'
-      };
-      var incidentTypeName = incidentTypeNames[ticket.incidentType] || 'Sin tipo';
+      // Obtener nombre del tipo de incidencia desde el API
+      // El API devuelve type_name directamente (ej: "HECHO CONTRA EL PATRIMONIO")
+      var incidentTypeName = ticket.type_name || ticket.classification || 'Sin tipo';
 
       // Agregar clase de ticket con mensajes sin leer
       if (ticket.unread > 0 && !isActive) {
@@ -3066,11 +3575,17 @@
         unreadBadge = '<span class="unread-badge">' + ticket.unread + '</span>';
       }
 
+      // Badge de BORRADOR si es un borrador
+      var draftBadge = '';
+      if (ticket.isDraft) {
+        draftBadge = '<span style="display: inline-block; background: #ffc107; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-left: 6px;">BORRADOR</span>';
+      }
+
       button.innerHTML =
         unreadBadge +
         '<div style="display: flex; align-items: center; margin-bottom: 4px;">' +
           '<span class="' + circleClass + '"></span>' +
-          '<h5 style="margin: 0; font-size: 14px; font-weight: 600;">' + ticket.id + '</h5>' +
+          '<h5 style="margin: 0; font-size: 14px; font-weight: 600;">' + ticket.id + draftBadge + '</h5>' +
         '</div>' +
         '<p style="margin: 0; font-size: 12px; color: #9ca3af; padding-left: 20px;">' + incidentTypeName + '</p>';
 
@@ -3095,14 +3610,42 @@
     // Actualizar tabs
     renderTicketTabs();
 
-    // Cargar datos del ticket en el formulario
-    loadTicketToForm(ticket);
+    // 🎯 NIVEL 2: Si no se ha cargado el detalle completo, cargarlo ahora
+    if (!ticket.detailLoaded && ticket.incidence_id) {
+
+      loadIncidenceDetail(ticket.incidence_id, function(detailData) {
+        if (detailData) {
+          // ✅ POBLAR FORMULARIO DIRECTAMENTE DESDE LA API
+          // Extraer el primer elemento si viene en array
+          var apiResponse = Array.isArray(detailData) && detailData.length > 0 ? detailData[0] : detailData;
+
+          // ✅ GUARDAR los datos de la API en el ticket para usarlos después
+          ticket.apiData = apiResponse;
+          ticket.detailLoaded = true;
+
+          // Poblar el formulario con los datos
+          populateFormDirectlyFromAPI(apiResponse);
+        } else {
+          // Si falla, cargar lo que tenemos (fallback)
+          loadTicketToForm(ticket);
+        }
+      });
+    } else if (ticket.apiData) {
+      // ✅ Si ya está cargado Y tiene datos de la API guardados, usarlos
+      populateFormDirectlyFromAPI(ticket.apiData);
+    } else {
+      // Fallback: usar loadTicketToForm si no hay datos de API
+      loadTicketToForm(ticket);
+    }
 
     // Cargar chat del ticket
     loadTicketChat(ticket);
 
     // Cargar agentes asignados a este ticket
     renderTicketAssignedAgents();
+
+    // Actualizar el texto del botón de guardar
+    updateSaveButtonText();
   }
 
   // Función para cargar datos del ticket en el formulario
@@ -3117,7 +3660,7 @@
     var formReporterEmail = document.getElementById('formReporterEmail');
     var formReporterRelation = document.getElementById('formReporterRelation');
 
-    if (formTicketHeader) formTicketHeader.textContent = 'Ticket ' + ticket.id + ' • ' + ticket.timestamp;
+    if (formTicketHeader) formTicketHeader.textContent = 'Ticket ' + ticket.id + ' • ' + (ticket.created || 'Sin fecha');
     if (formIncidentId) formIncidentId.value = ticket.id;
     if (formAlertLevel) formAlertLevel.value = ticket.alertLevel;
     if (formIncidentType) formIncidentType.value = ticket.incidentType;
@@ -3217,7 +3760,7 @@
         icon: '⚡️',
         title: 'Incidente creado',
         detail: 'Registrado por operador',
-        timestamp: ticket.timestamp.split(',')[1] || ticket.timestamp
+        timestamp: ticket.created ? (ticket.created.split(',')[1] || ticket.created) : 'Sin fecha'
       });
       chatTimeline.appendChild(eventDiv);
       return;
@@ -3312,7 +3855,7 @@
         icon: '⚡️',
         title: 'Incidente creado',
         detail: 'Registrado por operador',
-        timestamp: ticket.timestamp.split(',')[1] || ticket.timestamp
+        timestamp: ticket.created ? (ticket.created.split(',')[1] || ticket.created) : 'Sin fecha'
       });
     }
 
@@ -3893,8 +4436,8 @@
       evidenceFileInput.addEventListener('change', handleEvidenceUpload);
     }
 
-    // Cargar tickets de ejemplo al inicio
-    initializeSampleTickets();
+    // Cargar tickets desde la API al inicio
+    loadIncidencesFromAPI();
   });
 
   // Función para manejar la subida de evidencia
@@ -4027,159 +4570,10 @@
     }
   }
 
-  // Inicializar tickets de ejemplo
-  function initializeSampleTickets() {
-    var year = new Date().getFullYear();
+  // ❌ FUNCIÓN ELIMINADA: initializeSampleTickets()
+  // Ya no se usan datos de ejemplo - Todo se carga desde la API
 
-    // Crear 3 tickets de ejemplo
-    var sampleTickets = [
-      {
-        id: 'INC-' + year + '-001',
-        timestamp: '27/11/2025, 7:20:15 a.m.',
-        alertLevel: 'critica',
-        incidentType: 'robo-vehiculo',
-        reporterName: 'María García',
-        reporterDNI: '87654321',
-        reporterPhone: '55 1234 5678',
-        reporterEmail: 'maria@example.com',
-        reporterRelation: 'victima',
-        status: 'en atención',
-        unread: 2,
-        chatMessages: [
-          {
-            type: 'event',
-            icon: '⚡️',
-            title: 'Incidente creado',
-            detail: 'Registrado por operador',
-            timestamp: '7:20 a.m.'
-          },
-          {
-            type: 'event',
-            icon: '👮',
-            title: 'Agente asignado',
-            detail: 'Agente Ramírez • Camioneta',
-            timestamp: '7:21 a.m.'
-          },
-          {
-            type: 'message',
-            from: 'operator',
-            name: 'Operador',
-            role: 'CAD',
-            text: 'A todos las agentes, favor dirigirse a Av. Principal 123. Robo de vehículo reportado hace 10 minutos.',
-            timestamp: '7:21'
-          },
-          {
-            type: 'message',
-            from: 'agent',
-            name: 'Agente Ramírez',
-            role: 'En ruta',
-            text: 'Recibido, en camino. ETA 5 minutos.',
-            timestamp: '7:22'
-          },
-          {
-            type: 'message',
-            from: 'agent',
-            name: 'Agente Ramírez',
-            role: 'En el lugar',
-            text: 'Llegué al lugar. Estoy tomando declaración de la víctima.',
-            timestamp: '7:27',
-            attachments: [{ type: 'foto', name: 'Evidencia_001.jpg' }]
-          }
-        ]
-      },
-      {
-        id: 'INC-' + year + '-002',
-        timestamp: '27/11/2025, 7:22:30 a.m.',
-        alertLevel: 'alta',
-        incidentType: 'persona-sospechosa',
-        reporterName: 'Carlos Ruiz',
-        reporterDNI: '45678912',
-        reporterPhone: '55 9876 1234',
-        reporterEmail: 'carlos@example.com',
-        reporterRelation: 'testigo',
-        status: 'abierto',
-        unread: 0,
-        chatMessages: [
-          {
-            type: 'event',
-            icon: '⚡️',
-            title: 'Incidente creado',
-            detail: 'Registrado por operador',
-            timestamp: '7:22 a.m.'
-          },
-          {
-            type: 'message',
-            from: 'operator',
-            name: 'Operador',
-            role: 'CAD',
-            text: 'Se reporta persona sospechosa cerca del parque central. Favor verificar.',
-            timestamp: '7:23'
-          }
-        ]
-      },
-      {
-        id: 'INC-' + year + '-003',
-        timestamp: '27/11/2025, 7:24:10 a.m.',
-        alertLevel: 'media',
-        incidentType: 'vehiculo-sospechoso',
-        reporterName: 'Ana López',
-        reporterDNI: '12398745',
-        reporterPhone: '55 5555 9999',
-        reporterEmail: 'ana@example.com',
-        reporterRelation: 'testigo',
-        status: 'abierto',
-        unread: 1,
-        chatMessages: [
-          {
-            type: 'event',
-            icon: '⚡️',
-            title: 'Incidente creado',
-            detail: 'Registrado por operador',
-            timestamp: '7:24 a.m.'
-          },
-          {
-            type: 'event',
-            icon: '👮',
-            title: 'Agente asignado',
-            detail: 'Agente Torres • Motocicleta',
-            timestamp: '7:25 a.m.'
-          },
-          {
-            type: 'message',
-            from: 'agent',
-            name: 'Agente Torres',
-            role: 'Patrulla',
-            text: 'Vehículo localizado. Procedo a verificar placas.',
-            timestamp: '7:26'
-          }
-        ]
-      }
-    ];
-
-    ticketsState.tickets = sampleTickets;
-    ticketsState.nextTicketId = 4; // El siguiente será INC-2025-004
-
-    renderTicketTabs();
-
-    // Seleccionar el primer ticket
-    if (sampleTickets.length > 0) {
-      selectTicket(sampleTickets[0].id);
-    }
-  }
-
-  // Inicializar carga de tickets desde la API
-  // Se ejecuta automáticamente al cargar la página
-  (function initializeTickets() {
-    // Esperar a que el DOM esté listo
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        loadIncidencesFromAPI();
-      });
-    } else {
-      // El DOM ya está listo
-      loadIncidencesFromAPI();
-    }
-  })();
+  // La carga de tickets desde la API se ejecuta en el DOMContentLoaded principal (línea 4163)
 
   // ============================================
   // FORMULARIO DINÁMICO SEGÚN TIPO DE INCIDENCIA
@@ -4225,6 +4619,14 @@
     var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
     if (!ticket) return;
 
+    // 🎯 DETECTAR SI ES UN TICKET NUEVO (sin guardar en BD)
+    if (ticket.isNew === true) {
+      // Es un ticket nuevo, llamar a createNewTicket() para guardarlo en la BD
+      createNewTicketFromForm();
+      return;
+    }
+
+    // Si el ticket ya existe, guardar cambios localmente (o llamar a una API de actualización si existe)
     // Guardar todos los campos del formulario principal
     ticket.alertLevel = document.getElementById('formAlertLevel')?.value || ticket.alertLevel;
     ticket.incidentType = document.getElementById('formIncidentType')?.value || ticket.incidentType;
@@ -4365,8 +4767,75 @@
     });
   }
 
+  // FASE 1: Cargar datos maestros desde las APIs
+  function loadAllMasterData() {
+
+    // NOTA: El nivel de alerta (formAlertLevel) es un ENUM que se envía directamente a la BD
+    // No necesita API, los valores ya están hardcodeados en el HTML
+
+    // Cargar tipos de incidencia
+    callAPI({
+      method: 'gestincidencias/gettypeincidence',
+      params: {},
+      ok: function(data) {
+        var select = document.getElementById('formIncidentType');
+        if (select) {
+          select.innerHTML = '<option value="">Seleccionar</option>';
+          data.forEach(function(item) {
+            var option = document.createElement('option');
+            option.value = item.incidence_type_id;
+            option.textContent = item.incidence_type_name;
+            select.appendChild(option);
+          });
+        }
+      },
+      error: function(error) {
+      }
+    });
+
+    // Cargar orígenes de incidencia
+    callAPI({
+      method: 'gestincidencias/getorigin',
+      params: {},
+      ok: function(data) {
+        // Guardar en variable global por si se necesita más adelante
+        window.masterDataOrigins = data;
+      },
+      error: function(error) {
+      }
+    });
+
+    // Cargar unidades
+    callAPI({
+      method: 'gestincidencias/getunit',
+      params: {},
+      ok: function(data) {
+        // Guardar en variable global por si se necesita más adelante
+        window.masterDataUnits = data;
+      },
+      error: function(error) {
+      }
+    });
+
+    // Cargar estados de incidencia
+    callAPI({
+      method: 'gestincidencias/getincidencestate',
+      params: {},
+      ok: function(data) {
+        // Guardar en variable global por si se necesita más adelante
+        window.masterDataStates = data;
+      },
+      error: function(error) {
+      }
+    });
+
+  }
+
   // Vincular eventos del formulario
   document.addEventListener('DOMContentLoaded', function() {
+    // FASE 1: Cargar datos maestros al iniciar la página
+    loadAllMasterData();
+
     // Listener para cambio de tipo de incidencia
     var formIncidentType = document.getElementById('formIncidentType');
     if (formIncidentType) {
@@ -4378,7 +4847,7 @@
 
     // Listeners para guardar cambios automáticamente
     var formFields = [
-      'formAlertLevel',
+      ' ',
       'formReporterName',
       'formReporterDNI',
       'formReporterPhone',

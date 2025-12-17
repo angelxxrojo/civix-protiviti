@@ -1,0 +1,35 @@
+<!-- ============================================ -->
+<!-- MÓDULO 15: FORMULARIO DINÁMICO              -->
+<!-- ============================================ -->
+<script>
+  // Función para mostrar/ocultar secciones según tipo de incidencia
+  function handleIncidentTypeChange(incidentType) {
+    // Ocultar todas las secciones específicas
+    var missingPersonSection = document.getElementById('formMissingPersonSection');
+    var suspiciousPersonSection = document.getElementById('formSuspiciousPersonSection');
+    var suspiciousVehicleSection = document.getElementById('formSuspiciousVehicleSection');
+    var vehicleSection = document.getElementById('formVehicleSection');
+
+    if (missingPersonSection) missingPersonSection.style.display = 'none';
+    if (suspiciousPersonSection) suspiciousPersonSection.style.display = 'none';
+    if (suspiciousVehicleSection) suspiciousVehicleSection.style.display = 'none';
+    if (vehicleSection) vehicleSection.style.display = 'none';
+
+    // Mostrar la sección correspondiente
+    switch (incidentType) {
+      case 'persona-desaparecida':
+        if (missingPersonSection) missingPersonSection.style.display = 'block';
+        break;
+      case 'persona-sospechosa':
+        if (suspiciousPersonSection) suspiciousPersonSection.style.display = 'block';
+        break;
+      case 'vehiculo-sospechoso':
+        if (suspiciousVehicleSection) suspiciousVehicleSection.style.display = 'block';
+        break;
+      case 'robo-vehiculo':
+        if (vehicleSection) vehicleSection.style.display = 'block';
+        break;
+    }
+  }
+</script>
+

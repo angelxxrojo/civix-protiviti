@@ -1,0 +1,753 @@
+
+<!-- ============================================ -->
+<!-- MÓDULO 2: MAPA - CONFIGURACIÓN Y DATOS      -->
+<!-- ============================================ -->
+<script>
+  // Datos del mapa
+  var mapAgentsData = [
+    { id: 'agent-1', name: 'Agente Rodríguez', position: { left: '25%', top: '35%' }, status: 'active' },
+    { id: 'agent-2', name: 'Agente Martínez', position: { left: '55%', top: '65%' }, status: 'active' },
+    { id: 'agent-3', name: 'Agente López', position: { left: '75%', top: '45%' }, status: 'active' },
+  ];
+
+  var mapCamerasData = [
+    { id: 'cam-1', name: 'CAM-014', position: { left: '30%', top: '40%' }, status: 'online' },
+    { id: 'cam-2', name: 'CAM-021', position: { left: '60%', top: '55%' }, status: 'offline' },
+    { id: 'cam-3', name: 'CAM-033', position: { left: '45%', top: '70%' }, status: 'online' },
+  ];
+
+  var activeMapTab = 'agents';
+</script>
+
+<!-- ============================================ -->
+<!-- MÓDULO 3: MAPA - FUNCIONES DE VISUALIZACIÓN -->
+<!-- ============================================ -->
+<script>
+  // Inicializar mapa
+  function initMap() {
+    renderMapGrid();
+    renderMapMarkers();
+    initMapTabs();
+  }
+
+  // Renderizar grid de fondo
+  function renderMapGrid() {
+    var grid = byId('mapGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    for (var i = 0; i < 144; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'border border-gray-200/10';
+      grid.appendChild(cell);
+    }
+  }
+
+  // Renderizar marcadores según tab activo
+  function renderMapMarkers() {
+    var container = byId('mapMarkers');
+    if (!container) return;
+    container.innerHTML = '';
+
+    var data = activeMapTab === 'agents' ? mapAgentsData : mapCamerasData;
+    var icon = activeMapTab === 'agents' ? getAgentIcon() : getCameraIcon();
+
+    data.forEach(function (item) {
+      var marker = document.createElement('div');
+      marker.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group';
+      marker.style.left = item.position.left;
+      marker.style.top = item.position.top;
+
+      var statusColor = item.status === 'online' || item.status === 'active'
+        ? 'text-orange-500'
+        : 'text-gray-400';
+
+      marker.innerHTML =
+        '<div class="relative">' +
+        '<div class="' + statusColor + ' drop-shadow-lg group-hover:scale-110 transition-transform">' +
+        icon +
+        '</div>' +
+        '<div class="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">' +
+        item.name +
+        '</div>' +
+        '</div>';
+
+      marker.addEventListener('click', function () {
+        onMarkerClick(item);
+      });
+
+      container.appendChild(marker);
+    });
+  }
+
+  // Iconos SVG
+  function getAgentIcon() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="white" stroke-width="1">' +
+      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>' +
+      '<circle cx="9" cy="7" r="4"></circle>' +
+      '<path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>' +
+      '<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>' +
+      '</svg>';
+  }
+
+  function getCameraIcon() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="white" stroke-width="1">' +
+      '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>' +
+      '<circle cx="12" cy="13" r="3"></circle>' +
+      '</svg>';
+  }
+
+  // Inicializar tabs
+  function initMapTabs() {
+    var tabs = document.querySelectorAll('.map-tab');
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var tabName = this.getAttribute('data-tab');
+        setActiveMapTab(tabName);
+      });
+    });
+  }
+
+  // Cambiar tab activo
+  function setActiveMapTab(tabName) {
+    activeMapTab = tabName;
+
+    var tabs = document.querySelectorAll('.map-tab');
+    tabs.forEach(function (tab) {
+      var isActive = tab.getAttribute('data-tab') === tabName;
+
+      if (isActive) {
+        tab.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+        tab.classList.remove('text-gray-500');
+      } else {
+        tab.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+        tab.classList.add('text-gray-500');
+      }
+    });
+
+    renderMapMarkers();
+    updateMapLegend();
+  }
+
+  // Actualizar leyenda
+  function updateMapLegend() {
+    var legendTitle = activeMapTab === 'agents' ? 'Vista de Agentes Activos' : 'Vista de Cámaras';
+    var legendEl = document.querySelector('.map-legend-text');
+    if (legendEl) {
+      legendEl.textContent = legendTitle;
+    }
+  }
+
+  // Click en marcador
+  function onMarkerClick(item) {
+    // Aquí puedes abrir un popup, mostrar info, etc.
+  }
+</script>
+
+<!-- ============================================ -->
+<!-- MÓDULO 4: MAPA - BÚSQUEDA DE DIRECCIONES    -->
+<!-- ============================================ -->
+<script>
+  // Búsqueda en mapa
+  function initMapSearch() {
+    var input = byId('mapSearchInput');
+    var btn = byId('mapSearchBtn');
+
+    if (btn) {
+      btn.addEventListener('click', function () {
+        var query = input ? input.value.trim() : '';
+        if (query) {
+          searchAddress(query);
+        }
+      });
+    }
+
+    if (input) {
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var query = input.value.trim();
+          if (query) {
+            searchAddress(query);
+          }
+        }
+      });
+    }
+  }
+
+  // ✅ Función para actualizar ubicación desde coordenadas (geocoding reverso mejorado)
+  function updateLocationFromCoordinates(lat, lng) {
+    // ✅ VALIDAR SI EL PUNTO ESTÁ DENTRO DE ALGUNA ÁREA
+    var validation = isPointInAnyArea(lat, lng);
+    if (validation && !validation.inside) {
+      showNotification('⚠️ Esta ubicación está fuera del área de cobertura de Miraflores', 'warning');
+      console.warn('❌ Punto fuera de área:', lat, lng);
+      return;
+    }
+
+    if (validation && validation.area) {
+      console.log('✅ Punto dentro de:', validation.area);
+    }
+
+    // Actualizar coordenadas inmediatamente
+    var coordsField = document.getElementById('formLocationCoordinates');
+    if (coordsField) {
+      coordsField.value = lat.toFixed(6) + ', ' + lng.toFixed(6);
+    }
+
+    // Hacer geocoding reverso para obtener dirección, distrito y provincia
+    var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1&accept-language=es';
+
+    fetch(url)
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (!data || !data.address) {
+          console.warn('No se pudo obtener dirección para estas coordenadas');
+          return;
+        }
+
+        var addr = data.address;
+
+        // 🎯 DIRECCIÓN COMPLETA
+        var fullAddress = data.display_name || '';
+        var addressField = document.getElementById('formLocationAddress');
+        if (addressField) {
+          // Tomar solo la parte relevante (sin país)
+          var addressParts = fullAddress.split(',');
+          var cleanAddress = addressParts.slice(0, 3).join(',').trim();
+          addressField.value = cleanAddress;
+        }
+
+        // 🎯 DISTRITO (mejorado - más específico)
+        var distrito = addr.suburb ||           // Barrio/distrito específico
+                      addr.neighbourhood ||     // Vecindario
+                      addr.city_district ||     // Distrito de la ciudad
+                      addr.quarter ||           // Cuadrante
+                      addr.municipality ||      // Municipio
+                      addr.city ||              // Ciudad (fallback)
+                      'Lima';                   // Fallback final
+
+        var districtField = document.getElementById('formLocationDistrict');
+        if (districtField) {
+          districtField.value = distrito;
+        }
+
+        // 🎯 PROVINCIA (mejorado)
+        var provincia = addr.province ||        // Provincia directa
+                       addr.county ||           // Condado/provincia
+                       addr.state_district ||   // Distrito estatal
+                       addr.state ||            // Estado
+                       addr.region ||           // Región
+                       'Lima';                  // Fallback
+
+        var provinceField = document.getElementById('formLocationProvince');
+        if (provinceField) {
+          provinceField.value = provincia;
+        }
+
+        console.log('✅ Ubicación actualizada:', {
+          direccion: cleanAddress,
+          distrito: distrito,
+          provincia: provincia,
+          coords: lat.toFixed(6) + ', ' + lng.toFixed(6)
+        });
+
+      })
+      .catch(function(error) {
+        console.error('Error en geocoding reverso:', error);
+      });
+  }
+
+  function searchAddress(query) {
+    if (!cadMap) {
+      showNotification('El mapa no está disponible', 'error');
+      return;
+    }
+
+    // Usar Nominatim de OpenStreetMap para geocodificación
+    var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&countrycodes=pe&limit=5';
+
+    fetch(nominatimUrl)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (results) {
+        if (results && results.length > 0) {
+          var firstResult = results[0];
+          var lat = parseFloat(firstResult.lat);
+          var lon = parseFloat(firstResult.lon);
+
+          // ✅ VALIDAR SI EL PUNTO ESTÁ DENTRO DE ALGUNA ÁREA
+          var validation = isPointInAnyArea(lat, lon);
+          if (validation && !validation.inside) {
+            showNotification('⚠️ Esta ubicación está fuera del área de cobertura de Miraflores', 'warning');
+            console.warn('❌ Punto fuera de área:', lat, lon);
+            return;
+          }
+
+          if (validation && validation.area) {
+            console.log('✅ Punto dentro de:', validation.area);
+          }
+
+          // Centrar mapa en la ubicación encontrada
+          cadMap.setView([lat, lon], 16);
+
+          // Actualizar o crear marcador de ubicación
+          if (currentLocationMarker) {
+            cadMap.removeLayer(currentLocationMarker);
+          }
+
+          var incidentIcon = L.divIcon({
+            className: 'incident-marker-icon',
+            html: '<div style="background: #ef4444; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">📍</div>',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+          });
+
+          currentLocationMarker = L.marker([lat, lon], { icon: incidentIcon })
+            .addTo(cadMap)
+            .bindPopup('<b>Ubicación seleccionada</b><br>' + firstResult.display_name)
+            .openPopup();
+
+          // Autocompletar campo de ubicación en el formulario
+          updateIncidentLocation(firstResult.display_name, lat, lon);
+
+          showNotification('Ubicación encontrada: ' + firstResult.display_name, 'success');
+        } else {
+          showNotification('No se encontraron resultados para: ' + query, 'warning');
+        }
+      })
+      .catch(function (error) {
+        showNotification('Error al buscar la dirección', 'error');
+      });
+  }
+
+  // Función para actualizar la ubicación del incidente en el formulario
+  function updateIncidentLocation(address, lat, lon) {
+    // Obtener detalles completos de la dirección mediante reverse geocoding
+    var reverseUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&addressdetails=1';
+
+    fetch(reverseUrl)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        if (data && data.address) {
+          var addr = data.address;
+
+          // Extraer componentes de la dirección
+          var street = addr.road || addr.street || '';
+          var houseNumber = addr.house_number || '';
+          var suburb = addr.suburb || addr.neighbourhood || addr.quarter || '';
+          var district = addr.county || addr.state_district || addr.city_district || suburb || '';
+          var province = addr.state || addr.province || addr.region || '';
+          var city = addr.city || addr.town || addr.village || '';
+
+          // Construir dirección completa
+          var fullAddress = '';
+          if (street) {
+            fullAddress = street;
+            if (houseNumber) fullAddress += ' ' + houseNumber;
+            if (suburb) fullAddress += ', ' + suburb;
+          } else {
+            fullAddress = address;
+          }
+
+          // Actualizar campos del formulario
+          var formLocationAddress = document.getElementById('formLocationAddress');
+          var formLocationDistrict = document.getElementById('formLocationDistrict');
+          var formLocationProvince = document.getElementById('formLocationProvince');
+          var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+
+          if (formLocationAddress) formLocationAddress.value = fullAddress;
+          if (formLocationDistrict) formLocationDistrict.value = district || city || '';
+          if (formLocationProvince) formLocationProvince.value = province || '';
+          if (formLocationCoordinates) formLocationCoordinates.value = lat.toFixed(6) + ', ' + lon.toFixed(6);
+
+          // Guardar en el ticket activo
+          if (ticketsState.activeTicketId) {
+            var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+            if (ticket) {
+              ticket.location = {
+                address: fullAddress,
+                district: district || city || '',
+                province: province || '',
+                coordinates: lat.toFixed(6) + ', ' + lon.toFixed(6),
+                lat: lat,
+                lon: lon
+              };
+            }
+          }
+
+          // 🔥 REGENERAR agentes aleatoriamente alrededor del nuevo punto
+          regenerateAgentsAroundIncident(lat, lon);
+
+          // Mostrar agentes cercanos disponibles
+          showNearbyAgents(lat, lon);
+        }
+      })
+      .catch(function (error) {
+        // Si falla el reverse geocoding, al menos guardar lo básico
+        var formLocationAddress = document.getElementById('formLocationAddress');
+        var formLocationCoordinates = document.getElementById('formLocationCoordinates');
+
+        if (formLocationAddress) formLocationAddress.value = address;
+        if (formLocationCoordinates) formLocationCoordinates.value = lat.toFixed(6) + ', ' + lon.toFixed(6);
+
+        if (ticketsState.activeTicketId) {
+          var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+          if (ticket) {
+            ticket.location = {
+              address: address,
+              coordinates: lat.toFixed(6) + ', ' + lon.toFixed(6),
+              lat: lat,
+              lon: lon
+            };
+          }
+        }
+
+        // 🔥 REGENERAR agentes aleatoriamente alrededor del nuevo punto (aunque falle reverse geocoding)
+        regenerateAgentsAroundIncident(lat, lon);
+
+        // Mostrar agentes cercanos disponibles aunque falle el reverse geocoding
+        showNearbyAgents(lat, lon);
+      });
+  }
+</script>
+
+<!-- ============================================ -->
+<!-- MÓDULO: IMPLEMENTACIÓN DE callAPI          -->
+<!-- ============================================ -->
+<script>
+  // Implementación de callAPI para que funcione en esta página
+  if (typeof callAPI === 'undefined') {
+    window.callAPI = function(config) {
+      var method = config.method || '';
+      var params = config.params || {};
+      var okCallback = config.ok || function() {};
+      var errorCallback = config.error || function() {};
+
+      // URL base del API
+      var baseURL = 'http://10.23.62.93:90/api/';
+      var url = baseURL + method;
+
+      // Construir query string si hay parámetros
+      var queryString = Object.keys(params)
+        .map(function(key) {
+          return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+        })
+        .join('&');
+
+      if (queryString) {
+        url += '?' + queryString;
+      }
+
+      console.log('🌐 callAPI:', method);
+
+      // Hacer la petición con fetch
+      fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('HTTP error! status: ' + response.status);
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        okCallback(data);
+      })
+      .catch(function(error) {
+        console.error('❌ callAPI error:', error);
+        errorCallback(error);
+      });
+    };
+
+    console.log('✅ callAPI implementado y disponible');
+  }
+</script>
+
+<!-- ============================================ -->
+<!-- MÓDULO: TRAER DATOS DE ZONAS (gestion/getbuilding) -->
+<!-- ============================================ -->
+<script>
+  // Variable global para guardar los datos
+  var buildingsData = [];
+
+  // Función para traer datos de zonas desde el endpoint
+  function loadBuildingData() {
+    console.log('🔄 Cargando datos desde gestion/getbuilding...');
+
+    callAPI({
+      method: 'gestion/getbuilding',
+      params: {},
+      ok: function(data) {
+        if (data && data.length > 0) {
+          console.log('✅ Se recibieron ' + data.length + ' áreas del servidor');
+          buildingsData = data;
+          window.buildingsData = data;
+
+          console.log('📦 Datos completos:', data);
+          console.log('📋 Ejemplo del primer registro:', data[0]);
+          console.log('🔑 Propiedades disponibles:', Object.keys(data[0]));
+
+          // Dibujar automáticamente en el mapa
+          setTimeout(function() {
+            drawAreasOnMap(data);
+
+            // ✅ Mover el marcador inicial a una ubicación dentro de las áreas
+            setTimeout(function() {
+              setInitialMarkerInArea();
+            }, 1000);
+          }, 500);
+
+        } else {
+          console.warn('❌ No se recibieron áreas del servidor');
+        }
+      },
+      error: function(error) {
+        console.error('❌ Error al cargar las áreas:', error);
+      }
+    });
+  }
+
+  // Variable para guardar los polígonos dibujados
+  var drawnPolygons = [];
+  var areaPolygons = []; // Guardar las coordenadas de las áreas para validación
+
+  // Función para verificar si un punto está dentro de un polígono (algoritmo ray-casting)
+  function isPointInPolygon(lat, lng, polygon) {
+    var x = lat, y = lng;
+    var inside = false;
+
+    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      var xi = polygon[i][0], yi = polygon[i][1];
+      var xj = polygon[j][0], yj = polygon[j][1];
+
+      var intersect = ((yi > y) !== (yj > y))
+          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+
+    return inside;
+  }
+
+  // Función para verificar si un punto está dentro de alguna área
+  function isPointInAnyArea(lat, lng) {
+    if (areaPolygons.length === 0) {
+      console.warn('⚠️ No hay áreas cargadas, permitiendo cualquier ubicación');
+      return true; // Si no hay áreas cargadas, permitir cualquier punto
+    }
+
+    for (var i = 0; i < areaPolygons.length; i++) {
+      if (isPointInPolygon(lat, lng, areaPolygons[i].coords)) {
+        return {
+          inside: true,
+          area: areaPolygons[i].name,
+          id: areaPolygons[i].id
+        };
+      }
+    }
+
+    return { inside: false };
+  }
+
+  // Función para obtener un punto aleatorio dentro de un polígono
+  function getRandomPointInPolygon(polygon) {
+    // Encontrar los límites del polígono
+    var minLat = Math.min.apply(null, polygon.map(function(p) { return p[0]; }));
+    var maxLat = Math.max.apply(null, polygon.map(function(p) { return p[0]; }));
+    var minLng = Math.min.apply(null, polygon.map(function(p) { return p[1]; }));
+    var maxLng = Math.max.apply(null, polygon.map(function(p) { return p[1]; }));
+
+    // Intentar hasta 100 veces encontrar un punto dentro del polígono
+    for (var i = 0; i < 100; i++) {
+      var lat = minLat + Math.random() * (maxLat - minLat);
+      var lng = minLng + Math.random() * (maxLng - minLng);
+
+      if (isPointInPolygon(lat, lng, polygon)) {
+        return { lat: lat, lng: lng };
+      }
+    }
+
+    // Si no se encuentra, devolver el centro del polígono
+    var centerLat = (minLat + maxLat) / 2;
+    var centerLng = (minLng + maxLng) / 2;
+    return { lat: centerLat, lng: centerLng };
+  }
+
+  // Función para dibujar las áreas en el mapa Leaflet
+  function drawAreasOnMap(areas) {
+    if (!cadMap) {
+      console.warn('❌ Mapa no disponible');
+      return;
+    }
+
+    console.log('🗺️ Dibujando ' + areas.length + ' áreas en el mapa...');
+
+    // Limpiar polígonos anteriores
+    drawnPolygons.forEach(function(polygon) {
+      cadMap.removeLayer(polygon);
+    });
+    drawnPolygons = [];
+
+    var colorsPool = [
+      { fill: 'rgba(255, 51, 51, 0.2)', stroke: '#cc0000' },
+      { fill: 'rgba(51, 102, 255, 0.2)', stroke: '#0033cc' },
+      { fill: 'rgba(51, 204, 51, 0.2)', stroke: '#009900' },
+      { fill: 'rgba(255, 153, 51, 0.2)', stroke: '#cc6600' },
+      { fill: 'rgba(153, 102, 255, 0.2)', stroke: '#6600cc' },
+      { fill: 'rgba(255, 102, 204, 0.2)', stroke: '#cc3399' }
+    ];
+
+    var drawnCount = 0;
+
+    areas.forEach(function(area, index) {
+      try {
+        if (!area.poligono_area) {
+          console.warn('⚠️ Área sin polígono:', area.nombre_area);
+          return;
+        }
+
+        // Parsear las coordenadas
+        var coordsArray = JSON.parse(area.poligono_area);
+        var coordinates = coordsArray.map(function(coord) {
+          return [parseFloat(coord[0]), parseFloat(coord[1])];
+        });
+
+        if (coordinates.length === 0) return;
+
+        // Guardar coordenadas para validación
+        areaPolygons.push({
+          id: area.id_area,
+          name: area.nombre_area,
+          coords: coordinates
+        });
+
+        // Seleccionar color
+        var color = colorsPool[index % colorsPool.length];
+
+        // Crear polígono en Leaflet
+        var polygon = L.polygon(coordinates, {
+          color: color.stroke,
+          fillColor: color.fill,
+          fillOpacity: 0.3,
+          weight: 2,
+          opacity: 0.7
+        }).addTo(cadMap);
+
+        // Crear popup con información
+        var popupContent = '<div style="min-width: 200px;">' +
+          '<h6 style="margin: 0 0 8px 0; font-weight: bold;">' + (area.nombre_area || 'Área ' + (index + 1)) + '</h6>' +
+          '<div style="font-size: 12px;">';
+
+        if (area.id_area) {
+          popupContent += '<p style="margin: 4px 0;"><strong>ID:</strong> ' + area.id_area + '</p>';
+        }
+
+        popupContent += '<p style="margin: 4px 0;"><strong>Puntos:</strong> ' + coordinates.length + '</p>';
+        popupContent += '</div></div>';
+
+        polygon.bindPopup(popupContent);
+
+        // Guardar referencia
+        drawnPolygons.push(polygon);
+        drawnCount++;
+
+        console.log('✅ ' + area.nombre_area + ' dibujada');
+
+      } catch (error) {
+        console.error('❌ Error dibujando área ' + area.nombre_area + ':', error);
+      }
+    });
+
+    console.log('🎉 ' + drawnCount + ' áreas dibujadas en el mapa');
+
+    // Ajustar vista para mostrar todas las áreas
+    if (drawnPolygons.length > 0) {
+      try {
+        var group = new L.featureGroup(drawnPolygons);
+        cadMap.fitBounds(group.getBounds(), { padding: [50, 50] });
+      } catch (error) {
+        console.warn('⚠️ No se pudo ajustar la vista');
+      }
+    }
+  }
+
+  // Exponer funciones globalmente
+  window.loadBuildingData = loadBuildingData;
+  window.drawAreasOnMap = drawAreasOnMap;
+
+  // Función para establecer el marcador inicial dentro de un área
+  function setInitialMarkerInArea() {
+    if (!cadMap || areaPolygons.length === 0) {
+      console.warn('⚠️ No se puede establecer marcador inicial: mapa o áreas no disponibles');
+      return;
+    }
+
+    // Seleccionar un área aleatoria
+    var randomAreaIndex = Math.floor(Math.random() * areaPolygons.length);
+    var selectedArea = areaPolygons[randomAreaIndex];
+
+    // Obtener un punto aleatorio dentro del área
+    var randomPoint = getRandomPointInPolygon(selectedArea.coords);
+
+    console.log('📍 Estableciendo marcador inicial en:', selectedArea.name);
+    console.log('📍 Coordenadas:', randomPoint.lat, randomPoint.lng);
+
+    // Mover el mapa al punto
+    cadMap.setView([randomPoint.lat, randomPoint.lng], 15);
+
+    // Actualizar el marcador si existe
+    if (typeof currentLocationMarker !== 'undefined' && currentLocationMarker) {
+      currentLocationMarker.setLatLng([randomPoint.lat, randomPoint.lng]);
+      currentLocationMarker.bindPopup('<b>📍 Ubicación del incidente</b><br>' + selectedArea.name + '<br><small>Arrastra el pin para cambiar la ubicación</small>').openPopup();
+    }
+
+    // Actualizar formulario con las coordenadas
+    updateLocationFromCoordinates(randomPoint.lat, randomPoint.lng);
+
+    // Regenerar agentes alrededor del nuevo punto
+    if (typeof regenerateAgentsAroundIncident === 'function') {
+      regenerateAgentsAroundIncident(randomPoint.lat, randomPoint.lng);
+    }
+  }
+
+  // Cargar automáticamente las áreas cuando el mapa esté listo
+  function autoLoadAreas() {
+    // Esperar a que cadMap esté disponible
+    var checkMapInterval = setInterval(function() {
+      if (typeof cadMap !== 'undefined' && cadMap !== null) {
+        clearInterval(checkMapInterval);
+        console.log('🗺️ Mapa detectado, cargando áreas automáticamente...');
+        setTimeout(function() {
+          loadBuildingData();
+        }, 1000);
+      }
+    }, 100);
+  }
+
+  // Iniciar la carga automática
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoLoadAreas);
+  } else {
+    autoLoadAreas();
+  }
+
+  // Exponer funciones globalmente
+  window.loadBuildingData = loadBuildingData;
+  window.drawAreasOnMap = drawAreasOnMap;
+  window.isPointInAnyArea = isPointInAnyArea;
+  window.getRandomPointInPolygon = getRandomPointInPolygon;
+  window.setInitialMarkerInArea = setInitialMarkerInArea;
+  window.areaPolygons = areaPolygons;
+
+  console.log('✅ Módulo de datos de edificios cargado');
+  console.log('📍 Las áreas se cargarán automáticamente cuando el mapa esté listo');
+  console.log('📍 El marcador inicial se establecerá dentro de un área');
+  console.log('📍 Funciones de validación disponibles: isPointInAnyArea(lat, lng)');
+</script>

@@ -1,0 +1,180 @@
+<!-- ============================================ -->
+<!-- MÓDULO 1: FUNCIONES UTILITARIAS             -->
+<!-- ============================================ -->
+<script>
+  // Función helper principal
+  function byId(id) { return document.getElementById(id); }
+
+  // Función para mostrar notificaciones
+  function showNotification(message, type) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: type === 'success' ? '¡Éxito!' : 'Información',
+        text: message,
+        icon: type,
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      alert(message);
+    }
+  }
+</script>
+
+<!-- ============================================ -->
+<!-- MÓDULO 19: INICIALIZACIÓN                   -->
+<!-- ============================================ -->
+<script>
+  // Esperar a que el elemento exista y luego inicializar
+  function waitForElement(id, callback, maxAttempts) {
+    if (!maxAttempts) maxAttempts = 4000; // Máximo 5 segundos (100 * 50ms)
+
+    var el = document.getElementById(id);
+    if (el) {
+      callback();
+    } else if (maxAttempts > 0) {
+      setTimeout(function () {
+        waitForElement(id, callback, maxAttempts - 1);
+      }, 50);
+    } else {
+      console.warn('⚠️ Elemento "' + id + '" no encontrado después de esperar');
+    }
+  }
+
+  // Inicializar mapa solo si el elemento existe
+  waitForElement('mapGrid', function () {
+    try {
+      initMap();
+      initMapSearch();
+    } catch (error) {
+      console.error('Error inicializando mapa:', error);
+    }
+  });
+
+  // Vincular eventos cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', function () {
+    // FASE 1: Cargar datos maestros al iniciar la página
+    loadAllMasterData();
+
+    // Listener para cambio de tipo de incidencia
+    var formIncidentType = document.getElementById('formIncidentType');
+    if (formIncidentType) {
+      formIncidentType.addEventListener('change', function () {
+        handleIncidentTypeChange(this.value);
+        // ✅ Ya no hay auto-guardado
+      });
+    }
+
+    // Vincular botón de crear ticket
+    var addTicketBtn = document.getElementById('addticket');
+    if (addTicketBtn) {
+      // Remover el listener anterior si existe
+      var newBtn = addTicketBtn.cloneNode(true);
+      addTicketBtn.parentNode.replaceChild(newBtn, addTicketBtn);
+
+      // Agregar nuevo listener
+      newBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        showNewTicketModal();
+      });
+    }
+
+    // Vincular botón de enviar mensaje
+    var sendBtn = document.getElementById('chatSendButton');
+    var chatInput = document.getElementById('chatComposerInput');
+
+    if (sendBtn) {
+      sendBtn.addEventListener('click', sendChatMessage);
+    }
+
+    if (chatInput) {
+      chatInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+    }
+
+    // Vincular botón de cerrar ticket
+    var closeTicketBtn = document.getElementById('closeTicketBtn');
+    if (closeTicketBtn) {
+      closeTicketBtn.addEventListener('click', closeTicketWithReason);
+    }
+
+    // Vincular botón de guardar ticket
+    var saveTicketBtn = document.getElementById('saveTicketBtn');
+    if (saveTicketBtn) {
+      saveTicketBtn.addEventListener('click', saveTicketChanges);
+    }
+
+    // Vincular botón de subir evidencia
+    var uploadEvidenceBtn = document.getElementById('uploadEvidenceBtn');
+    var evidenceFileInput = document.getElementById('evidenceFileInput');
+
+    if (uploadEvidenceBtn && evidenceFileInput) {
+      uploadEvidenceBtn.addEventListener('click', function () {
+        evidenceFileInput.click();
+      });
+
+      evidenceFileInput.addEventListener('change', handleEvidenceUpload);
+    }
+
+    // Lista completa de campos del formulario para auto-guardado
+    var allFormFields = [
+      // Datos del denunciante
+      'formReporterName',
+      'formReporterDNI',
+      'formReporterPhone',
+      'formReporterEmail',
+      'formReporterRelation',
+      // Nivel de alerta y tipo
+      'formAlertLevel',
+      'formIncidentType',
+      // Ubicación
+      'formLocationAddress',
+      'formLocationDistrict',
+      'formLocationProvince',
+      'formLocationReference',
+      'formLocationCoordinates',
+      // Descripción
+      'formDescription',
+      // Persona desaparecida
+      'formMissingName',
+      'formMissingAge',
+      'formMissingGender',
+      'formMissingDNI',
+      'formMissingLastSeen',
+      'formMissingLastLocation',
+      'formMissingDescription',
+      'formMissingMedical',
+      // Persona sospechosa
+      'formSuspiciousName',
+      'formSuspiciousAlias',
+      'formSuspiciousDescription',
+      'formSuspiciousReason',
+      'formSuspiciousLocation',
+      'formSuspiciousLinked',
+      // Vehículo sospechoso
+      'formSuspVehiclePlate',
+      'formSuspVehicleType',
+      'formSuspVehicleColor',
+      'formSuspVehicleDetails',
+      'formSuspVehicleLocation',
+      'formSuspVehicleTime',
+      'formSuspVehicleBehavior',
+      // Robo de vehículo
+      'formVehicleType',
+      'formVehicleBrand',
+      'formVehiclePlate',
+      'formVehicleColor',
+      'formVehicleYear',
+      'formVehicleLocation',
+      'formVehicleDateTime',
+      'formVehicleGPS'
+    ];
+
+    // Cargar tickets desde la API al inicio
+    loadIncidencesFromAPI();
+  });
+</script>

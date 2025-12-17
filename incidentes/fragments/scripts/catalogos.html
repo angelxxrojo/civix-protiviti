@@ -1,0 +1,88 @@
+<!-- ============================================ -->
+<!-- MÓDULO 17: DATOS MAESTROS (API)             -->
+<!-- ============================================ -->
+<script>
+  // FASE 1: Cargar datos maestros desde las APIs
+  function loadAllMasterData() {
+    // NOTA: El nivel de alerta (formAlertLevel) es un ENUM que se envía directamente a la BD
+    // No necesita API, los valores ya están hardcodeados en el HTML
+
+    // Cargar tipos de incidencia
+    callAPI({
+      method: 'gestincidencias/gettypeincidence',
+      params: {},
+      ok: function (data) {
+        var select = document.getElementById('formIncidentType');
+        if (select) {
+          select.innerHTML = '<option value="">Seleccionar</option>';
+          data.forEach(function (item) {
+            var option = document.createElement('option');
+            option.value = item.incidence_type_id;
+            option.textContent = item.incidence_type_name;
+            select.appendChild(option);
+          });
+        }
+      },
+      error: function (error) {
+        // Ignorar AbortError silenciosamente
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          return;
+        }
+        console.warn('Error cargando tipos de incidencia:', error);
+      }
+    });
+
+    // Cargar orígenes de incidencia
+    callAPI({
+      method: 'gestincidencias/getorigin',
+      params: {},
+      ok: function (data) {
+        // Guardar en variable global por si se necesita más adelante
+        window.masterDataOrigins = data;
+      },
+      error: function (error) {
+        // Ignorar AbortError silenciosamente
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          return;
+        }
+        console.warn('Error cargando orígenes:', error);
+      }
+    });
+
+    // Cargar unidades
+    callAPI({
+      method: 'gestincidencias/getunit',
+      params: {},
+      ok: function (data) {
+        // Guardar en variable global por si se necesita más adelante
+        window.masterDataUnits = data;
+      },
+      error: function (error) {
+        // Ignorar AbortError silenciosamente
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          return;
+        }
+        console.warn('Error cargando unidades:', error);
+      }
+    });
+
+    // Cargar estados de incidencia
+    callAPI({
+      method: 'gestincidencias/getincidencestate',
+      params: {},
+      ok: function (data) {
+        // Guardar en variable global por si se necesita más adelante
+        window.masterDataStates = data;
+      },
+      error: function (error) {
+        // Ignorar AbortError silenciosamente
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          return;
+        }
+        console.warn('Error cargando estados:', error);
+      }
+    });
+  }
+
+
+</script>

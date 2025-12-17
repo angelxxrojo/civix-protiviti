@@ -1,0 +1,46 @@
+<!-- Modal de confirmación para cerrar ticket -->
+<div class="modal fade" id="closeTicketModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-left">
+                <h4 class="modal-title mb-0">Cerrar Ticket</h4>
+                <h7 class="mb-0" id="closeTicketModalInfo">Ticket #000</h7>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 15px">
+                            <div class="panel-heading">
+                                <h5>MOTIVO DE CIERRE</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <label>Motivo *</label>
+                                    <select id="closeTicketReason" class="form-control">
+                                        <option value="">Seleccione motivo</option>
+                                        <option value="resuelto">Incidente Resuelto</option>
+                                        <option value="falsa-alarma">Falsa Alarma</option>
+                                        <option value="duplicado">Ticket Duplicado</option>
+                                        <option value="sin-respuesta">Sin Respuesta del Reportante</option>
+                                        <option value="derivado">Derivado a Otra Autoridad</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Observaciones *</label>
+                                    <textarea id="closeTicketObservations" class="form-control" rows="5" placeholder="Describa el motivo del cierre y las acciones tomadas..." style="resize: none;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-rounded" onclick="confirmCloseTicket()">Cerrar Ticket</button>
+            </div>
+        </div>
+    </div>
+</div>

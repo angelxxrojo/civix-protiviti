@@ -1,0 +1,716 @@
+<!-- ============================================ -->
+<!-- MÓDULO 12: AGENTES - CÁLCULOS Y ASIGNACIÓN  -->
+<!-- ============================================ -->
+<script>
+  // Función para calcular distancia entre dos puntos GPS (Haversine formula)
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    var R = 6371; // Radio de la Tierra en km
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var distance = R * c; // Distancia en km
+    return distance;
+  }
+
+  // Función para generar agentes aleatorios alrededor de un punto
+  function generateRandomAgentsAroundPoint(centerLat, centerLon, count) {
+    var newAgents = [];
+    var usedNames = [];
+
+    // Barajar pool de nombres
+    var shuffledNames = agentNamesPool.slice().sort(function () { return Math.random() - 0.5; });
+
+    for (var i = 0; i < count; i++) {
+      if (i >= shuffledNames.length) break;
+
+      var agentLat, agentLon;
+      var attempts = 0;
+      var maxAttempts = 50;
+      var foundValidLocation = false;
+
+      // ✅ INTENTAR GENERAR AGENTE DENTRO DE LAS ÁREAS
+      while (attempts < maxAttempts && !foundValidLocation) {
+        // Generar distancia aleatoria entre 0.3 km y 3.5 km
+        var randomDistance = 0.3 + Math.random() * 3.2; // en km
+
+        // Generar ángulo aleatorio (0-360 grados)
+        var randomAngle = Math.random() * 360;
+
+        // Convertir distancia y ángulo a coordenadas lat/lon
+        // 1 grado de latitud ≈ 111 km
+        // 1 grado de longitud ≈ 111 * cos(latitud) km
+        var deltaLat = (randomDistance * Math.cos(randomAngle * Math.PI / 180)) / 111;
+        var deltaLon = (randomDistance * Math.sin(randomAngle * Math.PI / 180)) / (111 * Math.cos(centerLat * Math.PI / 180));
+
+        agentLat = centerLat + deltaLat;
+        agentLon = centerLon + deltaLon;
+
+        // ✅ VALIDAR SI EL AGENTE ESTÁ DENTRO DE ALGUNA ÁREA
+        if (typeof isPointInAnyArea === 'function') {
+          var validation = isPointInAnyArea(agentLat, agentLon);
+          if (validation && validation.inside) {
+            foundValidLocation = true;
+            console.log('✅ Agente generado en:', validation.area);
+          } else {
+            attempts++;
+          }
+        } else {
+          // Si no hay validación, aceptar cualquier punto
+          foundValidLocation = true;
+        }
+      }
+
+      // Si no se encontró ubicación válida después de varios intentos, saltar este agente
+      if (!foundValidLocation) {
+        console.warn('⚠️ No se pudo generar agente dentro de las áreas después de ' + maxAttempts + ' intentos');
+        continue;
+      }
+
+      // Seleccionar transporte aleatorio
+      var randomTransport = transportTypes[Math.floor(Math.random() * transportTypes.length)];
+
+      // Calcular distancia real para mostrar
+      var realDistance = calculateDistance(centerLat, centerLon, agentLat, agentLon);
+      var distanceText = realDistance < 1
+        ? Math.round(realDistance * 1000) + ' m'
+        : realDistance.toFixed(1) + ' km';
+
+      var agentData = shuffledNames[i];
+      var agentId = 'agent_' + Date.now() + '_' + i;
+
+      // 🎲 30% de probabilidad de que el agente esté ocupado
+      var isOccupied = Math.random() < 0.3;
+      var assignedTicket = null;
+      var agentStatus = 'Disponible';
+
+      if (isOccupied) {
+        // Generar un ticket ficticio
+        var randomTicketNum = 1000 + Math.floor(Math.random() * 9000);
+        assignedTicket = 'INC-2025-' + String(randomTicketNum).padStart(6, '0');
+        agentStatus = 'Ocupado';
+      }
+
+      newAgents.push({
+        id: agentId,
+        name: agentData.name,
+        shortName: agentData.shortName,
+        transporte: randomTransport,
+        status: agentStatus,
+        distancia: distanceText,
+        coords: [agentLat, agentLon],
+        assignedTicket: assignedTicket
+      });
+    }
+
+    return newAgents;
+  }
+
+  // Función para regenerar agentes alrededor de una nueva ubicación
+  function regenerateAgentsAroundIncident(incidentLat, incidentLon) {
+    // Preservar agentes que ya tienen tickets asignados
+    var assignedAgents = agentsData.filter(function (agent) {
+      return agent.assignedTicket !== null && agent.assignedTicket !== undefined;
+    });
+
+    // Generar entre 6 y 10 agentes nuevos disponibles
+    var numberOfNewAgents = 6 + Math.floor(Math.random() * 5);
+    var newAvailableAgents = generateRandomAgentsAroundPoint(incidentLat, incidentLon, numberOfNewAgents);
+
+    // Combinar agentes asignados (mantener) + nuevos disponibles
+    agentsData = assignedAgents.concat(newAvailableAgents);
+
+    // Actualizar marcadores en el mapa
+    renderAgentsOnMap();
+  }
+
+  // Función para mostrar agentes cercanos a la ubicación del incidente
+  function showNearbyAgents(incidentLat, incidentLon) {
+    var section = document.getElementById('nearbyAgentsSection');
+    var container = document.getElementById('nearbyAgentsList');
+
+    if (!section || !container) return;
+
+    // Obtener ticket activo
+    var activeTicket = ticketsState.activeTicketId
+      ? ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; })
+      : null;
+
+    if (!activeTicket) {
+      section.style.display = 'none';
+      return;
+    }
+
+    // Calcular distancia de cada agente al incidente
+    var agentsWithDistance = agentsData.map(function (agent) {
+      var distance = calculateDistance(incidentLat, incidentLon, agent.coords[0], agent.coords[1]);
+
+      // Crear copia del agente con propiedades adicionales (sin usar spread operator)
+      var agentCopy = {
+        id: agent.id,
+        name: agent.name,
+        shortName: agent.shortName,
+        transporte: agent.transporte,
+        status: agent.status,
+        distancia: agent.distancia,
+        coords: agent.coords,
+        assignedTicket: agent.assignedTicket,
+        calculatedDistance: distance,
+        distanceText: distance < 1
+          ? Math.round(distance * 1000) + ' m'
+          : distance.toFixed(1) + ' km'
+      };
+
+      return agentCopy;
+    });
+
+    // Filtrar solo disponibles (sin ticket asignado)
+    var availableAgents = agentsWithDistance.filter(function (agent) {
+      return !agent.assignedTicket || agent.assignedTicket === null;
+    });
+
+    // Ordenar por distancia (más cercano primero)
+    availableAgents.sort(function (a, b) {
+      return a.calculatedDistance - b.calculatedDistance;
+    });
+
+    // Mostrar solo los 5 más cercanos
+    var nearestAgents = availableAgents.slice(0, 5);
+
+    if (nearestAgents.length === 0) {
+      container.innerHTML = '<div style="padding: 15px; text-align: center; color: #9ca3af; font-size: 12px;">No hay agentes disponibles en este momento</div>';
+      section.style.display = 'block';
+      return;
+    }
+
+    // Renderizar lista de agentes
+    container.innerHTML = '';
+    nearestAgents.forEach(function (agent) {
+      var agentCard = document.createElement('div');
+      agentCard.style.cssText = 'padding: 10px 12px; border-bottom: 1px solid #374151; background: #1e293b; margin-bottom: 8px; border-radius: 6px;';
+
+      var transportIcon = {
+        'Camioneta': '🚗',
+        'Motocicleta': '🏍️',
+        'Bicicleta': '🚴',
+        'A pie': '🚶'
+      }[agent.transporte] || '🚗';
+
+      agentCard.innerHTML =
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+        '<div>' +
+        '<strong style="font-size: 13px; color: #e5e7eb;">' + agent.name + '</strong>' +
+        '<div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">' + transportIcon + ' ' + agent.transporte + '</div>' +
+        '</div>' +
+        '<div style="text-align: right;">' +
+        '<div style="font-size: 13px; color: #22c55e; font-weight: 600;">📍 ' + agent.distanceText + '</div>' +
+        '<div style="font-size: 10px; color: #9ca3af;">de distancia</div>' +
+        '</div>' +
+        '</div>' +
+        '<button onclick="assignAgentToTicketFromNearby(\'' + agent.id + '\')" class="btn btn-sm btn-accent" style="width: 100%; padding: 6px; font-size: 12px;">' +
+        '<i class="pe-7s-check" aria-hidden="true"></i> Asignar a este incidente' +
+        '</button>';
+
+      container.appendChild(agentCard);
+    });
+
+    // Mostrar la sección
+    section.style.display = 'block';
+  }
+
+  // Función para asignar agente desde la lista de cercanos
+  function assignAgentToTicketFromNearby(agentId) {
+    if (!ticketsState.activeTicketId) {
+      showNotification('No hay ticket activo', 'warning');
+      return;
+    }
+
+    var agent = agentsData.find(function (a) { return a.id === agentId; });
+    if (!agent) {
+      showNotification('Agente no encontrado', 'error');
+      return;
+    }
+
+    if (agent.assignedTicket) {
+      showNotification('Este agente ya tiene un ticket asignado', 'warning');
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    // Asignar agente al ticket
+    agent.assignedTicket = ticket.id;
+    agent.status = 'En servicio';
+
+    // Actualizar estado del ticket
+    ticket.status = 'Asignado';
+    ticket.assignedAgent = agent.name;
+
+    // Agregar mensaje al chat
+    if (!ticket.chatMessages) ticket.chatMessages = [];
+
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    ticket.chatMessages.push({
+      type: 'event',
+      icon: '👮',
+      title: 'Agente asignado',
+      detail: agent.name + ' - ' + agent.transporte,
+      timestamp: timeString
+    });
+
+    // Actualizar vistas
+    renderTicketTabs();
+    renderAgentMarkers();
+    loadTicketChat(ticket);
+    renderTicketAssignedAgents();
+
+    // Refrescar lista de agentes cercanos
+    if (ticket.location && ticket.location.lat && ticket.location.lon) {
+      showNearbyAgents(ticket.location.lat, ticket.location.lon);
+    }
+
+    showNotification('Agente ' + agent.name + ' asignado exitosamente', 'success');
+  }
+
+  // Función para renderizar agentes asignados a ESTE ticket específico
+  function renderTicketAssignedAgents() {
+    var container = document.getElementById('ticketAssignedAgentsList');
+    if (!container) return;
+
+    // Si no hay ticket activo, limpiar
+    if (!ticketsState.activeTicketId) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px;">Seleccione un ticket</div>';
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px;">Ticket no encontrado</div>';
+      return;
+    }
+
+    // Filtrar agentes que tienen asignado ESTE ticket específico
+    var ticketAgents = agentsData.filter(function (agent) {
+      return agent.assignedTicket === ticket.id;
+    });
+
+    // Limpiar contenedor
+    container.innerHTML = '';
+
+    if (ticketAgents.length === 0) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px;">No hay agentes asignados a este ticket</div>';
+      return;
+    }
+
+    // Renderizar cada agente asignado
+    ticketAgents.forEach(function (agent) {
+      var agentCard = document.createElement('div');
+      agentCard.style.cssText = 'padding: 12px 15px; border-bottom: 1px solid #1e293b;';
+
+      agentCard.innerHTML =
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+        '<strong style="font-size: 14px; color: #e5e7eb;">' + agent.name + '</strong>' +
+        '<span style="font-size: 11px; padding: 2px 6px; background: #1e3a1e; border-radius: 4px; color: #22c55e;">En este ticket</span>' +
+        '</div>' +
+        '<div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">🚗 ' + agent.transporte + '</div>' +
+        '<div style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">📍 ' + agent.distancia + '</div>' +
+        '<button onclick="releaseAgentFromTicket(\'' + agent.id + '\')" class="btn btn-sm" style="width: 100%; padding: 6px; font-size: 11px; background: #dc2626; color: white; border: none;">Liberar Agente</button>';
+
+      container.appendChild(agentCard);
+    });
+  }
+</script>
+
+<!-- ============================================ -->
+<!-- MÓDULO 13: SISTEMA DE ASIGNACIÓN DE AGENTES -->
+<!-- ============================================ -->
+<script>
+  // Función para abrir modal de asignación de agentes
+  function openAssignAgentModal() {
+    if (!ticketsState.activeTicketId) {
+      showNotification('Debe seleccionar un ticket primero', 'warning');
+      return;
+    }
+
+    // Actualizar información del ticket en el modal
+    var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    var ticketInfo = $('#assignModalTicketInfo');
+    if (ticketInfo && ticket) {
+      ticketInfo.text('Ticket ' + ticket.id + ' - ' + ticket.incidentType);
+    }
+
+    $('#agentSearchInput').val('');
+
+    renderAgentListForAssignment();
+
+    // Mostrar modal usando Bootstrap
+    $('#assignAgentModal').modal('show');
+
+    setTimeout(function () {
+      $('#agentSearchInput').focus();
+    }, 300);
+  }
+
+  // Función para cerrar modal de asignación
+  function closeAssignAgentModal() {
+    $('#assignAgentModal').modal('hide');
+    $('.modal-backdrop').remove();
+  }
+
+  // Función para filtrar agentes en el modal
+  function filterAgents() {
+    renderAgentListForAssignment();
+  }
+
+  // Función para renderizar lista de agentes en el modal
+  function renderAgentListForAssignment() {
+    var container = document.getElementById('agentListContainer');
+    var searchInput = document.getElementById('agentSearchInput');
+    if (!container) return;
+
+    var searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+    // Obtener ticket activo
+    var activeTicket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket) return;
+
+    // Inicializar agentes asignados si no existe
+    if (!activeTicket.assignedAgents) activeTicket.assignedAgents = [];
+
+    // Filtrar agentes
+    var availableAgents = agentsData.filter(function (agent) {
+      // Excluir agentes ya asignados a este ticket
+      var alreadyAssigned = activeTicket.assignedAgents.some(function (a) {
+        return a.id === agent.id;
+      });
+      if (alreadyAssigned) return false;
+
+      // Filtrar por búsqueda
+      if (searchTerm) {
+        return agent.name.toLowerCase().includes(searchTerm) ||
+          agent.transporte.toLowerCase().includes(searchTerm);
+      }
+
+      // Solo mostrar disponibles si no hay búsqueda
+      return agent.status === 'Disponible';
+    });
+
+    // Ordenar por distancia
+    availableAgents.sort(function (a, b) {
+      return parseFloat(a.distancia) - parseFloat(b.distancia);
+    });
+
+    container.innerHTML = '';
+
+    if (availableAgents.length === 0) {
+      container.innerHTML = '<div class="no-results">No se encontraron agentes disponibles</div>';
+      return;
+    }
+
+    // Renderizar cada agente
+    availableAgents.forEach(function (agent) {
+      var item = document.createElement('div');
+      item.className = 'agent-list-item' + (agent.status !== 'Disponible' ? ' ocupado' : '');
+
+      var info = document.createElement('div');
+      info.className = 'agent-info';
+
+      var name = document.createElement('div');
+      name.className = 'agent-list-name';
+      name.textContent = agent.name;
+
+      var role = document.createElement('div');
+      role.className = 'agent-list-role';
+      role.textContent = agent.transporte.toUpperCase();
+
+      info.appendChild(name);
+      info.appendChild(role);
+
+      var meta = document.createElement('div');
+      meta.style.textAlign = 'right';
+
+      var statusMark = document.createElement('div');
+      statusMark.style.fontSize = '1.2rem';
+      statusMark.textContent = agent.status === 'Disponible' ? '✓' : '⏸';
+      statusMark.style.color = agent.status === 'Disponible' ? '#22c55e' : '#999';
+
+      var distance = document.createElement('div');
+      distance.className = 'agent-distance';
+      distance.textContent = '📍 ' + agent.distancia;
+
+      meta.appendChild(statusMark);
+      meta.appendChild(distance);
+
+      item.appendChild(info);
+      item.appendChild(meta);
+
+      // Solo permitir clic si está disponible
+      if (agent.status === 'Disponible') {
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', function () {
+          assignAgentToTicket(agent);
+        });
+      }
+
+      container.appendChild(item);
+    });
+  }
+
+  // Función para asignar agente al ticket
+  function assignAgentToTicket(agent) {
+    var activeTicket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket) return;
+
+    // Inicializar array si no existe
+    if (!activeTicket.assignedAgents) activeTicket.assignedAgents = [];
+
+    // Verificar si ya está asignado
+    var alreadyAssigned = activeTicket.assignedAgents.some(function (a) {
+      return a.id === agent.id;
+    });
+    if (alreadyAssigned) return;
+
+    // Agregar agente al ticket
+    activeTicket.assignedAgents.push({
+      id: agent.id,
+      name: agent.name,
+      shortName: agent.shortName,
+      transporte: agent.transporte,
+      status: 'En ruta'
+    });
+
+    // Inicializar chatMessages si no existe
+    if (!activeTicket.chatMessages) activeTicket.chatMessages = [];
+
+    // Agregar evento al chat
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    activeTicket.chatMessages.push({
+      type: 'event',
+      icon: '👮',
+      title: 'Agente asignado',
+      detail: agent.shortName + ' • ' + agent.transporte,
+      timestamp: timeString
+    });
+
+    // Actualizar UI
+    loadTicketChat(activeTicket);
+    renderAssignedAgentsList();
+    closeAssignAgentModal();
+
+    showNotification('Agente ' + agent.shortName + ' asignado correctamente', 'success');
+  }
+
+  // Función para liberar un agente del ticket
+  function releaseAgentFromTicket(agentId) {
+    var activeTicket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket || !activeTicket.assignedAgents) return;
+
+    var agentIndex = activeTicket.assignedAgents.findIndex(function (a) { return a.id === agentId; });
+    if (agentIndex === -1) return;
+
+    var agent = activeTicket.assignedAgents[agentIndex];
+    activeTicket.assignedAgents.splice(agentIndex, 1);
+
+    // Agregar evento al chat
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    if (!activeTicket.chatMessages) activeTicket.chatMessages = [];
+
+    activeTicket.chatMessages.push({
+      type: 'event',
+      icon: '↩️',
+      title: 'Agente liberado',
+      detail: agent.shortName + ' liberado del incidente',
+      timestamp: timeString
+    });
+
+    // Actualizar UI
+    loadTicketChat(activeTicket);
+    renderAssignedAgentsList();
+
+    showNotification('Agente ' + agent.shortName + ' liberado', 'info');
+  }
+
+  // Función para liberar todos los agentes
+  function releaseAllAgents() {
+    var activeTicket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!activeTicket || !activeTicket.assignedAgents || activeTicket.assignedAgents.length === 0) {
+      showNotification('No hay agentes asignados para liberar', 'warning');
+      return;
+    }
+
+    var count = activeTicket.assignedAgents.length;
+    activeTicket.assignedAgents = [];
+
+    // Agregar evento al chat
+    var now = new Date();
+    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    if (!activeTicket.chatMessages) activeTicket.chatMessages = [];
+
+    activeTicket.chatMessages.push({
+      type: 'event',
+      icon: '↩️',
+      title: 'Agentes liberados',
+      detail: count + ' agente' + (count !== 1 ? 's' : '') + ' liberado' + (count !== 1 ? 's' : '') + ' del incidente',
+      timestamp: timeString
+    });
+
+    // Actualizar UI
+    loadTicketChat(activeTicket);
+    renderAssignedAgentsList();
+
+    showNotification(count + ' agente(s) liberado(s)', 'info');
+  }
+
+  // Exponer funciones globalmente para que los onclick funcionen
+  window.openAssignAgentModal = openAssignAgentModal;
+  window.closeAssignAgentModal = closeAssignAgentModal;
+  window.filterAgents = filterAgents;
+  window.releaseAgentFromTicket = releaseAgentFromTicket;
+  window.releaseAllAgents = releaseAllAgents;
+  window.assignAgentToTicketFromNearby = assignAgentToTicketFromNearby;
+</script>
+
+<!-- ============================================ -->
+<!-- MÓDULO 14: EVIDENCIAS Y ARCHIVOS            -->
+<!-- ============================================ -->
+<script>
+  // Función para manejar la subida de evidencia
+  function handleEvidenceUpload(event) {
+    var files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    if (!ticketsState.activeTicketId) {
+      showNotification('Debe seleccionar un ticket primero', 'warning');
+      event.target.value = '';
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) {
+      event.target.value = '';
+      return;
+    }
+
+    // Inicializar array de evidencias si no existe
+    if (!ticket.evidence) {
+      ticket.evidence = [];
+    }
+
+    // Verificar límite de 10 archivos
+    if (ticket.evidence.length + files.length > 10) {
+      showNotification('Solo puede subir un máximo de 10 archivos', 'warning');
+      event.target.value = '';
+      return;
+    }
+
+    // Agregar archivos
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      var fileObj = {
+        name: file.name,
+        size: formatFileSize(file.size),
+        type: getFileType(file.type),
+        uploadDate: new Date().toLocaleString('es-ES')
+      };
+      ticket.evidence.push(fileObj);
+    }
+
+    // Actualizar lista visual
+    renderEvidenceList(ticket);
+
+    // Limpiar input
+    event.target.value = '';
+
+    showNotification(files.length + ' archivo(s) agregado(s) exitosamente', 'success');
+  }
+
+  // Función para renderizar la lista de evidencias
+  function renderEvidenceList(ticket) {
+    var container = document.getElementById('formEvidenceList');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (!ticket.evidence || ticket.evidence.length === 0) {
+      return;
+    }
+
+    ticket.evidence.forEach(function (file, index) {
+      var fileItem = document.createElement('div');
+      fileItem.style.cssText = 'padding: 10px 12px; background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;';
+
+      var fileIcon = getFileIcon(file.type);
+
+      fileItem.innerHTML =
+        '<div style="display: flex; align-items: center; gap: 10px; flex: 1;">' +
+        '<span style="font-size: 20px;">' + fileIcon + '</span>' +
+        '<div style="flex: 1;">' +
+        '<div style="font-size: 13px; font-weight: 600; color: #e5e7eb;">' + file.name + '</div>' +
+        '<div style="font-size: 11px; color: #9ca3af;">' + file.size + ' • ' + file.uploadDate + '</div>' +
+        '</div>' +
+        '</div>' +
+        '<button onclick="removeEvidence(' + index + ')" class="btn btn-sm btn-danger" style="padding: 4px 8px; font-size: 11px;">' +
+        '<i class="pe-7s-trash"></i>' +
+        '</button>';
+
+      container.appendChild(fileItem);
+    });
+  }
+
+  // Función para remover evidencia
+  function removeEvidence(index) {
+    if (!ticketsState.activeTicketId) return;
+
+    var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket || !ticket.evidence) return;
+
+    ticket.evidence.splice(index, 1);
+    renderEvidenceList(ticket);
+
+    showNotification('Archivo eliminado', 'info');
+  }
+
+  // Hacer función global
+  window.removeEvidence = removeEvidence;
+
+  // Función para formatear tamaño de archivo
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    var k = 1024;
+    var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  // Función para obtener tipo de archivo
+  function getFileType(mimeType) {
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
+    if (mimeType.includes('pdf')) return 'pdf';
+    if (mimeType.includes('document') || mimeType.includes('word')) return 'document';
+    return 'file';
+  }
+
+  // Función para obtener icono según tipo de archivo
+  function getFileIcon(type) {
+    switch (type) {
+      case 'image': return '🖼️';
+      case 'video': return '🎥';
+      case 'audio': return '🎵';
+      case 'pdf': return '📄';
+      case 'document': return '📝';
+      default: return '📎';
+    }
+  }
+</script>

@@ -1,0 +1,47 @@
+<!-- Modal para asignar agente -->
+<div class="modal fade" id="assignAgentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-left">
+                <h4 class="modal-title mb-0">Asignar Agente al Incidente</h4>
+                <h7 class="mb-0" id="assignModalTicketInfo">Seleccione un agente disponible</h7>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 15px">
+                            <div class="panel-heading">
+                                <h5>BÚSQUEDA DE AGENTES</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <input
+                                      type="text"
+                                      id="agentSearchInput"
+                                      class="form-control"
+                                      placeholder="Buscar agente por nombre o transporte..."
+                                      oninput="filterAgents()"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 15px; margin-top: 15px;">
+                            <div class="panel-heading">
+                                <h5>AGENTES DISPONIBLES</h5>
+                            </div>
+                            <div class="panel-body" style="max-height: 400px; overflow-y: auto;">
+                                <div id="agentListContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

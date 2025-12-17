@@ -403,7 +403,14 @@
                 "title":"Chat por incidente Prueba",
                 "file":"incidentes/incidentes_operador_chat_prueba",
                 "fragments": {
-                    "modal_nuevo_incidente": "incidentes/fragments/incidentes_operador_nuevo_incidente_modal"
+                    "modal_nuevo_incidente": "incidentes/fragments/incidentes_operador_nuevo_incidente_modal",
+                    "styles_operador_tickets": "incidentes/fragments/css/styles_general",
+                    "agentes": "incidentes/fragments/scripts/agentes",
+                    "catalogos": "incidentes/fragments/scripts/catalogos",
+                    "formulario": "incidentes/fragments/scripts/formulario",
+                    "general": "incidentes/fragments/scripts/general",
+                    "mapa": "incidentes/fragments/scripts/mapa",
+                    "sistema_tickets": "incidentes/fragments/scripts/sistema_tickets"
                 },
                 "icon":"pe-7s-radio",
                 "small":"Intefaz de chat con los agentes asignados a cada uno de los incidentes Prueba",

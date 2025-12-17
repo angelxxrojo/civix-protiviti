@@ -1,0 +1,167 @@
+<!-- ============================================ -->
+<!-- MÓDULO 20: MENSAJE DE TELEGRAM              -->
+<!-- ============================================ -->
+<script>
+  // Función para generar el mensaje de Telegram basado en el formulario
+  function generateTelegramMessage() {
+    // Obtener valores del formulario
+    var ticketId = document.getElementById('formIncidentId')?.value || 'Nuevo';
+    var alertLevel = document.getElementById('formAlertLevel')?.value || 'media';
+    var incidentTypeEl = document.getElementById('formIncidentType');
+    var incidentType = incidentTypeEl?.options[incidentTypeEl.selectedIndex]?.text || 'Sin especificar';
+
+    var reporterName = document.getElementById('formReporterName')?.value || '';
+    var reporterPhone = document.getElementById('formReporterPhone')?.value || '';
+    var reporterDNI = document.getElementById('formReporterDNI')?.value || '';
+
+    var locationAddress = document.getElementById('formLocationAddress')?.value || '';
+    var locationDistrict = document.getElementById('formLocationDistrict')?.value || '';
+    var locationReference = document.getElementById('formLocationReference')?.value || '';
+    var locationCoords = document.getElementById('formLocationCoordinates')?.value || '';
+
+    var description = document.getElementById('formDescription')?.value || '';
+
+    // Mapear nivel de alerta a emoji y texto
+    var alertEmoji = '🟡';
+    var alertText = 'MEDIA';
+    if (alertLevel === 'critica') {
+      alertEmoji = '🔴';
+      alertText = 'CRÍTICA';
+    } else if (alertLevel === 'alta') {
+      alertEmoji = '🟠';
+      alertText = 'ALTA';
+    } else if (alertLevel === 'baja') {
+      alertEmoji = '🟢';
+      alertText = 'BAJA';
+    }
+
+    // Parsear coordenadas para Google Maps
+    var googleMapsLink = '';
+    if (locationCoords) {
+      var coords = locationCoords.split(',');
+      if (coords.length === 2) {
+        var lat = coords[0].trim();
+        var lon = coords[1].trim();
+        googleMapsLink = 'https://maps.google.com/?q=' + lat + ',' + lon;
+      }
+    }
+
+    // Obtener hora actual
+    var now = new Date();
+    var timeString = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    // Construir el mensaje
+    var message = '';
+    message += '🚨 EMERGENCIA - ALERTA ' + alertText + ' ' + alertEmoji + '\n';
+    message += '━━━━━━━━━━━━━━━━━━━━\n\n';
+
+    // Tipo de incidente
+    if (incidentType && incidentType !== 'Sin especificar' && incidentType !== 'Seleccionar') {
+      message += '📋 TIPO: ' + incidentType + '\n\n';
+    }
+
+    // Información del denunciante
+    if (reporterName) {
+      message += '👤 DENUNCIANTE: ' + reporterName;
+      if (reporterDNI) {
+        message += ' | DNI: ' + reporterDNI;
+      }
+      message += '\n';
+      if (reporterPhone) {
+        message += '📞 Contacto: ' + reporterPhone + '\n';
+      }
+      message += '\n';
+    }
+
+    // Ubicación
+    if (locationAddress || locationDistrict) {
+      message += '📍 UBICACIÓN: ';
+      if (locationAddress) {
+        message += locationAddress;
+        if (locationDistrict) {
+          message += ', ' + locationDistrict;
+        }
+        message += '\n';
+      }
+      if (locationReference) {
+        message += '🔖 Ref: ' + locationReference + '\n';
+      }
+      if (googleMapsLink) {
+        message += '🗺️ Mapa: ' + googleMapsLink + '\n';
+      }
+      message += '\n';
+    }
+
+    // Descripción
+    if (description) {
+      message += '📝 DESCRIPCIÓN:\n';
+      message += description + '\n\n';
+    }
+
+    // Información adicional
+    message += '━━━━━━━━━━━━━━━━━━━━\n';
+    message += '⏰ Hora: ' + timeString + '\n';
+    message += '🆔 Ticket: ' + ticketId;
+
+    return message;
+  }
+
+  // Función para llenar el input del chat con el mensaje de Telegram
+  function fillTelegramMessage() {
+    var chatInput = document.getElementById('chatComposerInput');
+    if (!chatInput) {
+      showNotification('⚠️ No se encontró el área de chat', 'warning');
+      return;
+    }
+
+    // Generar el mensaje
+    var message = generateTelegramMessage();
+
+    // Validar que hay suficiente información
+    var reporterName = document.getElementById('formReporterName')?.value || '';
+    var locationAddress = document.getElementById('formLocationAddress')?.value || '';
+
+    if (!reporterName || !locationAddress) {
+      showNotification('⚠️ Complete al menos el nombre del denunciante y la ubicación', 'warning');
+      return;
+    }
+
+    // Llenar el input
+    chatInput.value = message;
+
+    // Ajustar altura del textarea automáticamente
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+
+    // Enfocar el input
+    chatInput.focus();
+
+    showNotification('✅ Mensaje de emergencia generado', 'success');
+  }
+
+  // Exponer funciones globalmente
+  window.generateTelegramMessage = generateTelegramMessage;
+  window.fillTelegramMessage = fillTelegramMessage;
+</script>
+
+<script>
+  // Auto-ajustar altura del textarea cuando se escribe
+  document.addEventListener('DOMContentLoaded', function() {
+    var chatInput = document.getElementById('chatComposerInput');
+    if (chatInput) {
+      chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+      // Restablecer altura cuando se vacía
+      chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          setTimeout(function() {
+            chatInput.style.height = '42px';
+          }, 100);
+        }
+      });
+    }
+  });
+</script>

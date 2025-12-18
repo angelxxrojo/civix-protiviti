@@ -243,9 +243,21 @@
         iconAnchor: [18, 18]
       });
 
-      currentLocationMarker = L.marker([lat, lon], { icon: incidentIcon })
+      currentLocationMarker = L.marker([lat, lon], {
+        icon: incidentIcon,
+        draggable: true  // ← Permitir arrastrar el pin
+      })
         .addTo(cadMap)
-        .bindPopup('<b>Ubicación del incidente</b><br>' + (apiData.location || 'Sin dirección'));
+        .bindPopup('<b>Ubicación del incidente</b><br>' + (apiData.location || 'Sin dirección') + '<br><small>Arrastra el pin para cambiar la ubicación</small>');
+
+      // Evento: Cuando el usuario mueve el pin
+      currentLocationMarker.on('dragend', function(e) {
+        var newLatLng = e.target.getLatLng();
+        console.log('📍 Pin movido a:', newLatLng.lat, newLatLng.lng);
+        updateLocationFromCoordinates(newLatLng.lat, newLatLng.lng);
+        regenerateAgentsAroundIncident(newLatLng.lat, newLatLng.lng);
+        renderAgentsOnMap();
+      });
 
       // Centrar mapa en la ubicación
       cadMap.setView([lat, lon], 16);
@@ -1471,9 +1483,344 @@
 
 
 <!-- ============================================ -->
-<!-- MÓDULO 18: GUARDADO MANUAL (SIN AUTO-SAVE) -->
+<!-- MÓDULO 18: SISTEMA DE AUTOGUARDADO          -->
 <!-- ============================================ -->
 <script>
-  // ✅ GUARDADO SOLO MANUAL - Sin auto-guardado
-  // El usuario debe presionar el botón "Guardar Cambios" para guardar
+  // 🔥 SISTEMA DE AUTOGUARDADO INTELIGENTE
+  // - Debounce: Guarda 5 segundos después de dejar de escribir
+  // - Periódico: Guarda cada 30 segundos si hay cambios
+  // - Indicador visual de estado
+
+  var autoSaveState = {
+    debounceTimer: null,
+    periodicTimer: null,
+    lastSavedData: null,
+    hasUnsavedChanges: false,
+    isSaving: false,
+    lastSaveTime: null
+  };
+
+  /**
+   * Función para obtener un hash simple de los datos del formulario
+   * Esto nos permite detectar cambios sin comparar objeto por objeto
+   */
+  function getFormDataHash() {
+    var formData = collectFormData();
+    var cleanedData = cleanPatch(formData);
+    return JSON.stringify(cleanedData);
+  }
+
+  /**
+   * Función para detectar si hay cambios no guardados
+   */
+  function hasFormChanges() {
+    var currentHash = getFormDataHash();
+    return currentHash !== autoSaveState.lastSavedData;
+  }
+
+  /**
+   * Actualizar indicador visual de estado de guardado
+   */
+  function updateSaveIndicator(status) {
+    var saveBtn = document.getElementById('saveTicketBtn');
+    if (!saveBtn) return;
+
+    var icon = '<i class="pe-7s-diskette"></i>';
+    var text = 'Guardar Cambios';
+    var extraClass = '';
+
+    if (status === 'saving') {
+      icon = '<i class="pe-7s-refresh-2" style="animation: spin 1s linear infinite;"></i>';
+      text = 'Guardando...';
+      saveBtn.disabled = true;
+    } else if (status === 'saved') {
+      icon = '<i class="pe-7s-check"></i>';
+      text = 'Guardado ✓';
+      saveBtn.disabled = false;
+      extraClass = ' btn-success';
+
+      // Volver a estado normal después de 2 segundos
+      setTimeout(function() {
+        if (!autoSaveState.isSaving) {
+          updateSaveIndicator('idle');
+        }
+      }, 2000);
+    } else if (status === 'unsaved') {
+      icon = '<i class="pe-7s-diskette"></i>';
+      text = 'Guardar Cambios ●';
+      saveBtn.disabled = false;
+    } else { // idle
+      icon = '<i class="pe-7s-diskette"></i>';
+      text = 'Guardar Cambios';
+      saveBtn.disabled = false;
+    }
+
+    saveBtn.innerHTML = icon + ' ' + text;
+    saveBtn.className = 'btn btn-accent' + extraClass;
+  }
+
+  /**
+   * Función principal de autoguardado
+   */
+  function autoSaveTicket() {
+    // Verificar que hay un ticket activo
+    if (!ticketsState.activeTicketId) {
+      console.log('⚠️ No hay ticket activo para autoguardar');
+      return;
+    }
+
+    var ticket = ticketsState.tickets.find(function(t) { return t.id === ticketsState.activeTicketId; });
+    if (!ticket) return;
+
+    // No autoguardar tickets nuevos sin ID de BD
+    if (ticket.isNew === true || !ticket.incidence_id) {
+      console.log('⚠️ Ticket nuevo - autoguardado deshabilitado (use botón manual)');
+      return;
+    }
+
+    // Verificar si hay cambios
+    if (!hasFormChanges()) {
+      console.log('✓ Sin cambios - autoguardado omitido');
+      autoSaveState.hasUnsavedChanges = false;
+      return;
+    }
+
+    // Evitar guardados concurrentes
+    if (autoSaveState.isSaving) {
+      console.log('⏳ Ya hay un guardado en proceso - omitiendo');
+      return;
+    }
+
+    console.log('💾 Autoguardando ticket...');
+    autoSaveState.isSaving = true;
+    updateSaveIndicator('saving');
+
+    // Recolectar y limpiar datos
+    var formData = collectFormData();
+    var patchData = cleanPatch(formData);
+    patchData.incidence_id = ticket.incidence_id;
+
+    // Si es borrador, cambiar a "En proceso" al autoguardar
+    var wasActivated = false;
+    if (ticket.incidence_state_id === 6 || ticket.isDraft === true) {
+      patchData.incidence_state_id = 2;
+      patchData.operator_id = getCurrentOperatorId();
+      wasActivated = true;
+    }
+
+    // Llamar a la API
+    callAPI({
+      method: 'gestincidencias/incidenceupt',
+      post: 1,
+      params: patchData,
+      ok: function(response) {
+        console.log('✅ Autoguardado exitoso');
+
+        // Actualizar ticket local
+        Object.assign(ticket, patchData);
+        ticket.lastModified = new Date().toISOString();
+
+        if (wasActivated) {
+          ticket.isDraft = false;
+          ticket.incidence_state_id = 2;
+          ticket.state_name = 'En proceso';
+          ticket.status = 'En proceso';
+        }
+
+        // Actualizar estado de autoguardado
+        autoSaveState.lastSavedData = getFormDataHash();
+        autoSaveState.hasUnsavedChanges = false;
+        autoSaveState.isSaving = false;
+        autoSaveState.lastSaveTime = new Date();
+
+        // Actualizar UI
+        renderTicketTabs();
+        updateSaveIndicator('saved');
+      },
+      error: function(error) {
+        console.error('❌ Error en autoguardado:', error);
+        autoSaveState.isSaving = false;
+
+        // Ignorar AbortError
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          console.warn('⚠️ Petición cancelada - Datos pueden haberse guardado');
+          autoSaveState.lastSavedData = getFormDataHash();
+          autoSaveState.hasUnsavedChanges = false;
+          Object.assign(ticket, patchData);
+          renderTicketTabs();
+          updateSaveIndicator('saved');
+          return;
+        }
+
+        // En caso de error, marcar como no guardado
+        updateSaveIndicator('unsaved');
+      }
+    });
+  }
+
+  /**
+   * Debounce: Guardar después de 5 segundos de inactividad
+   */
+  function triggerDebounceAutoSave() {
+    // Limpiar timer anterior
+    if (autoSaveState.debounceTimer) {
+      clearTimeout(autoSaveState.debounceTimer);
+    }
+
+    // Marcar como cambios no guardados
+    autoSaveState.hasUnsavedChanges = true;
+    updateSaveIndicator('unsaved');
+
+    // Crear nuevo timer de 5 segundos
+    autoSaveState.debounceTimer = setTimeout(function() {
+      console.log('⏱️ Debounce activado - autoguardando...');
+      autoSaveTicket();
+    }, 5000); // 5 segundos
+  }
+
+  /**
+   * Guardado periódico cada 30 segundos
+   */
+  function startPeriodicAutoSave() {
+    // Limpiar timer anterior si existe
+    if (autoSaveState.periodicTimer) {
+      clearInterval(autoSaveState.periodicTimer);
+    }
+
+    // Crear nuevo interval de 30 segundos
+    autoSaveState.periodicTimer = setInterval(function() {
+      // Solo guardar si hay cambios no guardados
+      if (autoSaveState.hasUnsavedChanges && !autoSaveState.isSaving) {
+        console.log('⏰ Guardado periódico activado...');
+        autoSaveTicket();
+      }
+    }, 30000); // 30 segundos
+
+    console.log('✅ Autoguardado periódico iniciado (cada 30s)');
+  }
+
+  /**
+   * Detener autoguardado
+   */
+  function stopAutoSave() {
+    if (autoSaveState.debounceTimer) {
+      clearTimeout(autoSaveState.debounceTimer);
+    }
+    if (autoSaveState.periodicTimer) {
+      clearInterval(autoSaveState.periodicTimer);
+    }
+    console.log('🛑 Autoguardado detenido');
+  }
+
+  /**
+   * Inicializar autoguardado en todos los campos del formulario
+   */
+  function initializeAutoSave() {
+    // Lista de todos los campos que disparan autoguardado
+    var formFields = [
+      'formReporterName',
+      'formReporterDNI',
+      'formReporterPhone',
+      'formReporterEmail',
+      'formReporterRelation',
+      'formAlertLevel',
+      'formIncidentType',
+      'formLocationAddress',
+      'formLocationDistrict',
+      'formLocationProvince',
+      'formLocationReference',
+      'formLocationCoordinates',
+      'formDescription',
+      'formMissingName',
+      'formMissingAge',
+      'formMissingGender',
+      'formMissingDNI',
+      'formMissingLastSeen',
+      'formMissingLastLocation',
+      'formMissingDescription',
+      'formMissingMedical',
+      'formSuspiciousName',
+      'formSuspiciousAlias',
+      'formSuspiciousDescription',
+      'formSuspiciousReason',
+      'formSuspiciousLocation',
+      'formSuspiciousLinked',
+      'formSuspVehiclePlate',
+      'formSuspVehicleType',
+      'formSuspVehicleColor',
+      'formSuspVehicleDetails',
+      'formSuspVehicleLocation',
+      'formSuspVehicleTime',
+      'formSuspVehicleBehavior',
+      'formVehicleType',
+      'formVehicleBrand',
+      'formVehiclePlate',
+      'formVehicleColor',
+      'formVehicleYear',
+      'formVehicleLocation',
+      'formVehicleDateTime',
+      'formVehicleGPS'
+    ];
+
+    // Agregar listeners a todos los campos
+    formFields.forEach(function(fieldId) {
+      var field = document.getElementById(fieldId);
+      if (field) {
+        // Para inputs y selects
+        field.addEventListener('input', triggerDebounceAutoSave);
+        field.addEventListener('change', triggerDebounceAutoSave);
+      }
+    });
+
+    // Iniciar guardado periódico
+    startPeriodicAutoSave();
+
+    // Guardar hash inicial
+    setTimeout(function() {
+      autoSaveState.lastSavedData = getFormDataHash();
+    }, 1000);
+
+    console.log('✅ Sistema de autoguardado inicializado');
+    console.log('   - Debounce: 5 segundos después de escribir');
+    console.log('   - Periódico: cada 30 segundos si hay cambios');
+  }
+
+  /**
+   * Modificar saveTicketChanges para actualizar el hash después de guardado manual
+   */
+  var originalSaveTicketChanges = saveTicketChanges;
+  saveTicketChanges = function() {
+    originalSaveTicketChanges();
+
+    // Actualizar hash después de guardado manual
+    setTimeout(function() {
+      autoSaveState.lastSavedData = getFormDataHash();
+      autoSaveState.hasUnsavedChanges = false;
+      updateSaveIndicator('saved');
+    }, 1000);
+  };
+
+  // Inicializar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(initializeAutoSave, 2000);
+    });
+  } else {
+    setTimeout(initializeAutoSave, 2000);
+  }
+
+  // Exponer funciones globalmente
+  window.autoSaveTicket = autoSaveTicket;
+  window.stopAutoSave = stopAutoSave;
+  window.startPeriodicAutoSave = startPeriodicAutoSave;
+  window.triggerDebounceAutoSave = triggerDebounceAutoSave;
+
+  console.log('✅ Módulo de autoguardado cargado');
 </script>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

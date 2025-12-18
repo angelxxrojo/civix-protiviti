@@ -304,10 +304,22 @@
             iconAnchor: [18, 18]
           });
 
-          currentLocationMarker = L.marker([lat, lon], { icon: incidentIcon })
+          currentLocationMarker = L.marker([lat, lon], {
+            icon: incidentIcon,
+            draggable: true  // ← Permitir arrastrar el pin
+          })
             .addTo(cadMap)
-            .bindPopup('<b>Ubicación seleccionada</b><br>' + firstResult.display_name)
+            .bindPopup('<b>Ubicación seleccionada</b><br>' + firstResult.display_name + '<br><small>Arrastra el pin para cambiar la ubicación</small>')
             .openPopup();
+
+          // Evento: Cuando el usuario mueve el pin
+          currentLocationMarker.on('dragend', function(e) {
+            var newLatLng = e.target.getLatLng();
+            console.log('📍 Pin movido a:', newLatLng.lat, newLatLng.lng);
+            updateLocationFromCoordinates(newLatLng.lat, newLatLng.lng);
+            regenerateAgentsAroundIncident(newLatLng.lat, newLatLng.lng);
+            renderAgentsOnMap();
+          });
 
           // Autocompletar campo de ubicación en el formulario
           updateIncidentLocation(firstResult.display_name, lat, lon);

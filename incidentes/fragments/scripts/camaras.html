@@ -1,0 +1,711 @@
+<!-- ============================================ -->
+<!-- MÓDULO: CÁMARAS DE SEGURIDAD                -->
+<!-- ============================================ -->
+<script>
+  // Variables globales para cámaras
+  var camerasData = [];
+  var cameraMarkers = [];
+  var lastFrameData = [];
+
+  // 🔥 CACHE DE IMÁGENES: Evitar recargar la misma imagen
+  var cameraImageCache = new Map();
+
+  // 🔥 THROTTLE: Limitar renderizados
+  var throttleTimeout = null;
+
+  // 🔥 FILTRO DE DISTANCIA: Radio en metros para mostrar cámaras cercanas
+  var cameraDistanceFilter = 300; // Por defecto 300 metros
+
+  /**
+   * Función para calcular distancia entre dos puntos geográficos (Haversine)
+   * @param {number} lat1 - Latitud del punto 1
+   * @param {number} lon1 - Longitud del punto 1
+   * @param {number} lat2 - Latitud del punto 2
+   * @param {number} lon2 - Longitud del punto 2
+   * @returns {number} Distancia en metros
+   */
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    var R = 6371000; // Radio de la Tierra en metros
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var distance = R * c;
+    return distance;
+  }
+
+  /**
+   * Función para cargar las cámaras desde la API
+   */
+  function loadCamerasFromAPI() {
+    console.log('🎥 Cargando cámaras desde dashboards/lastframe...');
+
+    callAPI({
+      method: 'dashboards/lastframe',
+      params: {},
+      noshowwait: 1, // 🔇 No mostrar spinner/loader
+      ok: function(data) {
+        // 🔥 IMPORTANTE: La API retorna un objeto con 'items', NO un array directo
+        var camerasArray = null;
+
+        // Detectar si es un objeto con 'items' o un array directo
+        if (data && data.items && Array.isArray(data.items)) {
+          // Formato: { count: X, items: [...] }
+          camerasArray = data.items;
+          console.log('✅ Se recibieron ' + data.count + ' cámaras del servidor (formato con items)');
+        } else if (Array.isArray(data)) {
+          // Formato: [...]
+          camerasArray = data;
+          console.log('✅ Se recibieron ' + data.length + ' cámaras del servidor (formato array)');
+        }
+
+        if (camerasArray && camerasArray.length > 0) {
+          lastFrameData = camerasArray;
+          window.lastFrameData = camerasArray;
+
+          console.log('📦 Total de cámaras:', camerasArray.length);
+          console.log('📋 Ejemplo del primer registro:', camerasArray[0]);
+          console.log('🔑 Propiedades disponibles:', Object.keys(camerasArray[0]));
+
+          // ⚠️ ADVERTENCIA: Verificar si tienen coordenadas
+          var firstCamera = camerasArray[0];
+          if (!firstCamera.latitud && !firstCamera.lat && !firstCamera.latitude) {
+            console.warn('⚠️ LAS CÁMARAS NO TIENEN COORDENADAS GEOGRÁFICAS');
+            console.warn('⚠️ Solo tienen location (texto): "' + firstCamera.location + '"');
+            console.warn('⚠️ Se necesita geocodificar las direcciones o agregar coordenadas manualmente');
+          }
+
+          // Procesar los datos para el formato interno
+          processCamerasData(camerasArray);
+
+          // Si estamos en el tab de cámaras, renderizar
+          if (activeMapTab === 'cameras') {
+            renderCamerasOnMap();
+          }
+
+        } else {
+          console.warn('❌ No se recibieron cámaras del servidor o formato inválido');
+          console.warn('Estructura recibida:', data);
+          camerasData = [];
+        }
+      },
+      error: function(error) {
+        console.error('❌ Error al cargar las cámaras:', error);
+        camerasData = [];
+      }
+    });
+  }
+
+  /**
+   * Función para procesar los datos de cámaras al formato interno
+   */
+  function processCamerasData(data) {
+    if (!Array.isArray(data)) {
+      console.error('❌ Los datos de cámaras no son un array:', data);
+      camerasData = [];
+      return;
+    }
+
+    // 🗺️ Coordenadas base de Miraflores (centro)
+    var mirafloresCenter = { lat: -12.1175, lng: -76.9990 };
+
+    camerasData = data.map(function(camera, index) {
+      // 🔥 Manejo robusto de diferentes estructuras de API
+
+      // ID de la cámara
+      var cameraId = camera.id || camera.id_camara || camera.camera_id || camera.deviceId || ('cam-' + index);
+
+      // Nombre de la cámara (usar camera_id si existe, sino location)
+      var cameraName = camera.camera_id || camera.nombre || camera.name || camera.camera_name || camera.deviceName || ('Cámara ' + (index + 1));
+
+      // Ubicación (priorizar location que es la dirección)
+      var ubicacion = camera.location || camera.ubicacion || camera.address || '';
+
+      // 🔥 COORDENADAS: Como la API NO tiene coordenadas, generar temporales
+      var lat, lng;
+
+      if (camera.latitud || camera.lat || camera.latitude) {
+        // Si por algún milagro tiene coordenadas, usarlas
+        lat = parseFloat(camera.latitud || camera.lat || camera.latitude);
+        lng = parseFloat(camera.longitud || camera.lng || camera.longitude);
+      } else {
+        // ⚠️ NO HAY COORDENADAS: Distribuir en el área de Miraflores
+        // Generar coordenadas aleatorias en un radio de ~2km alrededor de Miraflores
+        var offsetLat = (Math.random() - 0.5) * 0.03; // ~1.5km en latitud
+        var offsetLng = (Math.random() - 0.5) * 0.03; // ~1.5km en longitud
+
+        lat = mirafloresCenter.lat + offsetLat;
+        lng = mirafloresCenter.lng + offsetLng;
+
+        console.log('📍 Cámara "' + cameraName + '" sin coordenadas - usando temporal en:', lat.toFixed(6), lng.toFixed(6));
+      }
+
+      // Validar que las coordenadas sean números válidos
+      if (isNaN(lat) || isNaN(lng)) {
+        console.warn('⚠️ Coordenadas inválidas para cámara:', cameraName);
+        lat = mirafloresCenter.lat;
+        lng = mirafloresCenter.lng;
+      }
+
+      // Estado de la cámara (detectar por FPS)
+      var cameraStatus = 'online'; // Por defecto online
+
+      if (camera.fps !== undefined && camera.fps !== null) {
+        // Si tiene FPS > 0, está online
+        cameraStatus = parseFloat(camera.fps) > 0 ? 'online' : 'offline';
+      } else if (camera.estado || camera.status || camera.state) {
+        var statusValue = camera.estado || camera.status || camera.state;
+        if (statusValue === 'activa' || statusValue === 'active' || statusValue === '1' || statusValue === 1) {
+          cameraStatus = 'online';
+        } else if (statusValue === 'inactiva' || statusValue === 'inactive' || statusValue === '0' || statusValue === 0) {
+          cameraStatus = 'offline';
+        }
+      }
+
+      // Último frame (foto)
+      var lastFrame = camera.foto || camera.last_frame || camera.lastFrame || camera.frame_url || camera.image_url || null;
+
+      // Si existe foto, construir URL completa (asumiendo que es una ruta relativa)
+      if (lastFrame && !lastFrame.startsWith('http')) {
+        // Aquí deberías poner la URL base de tu servidor de imágenes
+        // Por ejemplo: lastFrame = 'http://10.23.62.93:90' + lastFrame;
+        lastFrame = lastFrame; // Por ahora dejar como está
+      }
+
+      return {
+        id: cameraId,
+        name: cameraName,
+        coords: [lat, lng],
+        status: cameraStatus,
+        ubicacion: ubicacion,
+        lastFrame: lastFrame,
+        timestamp: camera.datetime_lima || camera.timestamp || camera.fecha || camera.last_update || camera.updated_at || null,
+        tipo: camera.tipo || camera.type || camera.camera_type || 'fija',
+        zona: '', // No hay zona en la API
+        ip: camera.ip || camera.ip_address || null,
+        fps: camera.fps || 0,
+        persons: camera.persons || 0,
+        vehicles: camera.vehicles_total || 0,
+        // Datos adicionales que puedan venir de la API
+        rawData: camera // Guardar datos originales por si acaso
+      };
+    });
+
+    window.camerasData = camerasData;
+    console.log('✅ ' + camerasData.length + ' cámaras procesadas y distribuidas en el mapa');
+
+    // Log de ejemplo para debugging
+    if (camerasData.length > 0) {
+      console.log('📸 Ejemplo de cámara procesada:', camerasData[0]);
+      console.log('📸 Ubicación:', camerasData[0].ubicacion);
+      console.log('📸 Coordenadas generadas:', camerasData[0].coords);
+    }
+  }
+
+  /**
+   * Función para renderizar las cámaras en el mapa Leaflet
+   */
+  function renderCamerasOnMap() {
+    if (!cadMap) {
+      console.warn('⚠️ Mapa no disponible');
+      return;
+    }
+
+    // 🔥 LIMPIAR MARCADORES ANTERIORES DE CÁMARAS
+    cameraMarkers.forEach(function(marker) {
+      cadMap.removeLayer(marker);
+    });
+    cameraMarkers = [];
+
+    // 🔥 ASEGURAR QUE NO HAYA AGENTES VISIBLES
+    if (typeof agentMarkers !== 'undefined' && agentMarkers.length > 0) {
+      agentMarkers.forEach(function(marker) {
+        try {
+          cadMap.removeLayer(marker);
+        } catch (e) {
+          // Ignorar si el marcador ya fue eliminado
+        }
+      });
+    }
+
+    // 🔥 FILTRAR CÁMARAS POR DISTANCIA AL PUNTO DE INCIDENCIA
+    var incidentLocation = null;
+    if (typeof currentLocationMarker !== 'undefined' && currentLocationMarker) {
+      incidentLocation = currentLocationMarker.getLatLng();
+    }
+
+    var filteredCameras = camerasData;
+
+    if (incidentLocation && cameraDistanceFilter > 0) {
+      filteredCameras = camerasData.filter(function(camera) {
+        var distance = calculateDistance(
+          incidentLocation.lat,
+          incidentLocation.lng,
+          camera.coords[0],
+          camera.coords[1]
+        );
+        return distance <= cameraDistanceFilter;
+      });
+
+      console.log('🗺️ Mostrando ' + filteredCameras.length + ' de ' + camerasData.length + ' cámaras (radio: ' + cameraDistanceFilter + 'm)');
+    } else {
+      console.log('🗺️ Renderizando ' + camerasData.length + ' cámaras (sin filtro de distancia)');
+    }
+
+    // Renderizar cada cámara filtrada
+    filteredCameras.forEach(function(camera) {
+      var statusColor;
+      var statusIcon;
+      var statusText;
+      var iconOpacity;
+
+      // Determinar color y estado según el status
+      if (camera.status === 'online' || camera.status === 'activa' || camera.status === 'active') {
+        statusColor = '#22c55e'; // Verde
+        statusIcon = '📹';
+        statusText = 'En línea';
+        iconOpacity = 1;
+      } else if (camera.status === 'offline' || camera.status === 'inactiva' || camera.status === 'inactive') {
+        statusColor = '#ef4444'; // Rojo
+        statusIcon = '📹';
+        statusText = 'Fuera de línea';
+        iconOpacity = 0.5;
+      } else {
+        statusColor = '#f59e0b'; // Amarillo
+        statusIcon = '📹';
+        statusText = 'Desconocido';
+        iconOpacity = 0.7;
+      }
+
+      // Crear icono personalizado para cámara
+      var cameraIcon = L.divIcon({
+        className: 'camera-marker-icon',
+        html: '<div style="background: ' + statusColor + '; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); opacity: ' + iconOpacity + ';">' + statusIcon + '</div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      // Crear contenido del popup
+      var popupContent = '<div style="min-width: 240px;">' +
+        '<strong style="font-size: 15px; color: #e5e7eb;">' + camera.name + '</strong><br>' +
+        '<span style="color: ' + statusColor + '; font-size: 13px; font-weight: 600;">● ' + statusText + '</span>';
+
+      if (camera.fps && camera.fps > 0) {
+        popupContent += ' <span style="color: #9ca3af; font-size: 11px;">(' + camera.fps + ' FPS)</span>';
+      }
+
+      popupContent += '<br>';
+
+      if (camera.ubicacion) {
+        popupContent += '<span style="color: #9ca3af; font-size: 12px;">📍 ' + camera.ubicacion + '</span><br>';
+      }
+
+      // Mostrar detecciones
+      if (camera.persons !== undefined || camera.vehicles !== undefined) {
+        popupContent += '<div style="margin-top: 6px; padding: 6px; background: rgba(59, 130, 246, 0.1); border-radius: 4px; border-left: 3px solid #3b82f6;">';
+
+        if (camera.persons !== undefined) {
+          popupContent += '<span style="color: #e5e7eb; font-size: 12px;">👤 Personas: <strong>' + camera.persons + '</strong></span><br>';
+        }
+
+        if (camera.vehicles !== undefined) {
+          popupContent += '<span style="color: #e5e7eb; font-size: 12px;">🚗 Vehículos: <strong>' + camera.vehicles + '</strong></span>';
+        }
+
+        popupContent += '</div>';
+      }
+
+      if (camera.timestamp) {
+        popupContent += '<span style="color: #6b7280; font-size: 11px; margin-top: 4px; display: block;">🕐 ' + camera.timestamp + '</span>';
+      }
+
+      // Botón para ver último frame (si está disponible)
+      if (camera.lastFrame && camera.status === 'online') {
+        popupContent += '<button onclick="viewCameraFrame(\'' + camera.id + '\')" class="btn btn-accent btn-sm" style="margin-top: 8px; width: 100%; font-size: 11px; padding: 6px;">📹 Ver último frame</button>';
+      }
+
+      popupContent += '</div>';
+
+      // Crear y agregar marcador al mapa
+      var marker = L.marker(camera.coords, { icon: cameraIcon })
+        .addTo(cadMap)
+        .bindPopup(popupContent);
+
+      cameraMarkers.push(marker);
+    });
+
+    console.log('✅ ' + cameraMarkers.length + ' cámaras renderizadas en el mapa');
+
+    // Actualizar contador en el UI si existe
+    updateCameraCountDisplay(filteredCameras.length, camerasData.length);
+  }
+
+  /**
+   * Función para actualizar el contador de cámaras visibles
+   */
+  function updateCameraCountDisplay(visible, total) {
+    var counterEl = document.getElementById('cameraCounter');
+    if (counterEl) {
+      counterEl.textContent = visible + ' / ' + total + ' cámaras';
+    }
+  }
+
+  /**
+   * Función para cambiar el radio de filtrado
+   */
+  function setCameraDistanceFilter(distance) {
+    cameraDistanceFilter = parseInt(distance);
+    console.log('📏 Radio de filtrado actualizado a: ' + cameraDistanceFilter + 'm');
+
+    // Re-renderizar cámaras con el nuevo filtro
+    if (activeMapTab === 'cameras') {
+      renderCamerasOnMap();
+    }
+  }
+
+  /**
+   * Función para ver el último frame de una cámara (actualización en vivo cada segundo)
+   */
+  function viewCameraFrame(cameraId) {
+    var camera = camerasData.find(function(c) { return c.id === cameraId; });
+    if (!camera) {
+      showNotification('⚠️ Cámara no encontrada', 'warning');
+      return;
+    }
+
+    if (typeof Swal === 'undefined') {
+      showNotification('⚠️ SweetAlert2 no disponible', 'error');
+      return;
+    }
+
+    var updateInterval = null;
+    var frameCounter = 0;
+
+    // HTML del modal con contenedores dinámicos
+    var modalHtml =
+      '<div style="text-align: center;">' +
+        '<div id="cameraFrameContainer" style="position: relative; min-height: 400px; background: #1f2937; border-radius: 8px; overflow: hidden;">' +
+          '<img id="cameraFrameImage" src="" style="width: 100%; max-width: 640px; display: block; margin: 0 auto;" alt="Último frame">' +
+          '<div id="cameraFrameLoader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af;">Cargando...</div>' +
+        '</div>' +
+        '<div style="margin-top: 12px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 6px; border-left: 4px solid #3b82f6;">' +
+          '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">' +
+            '<div style="flex: 1; min-width: 150px;">' +
+              '<span style="color: #9ca3af; font-size: 11px;">FPS</span><br>' +
+              '<strong id="cameraFps" style="color: #e5e7eb; font-size: 16px;">--</strong>' +
+            '</div>' +
+            '<div style="flex: 1; min-width: 150px;">' +
+              '<span style="color: #9ca3af; font-size: 11px;">👤 Personas</span><br>' +
+              '<strong id="cameraPersons" style="color: #e5e7eb; font-size: 16px;">--</strong>' +
+            '</div>' +
+            '<div style="flex: 1; min-width: 150px;">' +
+              '<span style="color: #9ca3af; font-size: 11px;">🚗 Vehículos</span><br>' +
+              '<strong id="cameraVehicles" style="color: #e5e7eb; font-size: 16px;">--</strong>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="margin-top: 8px; text-align: right;">' +
+          '<small id="cameraTimestamp" style="color: #6b7280; font-size: 11px;">Última actualización: --</small>' +
+        '</div>' +
+      '</div>';
+
+    // Función de throttle para limitar renderizados
+    function throttleRender(callback) {
+      if (throttleTimeout) {
+        clearTimeout(throttleTimeout);
+      }
+      throttleTimeout = setTimeout(callback, 100); // Ejecutar después de 100ms
+    }
+
+    // Función para actualizar el frame desde el API (con caché optimizado)
+    function updateCameraFrame() {
+      frameCounter++;
+      var frameImg = document.getElementById('cameraFrameImage');
+      var loader = document.getElementById('cameraFrameLoader');
+
+      // 🔥 PASO 1: MOSTRAR CACHÉ PRIMERO (sin llamar al API aún)
+      var cachedImage = cameraImageCache.get(cameraId);
+      if (cachedImage && frameCounter > 1) {
+        // Mostrar imagen del caché inmediatamente (sin loader)
+        if (frameImg) {
+          frameImg.src = cachedImage.src;
+          frameImg.style.display = 'block';
+          if (loader) loader.style.display = 'none';
+        }
+      }
+
+      // 🔥 PASO 2: Actualizar desde API en segundo plano
+      // Usar setTimeout para ejecutar DESPUÉS de mostrar el caché
+      setTimeout(function() {
+        callAPI({
+          method: 'dashboards/lastframe',
+          params: {},
+          noshowwait: 1, // 🔇 No mostrar spinner/loader
+          ok: function(response) {
+            // Normalizar la respuesta para manejar ambos casos (array u objeto)
+            var dataToEvaluate = Array.isArray(response.items) ? response.items : [response];
+
+            // Buscar la cámara específica en la respuesta
+            var frameData = null;
+            for (var i = 0; i < dataToEvaluate.length; i++) {
+              if (dataToEvaluate[i].id === cameraId || dataToEvaluate[i].camera_id === camera.name) {
+                frameData = dataToEvaluate[i];
+                break;
+              }
+            }
+
+            if (!frameData || !frameData.id) {
+              return;
+            }
+
+            var imageData = frameData.foto || frameData.foto_frame;
+
+            if (!imageData) {
+              return;
+            }
+
+            // 🔥 OPTIMIZACIÓN: No recargar la misma imagen
+            var currentCached = cameraImageCache.get(frameData.id);
+            if (currentCached && currentCached.src === imageData) {
+              // Solo actualizar estadísticas sin recargar imagen
+              throttleRender(function() {
+                var fpsElem = document.getElementById('cameraFps');
+                var personsElem = document.getElementById('cameraPersons');
+                var vehiclesElem = document.getElementById('cameraVehicles');
+                var timestampElem = document.getElementById('cameraTimestamp');
+
+                if (fpsElem) fpsElem.textContent = frameData.fps || '0';
+                if (personsElem) personsElem.textContent = frameData.persons || '0';
+                if (vehiclesElem) vehiclesElem.textContent = frameData.vehicles_total || '0';
+                if (timestampElem) {
+                  var now = new Date();
+                  var timeStr = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                  timestampElem.textContent = 'Última actualización: ' + timeStr;
+                }
+              });
+              return; // La imagen ya está en caché y es la misma
+            }
+
+            // Crear un nuevo objeto Image para pre-cargar
+            var img = new Image();
+
+            img.onload = function() {
+              // Imagen cargada, guardarla en el cache
+              cameraImageCache.set(frameData.id, img);
+
+              // Usar throttling para limitar renderizados
+              throttleRender(function() {
+                if (frameImg) {
+                  frameImg.src = img.src;
+                  frameImg.style.display = 'block';
+                  if (loader) loader.style.display = 'none';
+                }
+
+                // Actualizar estadísticas
+                var fpsElem = document.getElementById('cameraFps');
+                var personsElem = document.getElementById('cameraPersons');
+                var vehiclesElem = document.getElementById('cameraVehicles');
+                var timestampElem = document.getElementById('cameraTimestamp');
+
+                if (fpsElem) fpsElem.textContent = frameData.fps || '0';
+                if (personsElem) personsElem.textContent = frameData.persons || '0';
+                if (vehiclesElem) vehiclesElem.textContent = frameData.vehicles_total || '0';
+                if (timestampElem) {
+                  var now = new Date();
+                  var timeStr = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                  timestampElem.textContent = 'Última actualización: ' + timeStr;
+                }
+              });
+            };
+
+            img.onerror = function() {
+              // Silenciar errores de carga de imagen
+            };
+
+            img.src = imageData;
+          },
+          error: function(error) {
+            // Silenciar errores para no llenar la consola
+          }
+        });
+      }, 50); // Ejecutar después de 50ms para dar tiempo a mostrar el caché
+    }
+
+    // Abrir modal  
+    Swal.fire({
+      title: '📹 ' + camera.name,
+      html: modalHtml,
+      confirmButtonText: 'Cerrar',
+      width: '800px',
+      showClass: {
+        popup: 'animate__animated animate__fadeIn animate__faster'
+      },
+      didOpen: function() {
+        // Iniciar actualización automática cada medio segundo
+        console.log('🎬 Iniciando stream de cámara:', camera.name, '(actualización cada 0.5s)');
+        updateCameraFrame(); // Primera actualización inmediata
+        updateInterval = setInterval(updateCameraFrame, 1000); // Actualizar cada 0.5 segundos
+      },
+      willClose: function() {
+        // Detener actualización al cerrar
+        if (updateInterval) {
+          clearInterval(updateInterval);
+          updateInterval = null;
+          console.log('🛑 Stream de cámara detenido:', camera.name, '(' + frameCounter + ' frames)');
+        }
+      }
+    });
+  }
+
+  /**
+   * Función para actualizar el placeholder del buscador según el tab activo
+   */
+  function updateMapSearchPlaceholder() {
+    var mapSearchInput = document.getElementById('mapSearchInput');
+    if (!mapSearchInput) return;
+
+    if (activeMapTab === 'cameras') {
+      mapSearchInput.placeholder = 'Buscar cámara por nombre o zona...';
+    } else {
+      mapSearchInput.placeholder = 'Buscar dirección...';
+    }
+  }
+
+  /**
+   * Función para buscar cámaras por nombre o zona
+   */
+  function searchCamera(query) {
+    if (!query || query.trim() === '') {
+      renderCamerasOnMap();
+      return;
+    }
+
+    var searchTerm = query.toLowerCase().trim();
+    var filteredCameras = camerasData.filter(function(camera) {
+      return (camera.name && camera.name.toLowerCase().includes(searchTerm)) ||
+             (camera.ubicacion && camera.ubicacion.toLowerCase().includes(searchTerm)) ||
+             (camera.zona && camera.zona.toLowerCase().includes(searchTerm));
+    });
+
+    console.log('🔍 Búsqueda de cámaras: "' + query + '" - ' + filteredCameras.length + ' resultados');
+
+    if (filteredCameras.length === 0) {
+      showNotification('No se encontraron cámaras con: ' + query, 'info');
+      return;
+    }
+
+    // Limpiar marcadores actuales
+    cameraMarkers.forEach(function(marker) {
+      cadMap.removeLayer(marker);
+    });
+    cameraMarkers = [];
+
+    // Renderizar solo las cámaras filtradas
+    var tempCamerasData = camerasData;
+    camerasData = filteredCameras;
+    renderCamerasOnMap();
+    camerasData = tempCamerasData;
+
+    // Centrar el mapa en la primera cámara encontrada
+    if (filteredCameras.length > 0) {
+      cadMap.setView(filteredCameras[0].coords, 15);
+    }
+
+    showNotification('Se encontraron ' + filteredCameras.length + ' cámara(s)', 'success');
+  }
+
+  /**
+   * Función para recargar las cámaras desde la API
+   */
+  function reloadCameras() {
+    console.log('🔄 Recargando cámaras...');
+    loadCamerasFromAPI();
+  }
+
+  // Exponer funciones globalmente
+  window.loadCamerasFromAPI = loadCamerasFromAPI;
+  window.renderCamerasOnMap = renderCamerasOnMap;
+  window.viewCameraFrame = viewCameraFrame;
+  window.searchCamera = searchCamera;
+  window.reloadCameras = reloadCameras;
+  window.setCameraDistanceFilter = setCameraDistanceFilter;
+  window.camerasData = camerasData;
+
+  console.log('✅ Módulo de cámaras cargado');
+</script>
+
+<!-- ============================================ -->
+<!-- AUTO-CARGA DE CÁMARAS AL INICIAR           -->
+<!-- ============================================ -->
+<script>
+  // Función para auto-cargar cámaras cuando el mapa esté listo
+  function autoLoadCameras() {
+    // Esperar a que cadMap y callAPI estén disponibles
+    var checkInterval = setInterval(function() {
+      if (typeof cadMap !== 'undefined' && cadMap !== null && typeof callAPI === 'function') {
+        clearInterval(checkInterval);
+        console.log('🗺️ Mapa y callAPI detectados, cargando cámaras automáticamente...');
+
+        setTimeout(function() {
+          loadCamerasFromAPI();
+        }, 2000); // Esperar 2 segundos para que el mapa se estabilice
+      }
+    }, 100);
+  }
+
+  // Iniciar la carga automática
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoLoadCameras);
+  } else {
+    autoLoadCameras();
+  }
+
+  console.log('✅ Auto-carga de cámaras configurada');
+</script>
+
+<!-- ============================================ -->
+<!-- BÚSQUEDA DE CÁMARAS (sin interceptar tabs) -->
+<!-- ============================================ -->
+<script>
+  // Nota: El cambio de tabs se maneja en el HTML principal (initializeMapTabs)
+  // Aquí solo manejamos la búsqueda específica de cámaras
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var mapSearchInput = document.getElementById('mapSearchInput');
+    var mapSearchBtn = document.getElementById('mapSearchBtn');
+
+    // Interceptar búsqueda SOLO cuando el tab de cámaras está activo
+    if (mapSearchBtn) {
+      mapSearchBtn.addEventListener('click', function(e) {
+        if (typeof activeMapTab !== 'undefined' && activeMapTab === 'cameras') {
+          e.preventDefault();
+          e.stopPropagation();
+          var query = mapSearchInput ? mapSearchInput.value.trim() : '';
+          if (query) {
+            searchCamera(query);
+          } else {
+            renderCamerasOnMap();
+          }
+        }
+      });
+    }
+
+    if (mapSearchInput) {
+      mapSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && typeof activeMapTab !== 'undefined' && activeMapTab === 'cameras') {
+          e.preventDefault();
+          var query = this.value.trim();
+          if (query) {
+            searchCamera(query);
+          } else {
+            renderCamerasOnMap();
+          }
+        }
+      });
+    }
+  });
+
+  console.log('✅ Búsqueda de cámaras configurada');
+</script>

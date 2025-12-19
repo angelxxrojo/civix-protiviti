@@ -9,15 +9,58 @@
     tickets: []
   };
 
-  // Función helper para obtener el ID del operador actual
+  // ✅ Función helper para obtener el ID del operador actual (userid = correo)
   function getCurrentOperatorId() {
-    // Intentar obtener desde sessionStorage o localStorage
+    console.log('🔍 getCurrentOperatorId - Verificando __MAINDOCUMENT:', typeof __MAINDOCUMENT);
+
+    // Intentar obtener desde __MAINDOCUMENT (variable global del sistema)
+    if (typeof __MAINDOCUMENT !== 'undefined' && __MAINDOCUMENT['userid']) {
+      console.log('✅ operator_id obtenido de __MAINDOCUMENT:', __MAINDOCUMENT['userid']);
+      return __MAINDOCUMENT['userid']; // Retorna el correo del usuario
+    }
+
+    // Fallback: Intentar obtener desde sessionStorage o localStorage
     var operatorId = sessionStorage.getItem('operator_id') || localStorage.getItem('operator_id');
     if (operatorId) {
-      return parseInt(operatorId);
+      console.log('✅ operator_id obtenido de storage:', operatorId);
+      return operatorId;
     }
-    // Si no hay operador en sesión, retornar null
+
+    // Si no hay operador, retornar null
+    console.warn('⚠️ No se pudo obtener operator_id');
+    console.log('__MAINDOCUMENT disponible:', typeof __MAINDOCUMENT !== 'undefined');
+    if (typeof __MAINDOCUMENT !== 'undefined') {
+      console.log('__MAINDOCUMENT.userid:', __MAINDOCUMENT['userid']);
+      console.log('Todas las claves de __MAINDOCUMENT:', Object.keys(__MAINDOCUMENT));
+    }
     return null;
+  }
+
+  // ✅ Función helper para obtener el nombre completo del operador actual
+  function getCurrentOperatorName() {
+    console.log('🔍 getCurrentOperatorName - Verificando __MAINDOCUMENT:', typeof __MAINDOCUMENT);
+
+    // Intentar obtener desde __MAINDOCUMENT (variable global del sistema)
+    if (typeof __MAINDOCUMENT !== 'undefined' && __MAINDOCUMENT['fullname']) {
+      console.log('✅ operator obtenido de __MAINDOCUMENT:', __MAINDOCUMENT['fullname']);
+      return __MAINDOCUMENT['fullname']; // Retorna el nombre completo del usuario
+    }
+
+    // Fallback: Intentar obtener desde sessionStorage o localStorage
+    var operatorName = sessionStorage.getItem('operator_name') || localStorage.getItem('operator_name');
+    if (operatorName) {
+      console.log('✅ operator obtenido de storage:', operatorName);
+      return operatorName;
+    }
+
+    // Si no hay nombre, retornar string vacío
+    console.warn('⚠️ No se pudo obtener operator');
+    console.log('__MAINDOCUMENT disponible:', typeof __MAINDOCUMENT !== 'undefined');
+    if (typeof __MAINDOCUMENT !== 'undefined') {
+      console.log('__MAINDOCUMENT.fullname:', __MAINDOCUMENT['fullname']);
+      console.log('Todas las claves de __MAINDOCUMENT:', Object.keys(__MAINDOCUMENT));
+    }
+    return '';
   }
 </script>
 
@@ -107,6 +150,7 @@
 
       // ========== ORIGEN ==========
       origin: incidence.origin_name || '',                    // Aplicativo Móvil, CIVIX, etc.
+      origin_id: incidence.origin_id || 8,                    // ID del origen (por defecto 8: Teléfono-PBX)
 
       // ========== OPERADOR ==========
       operator: incidence.operator || null,
@@ -163,14 +207,8 @@
     var ticketId = apiData.incidence_code || '#' + apiData.incidence_id;
     var ticketDate = apiData.created_at || apiData.incidence_date || 'Sin fecha';
 
-    // Agregar badge de BORRADOR si aplica
-    var draftBadgeHtml = '';
-    if (apiData.incidence_state_id === 6 || apiData.isDraft) {
-      draftBadgeHtml = ' <span style="display: inline-block; background: #ffc107; color: #000; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px;">BORRADOR</span>';
-    }
-
     if (formTicketHeader) {
-      formTicketHeader.innerHTML = 'Ticket ' + ticketId + draftBadgeHtml + ' • ' + ticketDate;
+      formTicketHeader.innerHTML = 'Ticket ' + ticketId + ' • ' + ticketDate;
     }
     if (formIncidentId) {
       formIncidentId.value = ticketId;
@@ -191,10 +229,50 @@
     }
 
     // ========== CLASIFICACIÓN DE INCIDENCIA ==========
-    var formIncidentType = document.getElementById('formIncidentType');
-    if (formIncidentType && apiData.incidence_type_id) {
-      formIncidentType.value = apiData.incidence_type_id;
+    // Cargar Origen
+    var formOrigin = document.getElementById('formOrigin');
+    if (formOrigin && apiData.origin_id) {
+      formOrigin.value = apiData.origin_id;
     }
+
+    // Cargar Unidad y disparar evento para cascada
+    var formUnit = document.getElementById('formUnit');
+    if (formUnit && apiData.unit_id) {
+      formUnit.value = apiData.unit_id;
+      // Disparar evento change para cargar clasificaciones
+      var event = new Event('change');
+      formUnit.dispatchEvent(event);
+    }
+
+    // Cargar Clasificación (después de que se carguen por el evento de unidad)
+    setTimeout(function() {
+      var formClassification = document.getElementById('formClassification');
+      if (formClassification && apiData.incidence_classification_id) {
+        formClassification.value = apiData.incidence_classification_id;
+        // Disparar evento change para cargar tipos
+        var event = new Event('change');
+        formClassification.dispatchEvent(event);
+      }
+
+      // Cargar Tipo (después de que se carguen por el evento de clasificación)
+      setTimeout(function() {
+        var formIncidentType = document.getElementById('formIncidentType');
+        if (formIncidentType && apiData.incidence_type_id) {
+          formIncidentType.value = apiData.incidence_type_id;
+          // Disparar evento change para cargar subtipos
+          var event = new Event('change');
+          formIncidentType.dispatchEvent(event);
+        }
+
+        // Cargar Subtipo (después de que se carguen por el evento de tipo)
+        setTimeout(function() {
+          var formIncidentSubtype = document.getElementById('formIncidentSubtype');
+          if (formIncidentSubtype && apiData.incidence_subtype_id) {
+            formIncidentSubtype.value = apiData.incidence_subtype_id;
+          }
+        }, 100);
+      }, 100);
+    }, 100);
 
     // ========== DATOS DEL DENUNCIANTE ==========
     var formReporterName = document.getElementById('formReporterName');
@@ -399,17 +477,11 @@
         unreadBadge = '<span class="unread-badge">' + ticket.unread + '</span>';
       }
 
-      // Badge de BORRADOR si es un borrador
-      var draftBadge = '';
-      if (ticket.isDraft) {
-        draftBadge = '<span style="display: inline-block; background: #ffc107; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-left: 6px;">BORRADOR</span>';
-      }
-
       button.innerHTML =
         unreadBadge +
         '<div style="display: flex; align-items: center; margin-bottom: 4px;">' +
         '<span class="' + circleClass + '"></span>' +
-        '<h5 style="margin: 0; font-size: 14px; font-weight: 600;">' + ticket.id + draftBadge + '</h5>' +
+        '<h5 style="margin: 0; font-size: 14px; font-weight: 600;">' + ticket.id + '</h5>' +
         '</div>' +
         '<p style="margin: 0; font-size: 12px; color: #9ca3af; padding-left: 20px;">' + incidentTypeName + '</p>';
 
@@ -423,6 +495,13 @@
 
   // Función para seleccionar un ticket
   function selectTicket(ticketId) {
+    // 💾 Guardar cambios del ticket actual antes de cambiar
+    var currentTicket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
+    if (currentTicket && currentTicket.incidence_id && autoSaveState.hasUnsavedChanges) {
+      console.log('💾 Guardando cambios antes de cambiar de ticket...');
+      autoSaveTicket();
+    }
+
     ticketsState.activeTicketId = ticketId;
     var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketId; });
 
@@ -500,9 +579,8 @@
     }
 
     // ✅ Mostrar código del ticket + estado
-    var statusBadge = ticket.isDraft ? ' <span style="color: #ffc107; font-weight: 700;">● BORRADOR</span>' : '';
     if (formTicketHeader) {
-      formTicketHeader.innerHTML = '<strong>' + ticket.id + '</strong>' + statusBadge + ' • <span style="color: #9ca3af;">' + dateStr + '</span>';
+      formTicketHeader.innerHTML = '<strong>' + ticket.id + '</strong> • <span style="color: #9ca3af;">' + dateStr + '</span>';
     }
 
     // ✅ Mostrar código en campo de ID
@@ -822,13 +900,51 @@
     createDraftIncidence();
   }
 
+  // Función auxiliar para contar tickets activos
+  function countActiveTickets() {
+    var activeCount = 0;
+
+    ticketsState.tickets.forEach(function(ticket) {
+      // Contar tickets pendientes y en proceso (incidence_state_id = 1 o 2)
+      if (ticket.incidence_state_id === 1 || ticket.incidence_state_id === 2) {
+        activeCount++;
+      }
+    });
+
+    return {
+      total: activeCount
+    };
+  }
+
   // Función para crear un borrador de incidencia en la BD
   function createDraftIncidence() {
-    // Llamar al API para crear borrador
+    // VALIDACIÓN: Verificar límites de tickets
+    var counts = countActiveTickets();
+
+    // Regla: Máximo 7 tickets totales
+    if (counts.total >= 7) {
+      showNotification('❌ Límite de tickets alcanzado (máximo 7 tickets activos). Cierre algunos tickets antes de crear uno nuevo.', 'error');
+      return;
+    }
+
+    // ✅ Obtener información del operador
+    var operatorId = getCurrentOperatorId();
+    var operatorName = getCurrentOperatorName();
+
+    console.log('📝 Creando ticket con operador:', {
+      operator_id: operatorId,
+      operator: operatorName
+    });
+
+    // Llamar al API para crear nuevo ticket
     callAPI({
       method: 'gestincidencias/incidencenewdraft',
       post: 1,
-      params: {}, // El backend crea todo automáticamente
+      params: {
+        // ✅ Enviar información del operador que crea el ticket
+        operator_id: operatorId,    // Correo del operador (userid)
+        operator: operatorName      // Nombre completo del operador (fullname)
+      },
       ok: function (response) {
         // ✅ La API puede devolver un array con un objeto, extraer el primer elemento
         var data = Array.isArray(response) && response.length > 0 ? response[0] : response;
@@ -840,15 +956,15 @@
           return;
         }
 
-        // Crear ticket local como BORRADOR
-        var draftTicket = {
+        // Crear ticket local como EN PROCESO (sin flag de borrador)
+        var newTicket = {
           id: data.incidence_code,                   // INC-2025-000009
           incidence_id: data.incidence_id,           // 28
-          isDraft: true,                             // ✅ Es borrador
+          isDraft: false,                            // ✅ NO es borrador
           alertLevel: 'media',                       // Por defecto
-          status: 'Borrador',                        // Estado: Borrador
-          state_name: 'Borrador',
-          incidence_state_id: 6,                     // Estado 6 = Borrador
+          status: 'En proceso',                      // Estado: En proceso
+          state_name: 'En proceso',
+          incidence_state_id: 2,                     // Estado 2 = En proceso
           created: new Date().toISOString(),
           lastModified: new Date().toISOString(),
           reporterName: '',
@@ -856,20 +972,21 @@
           type_name: '',
           classification: '',
           origin: 'Manual',
-          operator_id: getCurrentOperatorId(),
+          operator_id: getCurrentOperatorId(),       // ✅ Correo del operador
+          operator: getCurrentOperatorName(),        // ✅ Nombre del operador
           detailLoaded: true,                        // Ya está "cargado" porque está vacío
           chatMessages: [],
           unreadCount: 0
         };
 
         // Agregar ticket al estado
-        ticketsState.tickets.unshift(draftTicket); // unshift para agregarlo al inicio
+        ticketsState.tickets.unshift(newTicket); // unshift para agregarlo al inicio
 
         // Actualizar la UI
         renderTicketTabs();
 
         // Activar el nuevo ticket
-        selectTicket(draftTicket.id);
+        selectTicket(newTicket.id);
 
         // Actualizar el texto del botón
         updateSaveButtonText();
@@ -892,7 +1009,7 @@
           console.log('⚠️ Petición cancelada (createDraftIncidence)');
           return;
         }
-        showNotification('❌ Error al crear borrador: ' + (error.message || 'Error desconocido'), 'error');
+        showNotification('❌ Error al crear ticket: ' + (error.message || 'Error desconocido'), 'error');
       }
     });
   }
@@ -929,9 +1046,37 @@
     var formDescription = document.getElementById('formDescription');
     if (formDescription) formDescription.value = '';
 
+    // Resetear origen a "Teléfono-PBX" (PHONE) - origin_id: 8 (origen del sistema)
+    var formOrigin = document.getElementById('formOrigin');
+    if (formOrigin) formOrigin.value = '8';
+
+    // Resetear unidad
+    var formUnit = document.getElementById('formUnit');
+    if (formUnit) formUnit.value = '';
+
+    // Resetear clasificación
+    var formClassification = document.getElementById('formClassification');
+    if (formClassification) {
+      formClassification.value = '';
+      formClassification.disabled = true;
+      formClassification.innerHTML = '<option value="">Primero seleccione una unidad</option>';
+    }
+
     // Resetear tipo de incidencia
     var formIncidentType = document.getElementById('formIncidentType');
-    if (formIncidentType) formIncidentType.value = '';
+    if (formIncidentType) {
+      formIncidentType.value = '';
+      formIncidentType.disabled = true;
+      formIncidentType.innerHTML = '<option value="">Primero seleccione una clasificación</option>';
+    }
+
+    // Resetear subtipo de incidencia
+    var formIncidentSubtype = document.getElementById('formIncidentSubtype');
+    if (formIncidentSubtype) {
+      formIncidentSubtype.value = '';
+      formIncidentSubtype.disabled = true;
+      formIncidentSubtype.innerHTML = '<option value="">Primero seleccione un tipo</option>';
+    }
 
     // Resetear nivel de alerta a media
     var formAlertLevel = document.getElementById('formAlertLevel');
@@ -946,6 +1091,21 @@
 
   // Función para crear un nuevo ticket usando el API desde el formulario
   function createNewTicketFromForm() {
+    // VALIDACIÓN: Verificar límites de tickets
+    var counts = countActiveTickets();
+
+    // Regla 1: Máximo 6 tickets pendientes
+    if (counts.pending >= 6) {
+      showNotification('❌ Límite de tickets pendientes alcanzado (máximo 6). Cierre algunos tickets pendientes antes de crear uno nuevo.', 'error');
+      return;
+    }
+
+    // Regla 2: Máximo 7 tickets totales
+    if (counts.total >= 7) {
+      showNotification('❌ Límite de tickets alcanzado (máximo 7 tickets activos). Cierre algunos tickets antes de crear uno nuevo.', 'error');
+      return;
+    }
+
     // Recolectar datos del formulario actual
     var formAlertLevel = document.getElementById('formAlertLevel');
     var formIncidentType = document.getElementById('formIncidentType');
@@ -979,8 +1139,40 @@
       showNotification('❌ Las coordenadas son obligatorias. Use el mapa para seleccionar la ubicación', 'error');
       return;
     }
+
+    // Validar nuevos campos obligatorios
+    var formDescription = document.getElementById('formDescription');
+    if (!formDescription || !formDescription.value.trim()) {
+      showNotification('❌ La descripción de la incidencia es obligatoria', 'error');
+      return;
+    }
+
+    var formOrigin = document.getElementById('formOrigin');
+    if (!formOrigin || !formOrigin.value) {
+      showNotification('❌ El origen de la incidencia es obligatorio', 'error');
+      return;
+    }
+
+    var formUnit = document.getElementById('formUnit');
+    if (!formUnit || !formUnit.value) {
+      showNotification('❌ La unidad es obligatoria', 'error');
+      return;
+    }
+
+    var formClassification = document.getElementById('formClassification');
+    if (!formClassification || !formClassification.value) {
+      showNotification('❌ La clasificación es obligatoria', 'error');
+      return;
+    }
+
     if (!formIncidentType || !formIncidentType.value) {
       showNotification('❌ El tipo de incidencia es obligatorio', 'error');
+      return;
+    }
+
+    var formIncidentSubtype = document.getElementById('formIncidentSubtype');
+    if (!formIncidentSubtype || !formIncidentSubtype.value) {
+      showNotification('❌ El subtipo de incidencia es obligatorio', 'error');
       return;
     }
 
@@ -996,12 +1188,13 @@
     // Preparar datos para el API según estructura en respuesta_api.txt
     var newIncidenceData = {
       // ========== CAMPOS OBLIGATORIOS ==========
-      origin_id: 1,  // Por defecto: origen manual (ajustar según tus orígenes)
+      origin_id: formOrigin && formOrigin.value ? parseInt(formOrigin.value) : 8,  // Usar valor seleccionado o por defecto 8
       complainant: formReporterName.value.trim(),
       location: formLocationAddress.value.trim(),
-      unit_id: 1,  // Por defecto (ajustar según tu sistema)
+      unit_id: formUnit && formUnit.value ? parseInt(formUnit.value) : 1,
       incidence_type_id: parseInt(formIncidentType.value),
-      incidence_subtype_id: 1,  // Por defecto (ajustar si tienes subtipos)
+      incidence_classification_id: formClassification && formClassification.value ? parseInt(formClassification.value) : null,
+      incidence_subtype_id: formIncidentSubtype && formIncidentSubtype.value ? parseInt(formIncidentSubtype.value) : null,
       incidence_date: new Date().toISOString(),
       latitude: lat,
       longitude: lon,
@@ -1018,7 +1211,11 @@
       province: formLocationProvince ? formLocationProvince.value.trim() : null,
       location_reference: formLocationReference ? formLocationReference.value.trim() : '',
       telegram_chat_id: null,
-      created_by: getCurrentOperatorId() || null
+      created_by: getCurrentOperatorId() || null,
+
+      // ✅ Información del operador que crea el ticket
+      operator_id: getCurrentOperatorId(),          // Correo del operador (userid)
+      operator: getCurrentOperatorName()            // Nombre completo del operador (fullname)
     };
 
     // Llamar al API para crear la incidencia usando callAPI
@@ -1131,6 +1328,20 @@
     };
     var alertLevelId = alertLevelIdMap[alertLevelValue] || 2;
 
+    // Obtener valores de los nuevos campos
+    var formOrigin = document.getElementById('formOrigin');
+    var formUnit = document.getElementById('formUnit');
+    var formClassification = document.getElementById('formClassification');
+    var formIncidentSubtype = document.getElementById('formIncidentSubtype');
+
+    // Obtener el origin_id del ticket actual (si está editando uno existente)
+    var currentTicket = ticketsState.tickets.find(t => t.id === ticketsState.activeTicketId);
+    var originId = 8; // Por defecto: Teléfono-PBX
+    if (currentTicket && currentTicket.origin_id) {
+      // Si está editando un ticket existente, mantener su origin_id original
+      originId = currentTicket.origin_id;
+    }
+
     return {
       // Campos del formulario
       complainant: formReporterName ? formReporterName.value.trim() : '',
@@ -1146,12 +1357,13 @@
       longitude: lon,
       description_incidence: formDescription ? formDescription.value.trim() : '',
       incidence_type_id: formIncidentType && formIncidentType.value ? parseInt(formIncidentType.value) : null,
+      incidence_subtype_id: formIncidentSubtype && formIncidentSubtype.value ? parseInt(formIncidentSubtype.value) : null,
       alert_level_id: alertLevelId,
 
-      // ✅ CAMPOS OBLIGATORIOS CON VALORES POR DEFECTO
-      unit_id: 1,  // Valor por defecto (Unidad predeterminada)
-      incidence_classification_id: 1,  // Valor por defecto (Clasificación predeterminada)
-      origin_id: 1,  // Manual
+      // ✅ CAMPOS CON VALORES DEL FORMULARIO
+      unit_id: formUnit && formUnit.value ? parseInt(formUnit.value) : 1,
+      incidence_classification_id: formClassification && formClassification.value ? parseInt(formClassification.value) : null,
+      origin_id: originId,  // Mantiene el origen original del ticket, o usa 8 si es nuevo
 
       // Campos para el endpoint incidenceupt
       updated_by: getCurrentOperatorId() || 1
@@ -1213,7 +1425,7 @@
         renderTicketTabs();
         updateSaveButtonText();
 
-        showNotification('✅ Incidencia activada correctamente', 'success');
+        // showNotification('✅ Incidencia activada correctamente', 'success');
       },
       error: function (error) {
         // 👇 Ignorar AbortError
@@ -1258,8 +1470,104 @@
     $('#closeTicketReason').val('');
     $('#closeTicketObservations').val('');
 
+    // Resetear radio buttons a "mantener tipo actual"
+    $('input[name="closeIncidenceAction"][value="keep"]').prop('checked', true);
+
+    // Ocultar el botón de cambiar tipo
+    var buttonContainer = document.getElementById('changeIncidenceButtonContainer');
+    if (buttonContainer) {
+      buttonContainer.style.display = 'none';
+    }
+
+    // Resetear label de status
+    var statusLabel = document.getElementById('closeIncidenceStatusLabel');
+    if (statusLabel) {
+      statusLabel.textContent = 'actual';
+    }
+
+    // Mostrar tipo de incidencia actual
+    displayCurrentIncidenceTypeForClose(ticket);
+
+    // Limpiar campos ocultos de nuevo tipo
+    $('#closeTicketNewUnitId').val('');
+    $('#closeTicketNewClassificationId').val('');
+    $('#closeTicketNewTypeId').val('');
+    $('#closeTicketNewSubtypeId').val('');
+
     // Mostrar modal
     $('#closeTicketModal').modal('show');
+  }
+
+  // Función para mostrar el tipo de incidencia actual en el modal de cierre
+  function displayCurrentIncidenceTypeForClose(ticket) {
+    var pathElement = document.getElementById('closeTicketIncidencePath');
+    if (!pathElement) return;
+
+    // Obtener los valores actuales del formulario
+    var unitSelect = document.getElementById('formIncidentUnit');
+    var classificationSelect = document.getElementById('formIncidentClassification');
+    var typeSelect = document.getElementById('formIncidentType');
+    var subtypeSelect = document.getElementById('formIncidentSubtype');
+
+    var unitText = unitSelect && unitSelect.options[unitSelect.selectedIndex]
+      ? unitSelect.options[unitSelect.selectedIndex].text
+      : 'N/A';
+    var classificationText = classificationSelect && classificationSelect.options[classificationSelect.selectedIndex]
+      ? classificationSelect.options[classificationSelect.selectedIndex].text
+      : 'N/A';
+    var typeText = typeSelect && typeSelect.options[typeSelect.selectedIndex]
+      ? typeSelect.options[typeSelect.selectedIndex].text
+      : 'N/A';
+    var subtypeText = subtypeSelect && subtypeSelect.options[subtypeSelect.selectedIndex]
+      ? subtypeSelect.options[subtypeSelect.selectedIndex].text
+      : 'N/A';
+
+    // Mostrar la ruta completa
+    pathElement.innerHTML =
+      '<strong>' + unitText + '</strong> → ' +
+      '<strong>' + classificationText + '</strong> → ' +
+      '<strong>' + typeText + '</strong> → ' +
+      '<strong>' + subtypeText + '</strong>';
+  }
+
+  // Función para abrir el selector de tipo de incidencia desde el modal de cierre
+  function openIncidenceTypeSelectorForClose() {
+    // Guardar un flag para saber que estamos en modo "cierre"
+    window.incidenceTypeSelectorMode = 'close';
+
+    // Abrir el modal del selector
+    $('#incidenceTypeModal').modal('show');
+  }
+
+  // Función para manejar el cambio de radio button (mantener o cambiar tipo)
+  function toggleIncidenceTypeChange() {
+    var selectedAction = $('input[name="closeIncidenceAction"]:checked').val();
+    var buttonContainer = document.getElementById('changeIncidenceButtonContainer');
+    var statusLabel = document.getElementById('closeIncidenceStatusLabel');
+
+    if (selectedAction === 'change') {
+      // Mostrar el botón para seleccionar nuevo tipo
+      buttonContainer.style.display = 'block';
+      statusLabel.textContent = 'actual';
+    } else {
+      // Ocultar el botón y limpiar los campos ocultos
+      buttonContainer.style.display = 'none';
+      statusLabel.textContent = 'actual';
+
+      // Limpiar los valores seleccionados anteriormente
+      $('#closeTicketNewUnitId').val('');
+      $('#closeTicketNewClassificationId').val('');
+      $('#closeTicketNewTypeId').val('');
+      $('#closeTicketNewSubtypeId').val('');
+
+      // Restaurar la vista del tipo actual
+      var ticket = ticketsState.tickets.find(function (t) {
+        return t.id === ticketsState.activeTicketId;
+      });
+      if (ticket) {
+        displayCurrentIncidenceTypeForClose(ticket);
+      }
+    }
   }
 
   // Función para cancelar cierre de ticket
@@ -1287,55 +1595,129 @@
     var ticket = ticketsState.tickets.find(function (t) { return t.id === ticketsState.activeTicketId; });
     if (ticket) {
       var fullReason = reason + ': ' + observations;
-      closeTicket(ticket, fullReason);
+
+      // Verificar si el usuario eligió cambiar el tipo de incidencia
+      var selectedAction = $('input[name="closeIncidenceAction"]:checked').val();
+      var incidenceTypeChanged = false;
+      var newIncidenceType = null;
+
+      if (selectedAction === 'change') {
+        // El usuario quiere cambiar el tipo - verificar que haya seleccionado uno nuevo
+        var newUnitId = $('#closeTicketNewUnitId').val();
+        var newClassificationId = $('#closeTicketNewClassificationId').val();
+        var newTypeId = $('#closeTicketNewTypeId').val();
+        var newSubtypeId = $('#closeTicketNewSubtypeId').val();
+
+        if (!newSubtypeId) {
+          showNotification('Debe seleccionar un nuevo tipo de incidencia o elegir "cerrar con tipo actual"', 'warning');
+          return;
+        }
+
+        incidenceTypeChanged = true;
+        newIncidenceType = {
+          unit_id: newUnitId,
+          classification_id: newClassificationId,
+          type_id: newTypeId,
+          subtype_id: newSubtypeId
+        };
+        console.log('📝 Tipo de incidencia cambiado al cerrar:', newIncidenceType);
+      } else {
+        console.log('📝 Cerrando con tipo de incidencia actual');
+      }
+
+      closeTicket(ticket, fullReason, incidenceTypeChanged, newIncidenceType);
       $('#closeTicketModal').modal('hide');
       $('.modal-backdrop').remove();
     }
   }
 
   // Función para cerrar el ticket
-  function closeTicket(ticket, reason) {
-    // Actualizar estado del ticket
-    ticket.status = 'cerrado';
-    ticket.closedAt = new Date().toLocaleString('es-ES');
-    ticket.closeReason = reason;
-
-    // Agregar evento de cierre al chat
-    var now = new Date();
-    var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
-
-    var closeEvent = {
-      type: 'event',
-      icon: '✅',
-      title: 'Ticket cerrado',
-      detail: 'Motivo: ' + reason,
-      timestamp: timeString
-    };
-
-    if (!ticket.chatMessages) {
-      ticket.chatMessages = [];
-    }
-    ticket.chatMessages.push(closeEvent);
-
-    // Remover el ticket de la lista (ya que está cerrado)
-    var ticketIndex = ticketsState.tickets.findIndex(function (t) { return t.id === ticket.id; });
-    if (ticketIndex !== -1) {
-      ticketsState.tickets.splice(ticketIndex, 1);
+  function closeTicket(ticket, reason, incidenceTypeChanged, newIncidenceType) {
+    if (!ticket || !ticket.incidence_id) {
+      showNotification('❌ Error: No se puede cerrar el ticket', 'error');
+      return;
     }
 
-    // Actualizar tabs
-    renderTicketTabs();
+    // Recolectar datos del formulario actual
+    var formData = collectFormData();
+    var patchData = cleanPatch(formData);
 
-    // Si no hay más tickets, limpiar formulario y chat
-    if (ticketsState.tickets.length === 0) {
-      ticketsState.activeTicketId = null;
-      clearFormAndChat();
-    } else {
-      // Seleccionar el primer ticket disponible
-      selectTicket(ticketsState.tickets[0].id);
+    // Agregar campos específicos para el cierre
+    patchData.incidence_id = ticket.incidence_id;
+    patchData.incidence_state_id = 3;  // Estado 3 = Cerrado/Concluido
+    patchData.close_reason = reason;   // Motivo del cierre
+
+    // Si se cambió el tipo de incidencia, actualizar los campos
+    if (incidenceTypeChanged && newIncidenceType) {
+      patchData.unit_id = newIncidenceType.unit_id;
+      patchData.incidence_classification_id = newIncidenceType.classification_id;
+      patchData.incidence_type_id = newIncidenceType.type_id;
+      patchData.incidence_subtype_id = newIncidenceType.subtype_id;
+      console.log('✅ Tipo de incidencia actualizado en el cierre');
     }
 
-    showNotification('Ticket ' + ticket.id + ' cerrado exitosamente', 'success');
+    // Llamar al API para cerrar el ticket en el backend
+    callAPI({
+      method: 'gestincidencias/incidenceupt',
+      post: 1,
+      params: patchData,
+      ok: function(response) {
+        console.log('✅ Ticket cerrado en el backend:', response);
+
+        // Actualizar estado del ticket localmente
+        ticket.status = 'Cerrado';
+        ticket.state_name = 'Cerrado';
+        ticket.incidence_state_id = 3;
+        ticket.closedAt = new Date().toLocaleString('es-ES');
+        ticket.closeReason = reason;
+
+        // Agregar evento de cierre al chat
+        var now = new Date();
+        var timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+        var closeEvent = {
+          type: 'event',
+          icon: '✅',
+          title: 'Ticket cerrado',
+          detail: 'Motivo: ' + reason,
+          timestamp: timeString
+        };
+
+        if (!ticket.chatMessages) {
+          ticket.chatMessages = [];
+        }
+        ticket.chatMessages.push(closeEvent);
+
+        // Remover el ticket de la lista (ya que está cerrado)
+        var ticketIndex = ticketsState.tickets.findIndex(function (t) { return t.id === ticket.id; });
+        if (ticketIndex !== -1) {
+          ticketsState.tickets.splice(ticketIndex, 1);
+        }
+
+        // Actualizar tabs
+        renderTicketTabs();
+
+        // Si no hay más tickets, limpiar formulario y chat
+        if (ticketsState.tickets.length === 0) {
+          ticketsState.activeTicketId = null;
+          clearFormAndChat();
+        } else {
+          // Seleccionar el primer ticket disponible
+          selectTicket(ticketsState.tickets[0].id);
+        }
+
+        // showNotification('✅ Ticket ' + ticket.id + ' cerrado exitosamente', 'success');
+      },
+      error: function(error) {
+        // Ignorar AbortError
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          console.log('⚠️ Petición cancelada (closeTicket)');
+          return;
+        }
+        console.error('❌ Error al cerrar ticket:', error);
+        showNotification('❌ Error al cerrar el ticket: ' + (error.message || 'Error desconocido'), 'error');
+      }
+    });
   }
 
   // Función para limpiar formulario y chat cuando no hay tickets
@@ -1390,14 +1772,6 @@
       // ✅ Siempre agregar incidence_id, incluso si no hay cambios
       patchData.incidence_id = ticket.incidence_id;
 
-      // 🎯 LÓGICA OPCIÓN 2: Si es BORRADOR, cambiar a EN PROCESO al guardar
-      var wasActivated = false;
-      if (ticket.incidence_state_id === 6 || ticket.isDraft === true) {
-        patchData.incidence_state_id = 2;  // Cambiar a "En proceso"
-        patchData.operator_id = getCurrentOperatorId(); // Asignar operador
-        wasActivated = true;
-      }
-
       // 🔒 Deshabilitar botón mientras guarda
       var saveBtn = document.getElementById('saveTicketBtn');
       if (saveBtn) {
@@ -1423,26 +1797,20 @@
           Object.assign(ticket, patchData);
           ticket.lastModified = new Date().toISOString();
 
-          // 🎯 Si se activó el ticket, actualizar flags locales
-          if (wasActivated) {
-            ticket.isDraft = false;
-            ticket.incidence_state_id = 2;
-            ticket.state_name = 'En proceso';
-            ticket.status = 'En proceso';
+          // ✅ Actualizar alertLevel en el formato del frontend (baja/media/alta)
+          var formAlertLevel = document.getElementById('formAlertLevel');
+          if (formAlertLevel && formAlertLevel.value) {
+            ticket.alertLevel = formAlertLevel.value;
           }
 
-          // ✅ Actualizar UI
+          // ✅ Actualizar UI (esto refrescará los tabs con el nuevo nivel de alerta)
           renderTicketTabs();
 
           // 🔓 Rehabilitar botón SIEMPRE
           resetSaveButton();
 
-          // 🎉 Mostrar mensaje especial si se activó
-          if (wasActivated) {
-            showNotification('✅ Ticket activado y guardado. Estado: EN PROCESO', 'success');
-          } else {
-            showNotification('✅ Cambios guardados correctamente', 'success');
-          }
+          // ✅ Notificación de guardado exitoso
+          // showNotification('✅ Cambios guardados correctamente', 'success');
         },
         error: function (error) {
           // 🔓 Rehabilitar botón SIEMPRE (incluso si hay error)
@@ -1604,7 +1972,8 @@
     var wasActivated = false;
     if (ticket.incidence_state_id === 6 || ticket.isDraft === true) {
       patchData.incidence_state_id = 2;
-      patchData.operator_id = getCurrentOperatorId();
+      patchData.operator_id = getCurrentOperatorId();      // ✅ Correo del operador
+      patchData.operator = getCurrentOperatorName();       // ✅ Nombre del operador
       wasActivated = true;
     }
 
@@ -1724,7 +2093,11 @@
       'formReporterEmail',
       'formReporterRelation',
       'formAlertLevel',
+      'formOrigin',
+      'formUnit',
+      'formClassification',
       'formIncidentType',
+      'formIncidentSubtype',
       'formLocationAddress',
       'formLocationDistrict',
       'formLocationProvince',
@@ -1815,7 +2188,61 @@
   window.startPeriodicAutoSave = startPeriodicAutoSave;
   window.triggerDebounceAutoSave = triggerDebounceAutoSave;
 
-  console.log('✅ Módulo de autoguardado cargado');
+  /**
+   * 🚪 GUARDAR ANTES DE SALIR DE LA PÁGINA
+   * Detecta cuando el usuario abandona la página (cambia de módulo, cierra pestaña, etc.)
+   */
+  window.addEventListener('beforeunload', function(event) {
+    var activeTicket = ticketsState.tickets.find(function(t) {
+      return t.id === ticketsState.activeTicketId;
+    });
+
+    // Si hay cambios sin guardar en el ticket activo
+    if (activeTicket && activeTicket.incidence_id && autoSaveState.hasUnsavedChanges) {
+      console.log('🚪 Guardando cambios antes de salir de la página...');
+
+      // Recopilar datos del formulario
+      var formData = collectFormData();
+      var patchData = cleanPatch(formData);
+      patchData.incidence_id = activeTicket.incidence_id;
+
+      // Usar sendBeacon si está disponible (método recomendado para beforeunload)
+      if (navigator.sendBeacon) {
+        var apiUrl = window.location.origin + '/api.php';
+        var payload = new FormData();
+        payload.append('method', 'gestincidencias/incidenceupt');
+        payload.append('params', JSON.stringify(patchData));
+
+        // sendBeacon envía los datos de forma asíncrona pero garantiza que se envíen
+        navigator.sendBeacon(apiUrl, payload);
+        console.log('✅ Datos enviados con sendBeacon');
+      } else {
+        // Fallback: AJAX sincrónico (menos recomendado pero funcional)
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', window.location.origin + '/api.php', false); // false = síncrono
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        try {
+          xhr.send(JSON.stringify({
+            method: 'gestincidencias/incidenceupt',
+            params: patchData
+          }));
+          console.log('✅ Datos guardados síncronamente');
+        } catch (e) {
+          console.error('❌ Error al guardar:', e);
+        }
+      }
+
+      // Marcar como guardado para evitar múltiples guardados
+      autoSaveState.hasUnsavedChanges = false;
+
+      // Opcional: Mostrar mensaje al usuario (los navegadores modernos pueden ignorarlo)
+      // event.preventDefault();
+      // event.returnValue = '';
+    }
+  });
+
+  console.log('✅ Módulo de autoguardado cargado (con protección al salir)');
 </script>
 
 <style>

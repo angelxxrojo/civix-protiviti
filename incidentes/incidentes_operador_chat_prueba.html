@@ -15,13 +15,26 @@
   <div class="col-md-12">
     <div class="">
       <div class="panel-heading">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h4 class="m-b-none">Tickets Activos</h4>
-          <span class="badge" id="ticketsCount">3 tickets</span>
+        <div id="incidentTabs">
         </div>
       </div>
-      <div class="panel-body" style="overflow-x: auto; white-space: nowrap;">
-        <div id="incidentTabs">
+
+    </div>
+  </div>
+</div>
+
+<div class="row cad-container">
+  <div class="col-md-12">
+    <div class="panel" style="margin-bottom: 0;">
+      <div class="panel-body">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h4 class="m-b-none">Registro de Incidencias – Seguridad Ciudadana</h4>
+          <div>
+                <button type="button" id="closeTicketBtn" class="btn btn-w-md btn-accent btn-block" style="margin-top: 5px;"
+                  title="Cerrar ticket">
+                  <i class="pe-7s-close-circle" aria-hidden="true"></i> Cerrar Ticket
+                </button>
+          </div>
         </div>
       </div>
     </div>
@@ -34,42 +47,34 @@
     <div class="cad-scrollable" id="ticketFormContainer">
       <!-- Panel: Header Principal -->
       <div class="panel panel-filled mb-2">
-        <div class="panel-heading">
-          <h4 class="m-b-none">Registro de Incidencias – Seguridad Ciudadana</h4>
-        </div>
         <div class="panel-body">
-          <small id="formTicketHeader">Ticket #3242 • 27/11/2025, 7:24:24 a.m.</small>
+          <small><h5 id="formTicketHeader">Ticket #3242 • 27/11/2025, 7:24:24 a.m.</h5></small>
         </div>
       </div>
 
-      <!-- Panel: Información General del Reporte -->
+
+
+
+      <!-- Panel: Origen de la Incidencia -->
       <div class="panel panel-filled panel-inner-radius mb-2">
         <div class="panel-heading">
-          <h5 class="m-b-none">Información General del Reporte</h5>
+          <h5 class="m-b-none">Origen de la Incidencia</h5>
         </div>
         <div class="panel-body">
           <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-12">
               <div class="form-group">
-                <label>ID de la Incidencia</label>
-                <input type="text" id="formIncidentId" class="form-control rounded-input bg-dark" readonly
-                  value="#3242">
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="form-group">
-                <label>Nivel de Alerta</label>
-                <select id="formAlertLevel" class="form-control rounded-input">
-                  <option value="critica"> <span class="dot away"></span> Crítica</option>
-                  <option value="alta">Alta</option>
-                  <option value="media">Media</option>
-                  <option value="baja">Baja</option>
+                <label>Origen *</label>
+                <select id="formOrigin" class="form-control rounded-input">
+                  <option value="">Seleccionar origen</option>
                 </select>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+
 
       <!-- Panel: Datos del Reportante -->
       <div class="panel panel-filled   panel-inner-radius mb-2">
@@ -125,26 +130,160 @@
         </div>
       </div>
 
+         <!-- Panel: Ubicación del Incidente -->
+      <div class="panel panel-filled panel-inner-radius mb-2">
+        <div class="panel-heading">
+          <h5 class="m-b-none">
+            <i class="pe-7s-map-marker" aria-hidden="true"></i> Ubicación del Incidente
+          </h5>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label>Dirección exacta *</label>
+                <input type="text" id="formLocationAddress" class="form-control rounded-input"
+                  placeholder="Calle, número, colonia">
+                <p style="font-size: 11px; color: #9ca3af; margin-top: 5px;">💡 Usa el mapa de la derecha para buscar y
+                  autocompletar</p>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="form-group">
+                <label>Distrito *</label>
+                <input type="text" id="formLocationDistrict" class="form-control rounded-input" placeholder="Distrito">
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="form-group">
+                <label>Provincia *</label>
+                <input type="text" id="formLocationProvince" class="form-control rounded-input" placeholder="Provincia">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label>Referencia</label>
+                <input type="text" id="formLocationReference" class="form-control rounded-input"
+                  placeholder="Frente a..., cerca de...">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label>Coordenadas GPS</label>
+                <input type="text" id="formLocationCoordinates" class="form-control rounded-input"
+                  placeholder="Auto-detectado o manual" readonly style="background: #2a2a2a;">
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+    <!-- Descripción de la Incidencia -->
+      <div class="panel panel-filled panel-inner-radius mb-2">
+      <div class="panel-heading">
+        <h5 class="m-b-none">
+          <i class="pe-7s-map-marker" aria-hidden="true"></i>Descripción de la incidencia
+        </h5>
+      </div>
+      <div class="panel-body">
+        <textarea id="formDescription" class="form-control rounded-input" rows="3"
+          placeholder="Describe brevemente la incidencia..."></textarea>
+      </div>
+                 </div>
+
       <!-- Panel: Tipo de Incidencia -->
       <div class="panel panel-filled  panel-inner-radius mb-2">
         <div class="panel-heading">
           <h5 class="m-b-none">Tipo de Incidencia</h5>
         </div>
         <div class="panel-body">
+
+          <!-- Selector inteligente de incidencia -->
           <div class="form-group">
             <label>Tipo de Incidencia *</label>
-            <select id="formIncidentType" class="form-control rounded-input">
-              <option value="">Seleccionar</option>
-              <option value="robo-vehiculo">🚗 Robo de Vehículo</option>
-              <option value="persona-sospechosa">👤 Persona Sospechosa</option>
-              <option value="persona-desaparecida">🔍 Persona Desaparecida</option>
-              <option value="vehiculo-sospechoso">🚙 Vehículo Sospechoso</option>
-              <option value="otra">📋 Otra incidencia</option>
-            </select>
+            <div style="display: flex; gap: 8px;">
+              <input type="text"
+                     id="incidenceTypeDisplay"
+                     class="form-control rounded-input"
+                     readonly
+                     placeholder="Haz clic en 'Seleccionar' para elegir"
+                     style="background: #2a2a2a; flex: 1;">
+              <button type="button"
+                      class="btn btn-accent"
+                      data-toggle="modal"
+                      data-target="#incidenceTypeModal"
+                      style="white-space: nowrap;">
+                <i class="pe-7s-search" aria-hidden="true"></i> Seleccionar
+              </button>
+            </div>
           </div>
+
+          <!-- Campos ocultos para mantener compatibilidad -->
+          <div style="display: none;">
+            <select id="formUnit"><option value=""></option></select>
+            <select id="formClassification"><option value=""></option></select>
+            <select id="formIncidentType"><option value=""></option></select>
+            <select id="formIncidentSubtype"><option value=""></option></select>
+          </div>
+
+
         </div>
       </div>
 
+      
+      <div class="panel panel-filled panel-inner-radius mb-2">
+        <div class="panel-heading">
+          <h5 class="m-b-none">Datos complementarios</h5>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-lg-6">
+              <button type="button"
+                      class="btn btn-accent btn-block"
+                      data-toggle="modal"
+                      data-target="#modal-persona-desaparecida"
+                      style="padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="pe-7s-user" style="font-size: 18px;"></i>
+                <span>Registrar Persona Desaparecida</span>
+              </button>
+            </div>
+            <div class="col-lg-6">
+              <button type="button"
+                      class="btn btn-accent btn-block"
+                      data-toggle="modal"
+                      data-target="#modal-vehiculo-robado"
+                      style="padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="pe-7s-car" style="font-size: 18px;"></i>
+                <span>Registrar Vehículo Robado</span>
+              </button>
+            </div>
+          </div>
+          <p style="font-size: 11px; color: #9ca3af; margin-top: 8px; text-align: center;">
+            💡 Registre personas desaparecidas o vehículos robados sin salir del ticket actual
+          </p>
+        </div>
+      </div>
+
+      <div class="panel panel-filled panel-inner-radius mb-2">
+         <div class="panel-heading">
+            Persona Involucrada
+         </div>
+         <div class="panel-body">
+            Foto
+         </div>
+      </div>
+        
+          
+          
+          
       <!-- Card: Persona Desaparecida (Dinámico según tipo) -->
       <div class="panel panel-filled panel-inner-radius mb-2" id="formMissingPersonSection" style="display: none;">
         <div class="panel-heading">
@@ -441,81 +580,38 @@
         </div>
       </div>
 
-      <!-- Panel: Evidencia Adjunta -->
+      <!-- Panel: Información General del Reporte -->
       <div class="panel panel-filled panel-inner-radius mb-2">
         <div class="panel-heading">
-          <h5 class="m-b-none">Evidencia Adjunta (Opcional)</h5>
+          <h5 class="m-b-none">Información General del Reporte</h5>
         </div>
         <div class="panel-body">
-          <p style="font-size: 13px; color: #9ca3af; margin-bottom: 15px;">Sube fotos, videos, documentos o audio
-            relacionados con el incidente</p>
-          <input type="file" id="evidenceFileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-            style="display: none;">
-          <button type="button" id="uploadEvidenceBtn" class="btn btn-accent" style="width: 100%;">
-            <i class="pe-7s-upload" aria-hidden="true"></i> Subir archivos (máx. 10 archivos)
-          </button>
-          <div id="formEvidenceList" style="margin-top: 15px;"></div>
-        </div>
-      </div>
-
-      <!-- Panel: Ubicación del Incidente -->
-      <div class="panel panel-filled panel-inner-radius mb-2">
-        <div class="panel-heading">
-          <h5 class="m-b-none">
-            <i class="pe-7s-map-marker" aria-hidden="true"></i> Ubicación del Incidente
-          </h5>
-        </div>
-        <div class="panel-body">
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="form-group">
-                <label>Dirección exacta *</label>
-                <input type="text" id="formLocationAddress" class="form-control rounded-input"
-                  placeholder="Calle, número, colonia">
-                <p style="font-size: 11px; color: #9ca3af; margin-top: 5px;">💡 Usa el mapa de la derecha para buscar y
-                  autocompletar</p>
-              </div>
-            </div>
-          </div>
           <div class="row">
             <div class="col-lg-6">
               <div class="form-group">
-                <label>Distrito *</label>
-                <input type="text" id="formLocationDistrict" class="form-control rounded-input" placeholder="Distrito">
+                <label>ID de la Incidencia</label>
+                <input type="text" id="formIncidentId" class="form-control rounded-input bg-dark" readonly
+                  value="#3242">
               </div>
             </div>
             <div class="col-lg-6">
               <div class="form-group">
-                <label>Provincia *</label>
-                <input type="text" id="formLocationProvince" class="form-control rounded-input" placeholder="Provincia">
+                <label>Nivel de Alerta</label>
+                <select id="formAlertLevel" class="form-control rounded-input">
+                  <option value="critica"> <span class="dot away"></span> Crítica</option>
+                  <option value="alta">Alta</option>
+                  <option value="media">Media</option>
+                  <option value="baja">Baja</option>
+                </select>
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="form-group">
-                <label>Referencia</label>
-                <input type="text" id="formLocationReference" class="form-control rounded-input"
-                  placeholder="Frente a..., cerca de...">
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="form-group">
-                <label>Coordenadas GPS</label>
-                <input type="text" id="formLocationCoordinates" class="form-control rounded-input"
-                  placeholder="Auto-detectado o manual" readonly style="background: #2a2a2a;">
-              </div>
-            </div>
-          </div>
-
-
         </div>
       </div>
 
-      <!-- Botón Guardar -->
-      <div class="panel panel-filled panel-inner-radius mb-2">
+   
+      <!-- Botón Guardar - OCULTO (Autoguardado automático) -->
+      <div class="panel panel-filled panel-inner-radius mb-2" style="display: none;">
         <div class="panel-body" style="text-align: center;">
           <button type="button" id="saveTicketBtn" class="btn btn-accent"
             style="width: 100%; padding: 12px; font-size: 15px; font-weight: 600;">
@@ -771,10 +867,7 @@
 
   </div>
   <div class="col-md-4">
-    <button type="button" id="closeTicketBtn" class="btn btn-w-md btn-default btn-block" style="margin-top: 5px;"
-      title="Cerrar ticket">
-      <i class="pe-7s-close-circle" aria-hidden="true"></i> Cerrar Ticket
-    </button>
+
   </div>
   <div class="col-md-4">
 
@@ -875,6 +968,53 @@
                 <h5>MOTIVO DE CIERRE</h5>
               </div>
               <div class="panel-body">
+                <!-- Opción: ¿Cambiar tipo de incidencia? -->
+                <div class="form-group">
+                  <label style="font-weight: 600; margin-bottom: 10px;">¿El tipo de incidencia es correcto?</label>
+                  <div style="margin-bottom: 15px;">
+                    <label class="radio-inline" style="margin-right: 20px; cursor: pointer;">
+                      <input type="radio" name="closeIncidenceAction" value="keep" checked
+                             onchange="toggleIncidenceTypeChange()">
+                      <span style="margin-left: 5px;">Sí, cerrar con tipo actual</span>
+                    </label>
+                    <label class="radio-inline" style="cursor: pointer;">
+                      <input type="radio" name="closeIncidenceAction" value="change"
+                             onchange="toggleIncidenceTypeChange()">
+                      <span style="margin-left: 5px;">No, cambiar tipo de incidencia</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Mostrar tipo actual -->
+                <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                  <p style="margin-bottom: 8px; color: #666; font-size: 13px;">
+                    <i class="pe-7s-note2"></i> Tipo de incidencia <span id="closeIncidenceStatusLabel">actual</span>:
+                  </p>
+                  <div id="closeTicketCurrentIncidenceType" style="font-weight: 500;">
+                    <span id="closeTicketIncidencePath">Cargando...</span>
+                  </div>
+                </div>
+
+                <!-- Botón para cambiar (solo visible cuando se selecciona "cambiar") -->
+                <div id="changeIncidenceButtonContainer" style="display: none; margin-bottom: 20px;">
+                  <button type="button"
+                          class="btn btn-accent btn-rounded"
+                          onclick="openIncidenceTypeSelectorForClose()"
+                          style="width: 100%;">
+                    <i class="pe-7s-refresh"></i> Seleccionar Nuevo Tipo de Incidencia
+                  </button>
+                </div>
+
+                <!-- Hidden fields para almacenar el nuevo tipo -->
+                <input type="hidden" id="closeTicketNewUnitId">
+                <input type="hidden" id="closeTicketNewClassificationId">
+                <input type="hidden" id="closeTicketNewTypeId">
+                <input type="hidden" id="closeTicketNewSubtypeId">
+
+                <!-- Separador visual -->
+                <hr style="margin: 20px 0; border-top: 1px solid #e0e0e0;">
+
+                <!-- Motivo de cierre -->
                 <div class="form-group">
                   <label>Motivo *</label>
                   <select id="closeTicketReason" class="form-control">
@@ -895,6 +1035,7 @@
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -906,6 +1047,9 @@
     </div>
   </div>
 </div>
+
+<!-- Modal: Selector Inteligente de Incidencia -->
+<!-- NOTA: El modal se carga desde fragments/scripts/selector_incidencia.html -->
 
 <script>
   // ============================================
@@ -1810,6 +1954,11 @@
 </script>
 
 
+<!-- Modales de registro rápido -->
+{{persona_desaparecida}}
+
+{{vehiculo_robado}}
+
 {{agentes}}
 
 {{catalogos}}
@@ -1825,3 +1974,5 @@
 {{sistema_tickets}}
 
 {{telegram}}
+
+{{selector_incidencia}}

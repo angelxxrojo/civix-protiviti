@@ -1,0 +1,16 @@
+💾 Guardando selección en el formulario...
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8517   - Unit actualizado: 6
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8524   - Classification actualizado: 212
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8531   - Type actualizado: 226
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8538   - Subtype actualizado: 337
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:4062 🔍 Tipo seleccionado: NaN
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:4093 ⚠️ No hay tipo seleccionado
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8576 💾 Guardando tipo de incidencia seleccionado...
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8577    - Unit ID: 6
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8578    - Classification ID: 212
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8579    - Type ID: 226
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8580    - Subtype ID: 337
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:7705 ✓ Sin cambios - autoguardado omitido
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:8612 ✅ Guardado disparado para ticket existente
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:7798 ⏱️ Debounce activado - autoguardando...
+bb7b97bda04cec48e48f8ab113134f27f84349bb6045b4fbb1fd300f8bd42492:7705 ✓ Sin cambios - autoguardado omitido

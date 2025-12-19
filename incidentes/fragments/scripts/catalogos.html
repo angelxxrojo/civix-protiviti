@@ -7,38 +7,29 @@
     // NOTA: El nivel de alerta (formAlertLevel) es un ENUM que se envía directamente a la BD
     // No necesita API, los valores ya están hardcodeados en el HTML
 
-    // Cargar tipos de incidencia
-    callAPI({
-      method: 'gestincidencias/gettypeincidence',
-      params: {},
-      ok: function (data) {
-        var select = document.getElementById('formIncidentType');
-        if (select) {
-          select.innerHTML = '<option value="">Seleccionar</option>';
-          data.forEach(function (item) {
-            var option = document.createElement('option');
-            option.value = item.incidence_type_id;
-            option.textContent = item.incidence_type_name;
-            select.appendChild(option);
-          });
-        }
-      },
-      error: function (error) {
-        // Ignorar AbortError silenciosamente
-        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
-          return;
-        }
-        console.warn('Error cargando tipos de incidencia:', error);
-      }
-    });
-
     // Cargar orígenes de incidencia
     callAPI({
       method: 'gestincidencias/getorigin',
       params: {},
       ok: function (data) {
-        // Guardar en variable global por si se necesita más adelante
+        // Guardar en variable global
         window.masterDataOrigins = data;
+
+        // Llenar el combo de orígenes
+        var selectOrigin = document.getElementById('formOrigin');
+        if (selectOrigin) {
+          selectOrigin.innerHTML = '<option value="">Seleccionar origen</option>';
+          data.forEach(function (item) {
+            var option = document.createElement('option');
+            option.value = item.origin_id;
+            option.textContent = item.origin_name;
+            selectOrigin.appendChild(option);
+          });
+
+          // Pre-seleccionar "Teléfono-PBX" (PHONE) con origin_id: 8
+          // Este es el origen por defecto del sistema
+          selectOrigin.value = '8';
+        }
       },
       error: function (error) {
         // Ignorar AbortError silenciosamente
@@ -54,8 +45,20 @@
       method: 'gestincidencias/getunit',
       params: {},
       ok: function (data) {
-        // Guardar en variable global por si se necesita más adelante
+        // Guardar en variable global
         window.masterDataUnits = data;
+
+        // Llenar el combo de unidades
+        var selectUnit = document.getElementById('formUnit');
+        if (selectUnit) {
+          selectUnit.innerHTML = '<option value="">Seleccionar unidad</option>';
+          data.forEach(function (item) {
+            var option = document.createElement('option');
+            option.value = item.unit_id;
+            option.textContent = item.unit_name;
+            selectUnit.appendChild(option);
+          });
+        }
       },
       error: function (error) {
         // Ignorar AbortError silenciosamente
@@ -63,6 +66,59 @@
           return;
         }
         console.warn('Error cargando unidades:', error);
+      }
+    });
+
+    // Cargar clasificaciones
+    callAPI({
+      method: 'gestincidencias/getclassification',
+      params: {},
+      ok: function (data) {
+        // Guardar en variable global
+        window.masterDataClassifications = data;
+      },
+      error: function (error) {
+        // Ignorar AbortError silenciosamente
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          return;
+        }
+        console.warn('Error cargando clasificaciones:', error);
+      }
+    });
+
+    // Cargar tipos de incidencia
+    callAPI({
+      method: 'gestincidencias/gettypeincidence',
+      params: {},
+      ok: function (data) {
+        // Guardar en variable global (no llenar el combo aún, se llena según clasificación)
+        window.masterDataTypes = data;
+      },
+      error: function (error) {
+        // Ignorar AbortError silenciosamente
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          return;
+        }
+        console.warn('Error cargando tipos de incidencia:', error);
+      }
+    });
+
+    // Cargar subtipos de incidencia
+    callAPI({
+      method: 'gestincidencias/getsubtypeincidence',
+      params: {},
+      ok: function (data) {
+        // Guardar en variable global (no llenar el combo aún, se llena según tipo)
+        window.masterDataSubtypes = data;
+        console.log('✅ Subtipos cargados:', data.length, 'subtipos');
+        console.log('📋 Muestra de subtipos:', data.slice(0, 3));
+      },
+      error: function (error) {
+        // Ignorar AbortError silenciosamente
+        if (error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.status === 0)) {
+          return;
+        }
+        console.warn('Error cargando subtipos de incidencia:', error);
       }
     });
 
@@ -83,6 +139,146 @@
       }
     });
   }
+
+  // FASE 2: Configurar filtros en cascada
+  function setupCascadingFilters() {
+    var formUnit = document.getElementById('formUnit');
+    var formClassification = document.getElementById('formClassification');
+    var formIncidentType = document.getElementById('formIncidentType');
+    var formIncidentSubtype = document.getElementById('formIncidentSubtype');
+
+    // Cuando se selecciona una Unidad, cargar sus Clasificaciones
+    if (formUnit) {
+      formUnit.addEventListener('change', function() {
+        var unitId = parseInt(this.value);
+
+        // Resetear clasificación, tipo y subtipo
+        if (formClassification) {
+          formClassification.innerHTML = '<option value="">Seleccionar clasificación</option>';
+          formClassification.disabled = false;
+
+          if (unitId && window.masterDataClassifications) {
+            // Filtrar clasificaciones por unidad
+            var filteredClassifications = window.masterDataClassifications.filter(function(item) {
+              // Si tiene unit_id, filtrar por él; si no, mostrar todas
+              return !item.unit_id || item.unit_id === unitId;
+            });
+
+            filteredClassifications.forEach(function(item) {
+              var option = document.createElement('option');
+              option.value = item.incidence_classification_id;
+              option.textContent = item.incidence_classification_name;
+              formClassification.appendChild(option);
+            });
+          } else {
+            formClassification.disabled = true;
+            formClassification.innerHTML = '<option value="">Primero seleccione una unidad</option>';
+          }
+        }
+
+        // Resetear tipo
+        if (formIncidentType) {
+          formIncidentType.innerHTML = '<option value="">Primero seleccione una clasificación</option>';
+          formIncidentType.disabled = true;
+        }
+
+        // Resetear subtipo
+        if (formIncidentSubtype) {
+          formIncidentSubtype.innerHTML = '<option value="">Primero seleccione un tipo</option>';
+          formIncidentSubtype.disabled = true;
+        }
+      });
+    }
+
+    // Cuando se selecciona una Clasificación, cargar sus Tipos
+    if (formClassification) {
+      formClassification.addEventListener('change', function() {
+        var classificationId = parseInt(this.value);
+
+        // Resetear tipo y subtipo
+        if (formIncidentType) {
+          formIncidentType.innerHTML = '<option value="">Seleccionar tipo</option>';
+          formIncidentType.disabled = false;
+
+          if (classificationId && window.masterDataTypes) {
+            // Filtrar tipos por clasificación
+            var filteredTypes = window.masterDataTypes.filter(function(item) {
+              // Si tiene classification_id, filtrar por él; si no, mostrar todos
+              return !item.incidence_classification_id || item.incidence_classification_id === classificationId;
+            });
+
+            filteredTypes.forEach(function(item) {
+              var option = document.createElement('option');
+              option.value = item.incidence_type_id;
+              option.textContent = item.incidence_type_name;
+              formIncidentType.appendChild(option);
+            });
+          } else {
+            formIncidentType.disabled = true;
+            formIncidentType.innerHTML = '<option value="">Primero seleccione una clasificación</option>';
+          }
+        }
+
+        // Resetear subtipo
+        if (formIncidentSubtype) {
+          formIncidentSubtype.innerHTML = '<option value="">Primero seleccione un tipo</option>';
+          formIncidentSubtype.disabled = true;
+        }
+      });
+    }
+
+    // Cuando se selecciona un Tipo, cargar sus Subtipos
+    if (formIncidentType) {
+      formIncidentType.addEventListener('change', function() {
+        var typeId = parseInt(this.value);
+        console.log('🔍 Tipo seleccionado:', typeId);
+
+        // Resetear subtipo
+        if (formIncidentSubtype) {
+          formIncidentSubtype.innerHTML = '<option value="">Seleccionar subtipo</option>';
+          formIncidentSubtype.disabled = false;
+
+          if (typeId && window.masterDataSubtypes) {
+            console.log('📦 Total de subtipos disponibles:', window.masterDataSubtypes.length);
+
+            // Filtrar subtipos por tipo
+            var filteredSubtypes = window.masterDataSubtypes.filter(function(item) {
+              // Si tiene incidence_type_id, filtrar por él; si no, mostrar todos
+              return !item.incidence_type_id || item.incidence_type_id === typeId;
+            });
+
+            console.log('✅ Subtipos filtrados para tipo ' + typeId + ':', filteredSubtypes.length);
+            console.log('📋 Subtipos:', filteredSubtypes.map(function(s) { return s.incidence_subtype_name; }));
+
+            if (filteredSubtypes.length === 0) {
+              console.warn('⚠️ No se encontraron subtipos para el tipo', typeId);
+            }
+
+            filteredSubtypes.forEach(function(item) {
+              var option = document.createElement('option');
+              option.value = item.incidence_subtype_id;
+              option.textContent = item.incidence_subtype_name;
+              formIncidentSubtype.appendChild(option);
+            });
+          } else {
+            if (!typeId) {
+              console.log('⚠️ No hay tipo seleccionado');
+            }
+            if (!window.masterDataSubtypes) {
+              console.error('❌ masterDataSubtypes no está cargado');
+            }
+            formIncidentSubtype.disabled = true;
+            formIncidentSubtype.innerHTML = '<option value="">Primero seleccione un tipo</option>';
+          }
+        }
+      });
+    }
+  }
+
+  // Inicializar cuando se carga la página
+  document.addEventListener('DOMContentLoaded', function() {
+    setupCascadingFilters();
+  });
 
 
 </script>

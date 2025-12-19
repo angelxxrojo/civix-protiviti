@@ -1,0 +1,545 @@
+<!-- ============================================ -->
+<!-- MODAL: SELECTOR INTELIGENTE DE INCIDENCIA -->
+<!-- ============================================ -->
+
+<!-- Modal HTML -->
+<div class="modal fade" id="incidenceTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document" style="max-width: 95%; width: 1400px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="pe-7s-search" aria-hidden="true"></i> Seleccionar Tipo de Incidencia
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+
+        <!-- Filtro de búsqueda -->
+        <div class="panel panel-filled panel-c-accent">
+          <div class="panel-heading">
+            Seleccionar Tipo de Incidencia
+          </div>
+          <div class="panel-body">
+            <div class="col-lg-6 col-md-6 col-sm-6">
+              <div class="form-group">
+                <input id="txtSearchIncidence"
+                       type="text"
+                       class="form-control"
+                       placeholder="Buscar incidencia...">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de Incidencias -->
+        <div class="col-md-12">
+          <div class="table-responsive">
+            <table class="table table-hover-1">
+              <thead style="border-radius:20px; overflow:hidden;">
+                <tr>
+                  <th>Subtipo</th>
+                  <th>Tipo</th>
+                  <th>Clasificación</th>
+                  <th>Unidad</th>
+                </tr>
+              </thead>
+              <tbody id="incidenceTableBody">
+                <!-- Se llenará dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script del selector -->
+<script>
+  // Variables globales
+  var allIncidenceTypes = [];
+  var allIncidenceTypesData = []; // Guardar los datos originales sin filtro
+  var hierarchyBuilt = false; // Flag para saber si ya se construyó la jerarquía
+  var currentSelection = {
+    unit_id: null,
+    classification_id: null,
+    type_id: null,
+    subtype_id: null
+  };
+
+  // Función para cargar y combinar todos los datos
+  function loadIncidenceHierarchy() {
+    // ✅ Si ya se construyó la jerarquía, usar la caché
+    if (hierarchyBuilt && allIncidenceTypes.length > 0) {
+      console.log('⚡ Usando jerarquía en caché (' + allIncidenceTypes.length + ' opciones)');
+      renderIncidenceTable(allIncidenceTypesData);
+      return;
+    }
+
+    console.log('📦 Construyendo jerarquía de incidencias por primera vez...');
+    console.log('🔍 Verificando datos maestros disponibles:');
+    console.log('  - masterDataUnits:', window.masterDataUnits ? 'SI (' + window.masterDataUnits.length + ')' : 'NO');
+    console.log('  - masterDataClassifications:', window.masterDataClassifications ? 'SI (' + window.masterDataClassifications.length + ')' : 'NO');
+    console.log('  - masterDataTypes:', window.masterDataTypes ? 'SI (' + window.masterDataTypes.length + ')' : 'NO');
+    console.log('  - masterDataSubtypes:', window.masterDataSubtypes ? 'SI (' + window.masterDataSubtypes.length + ')' : 'NO');
+
+    // Esperar a que todos los datos maestros estén cargados
+    var attempts = 0;
+    var maxAttempts = 50; // 5 segundos máximo
+    var checkDataInterval = setInterval(function() {
+      attempts++;
+
+      if (window.masterDataUnits &&
+          window.masterDataClassifications &&
+          window.masterDataTypes &&
+          window.masterDataSubtypes) {
+
+        clearInterval(checkDataInterval);
+        console.log('✅ Todos los datos maestros están disponibles después de ' + (attempts * 100) + 'ms');
+        buildIncidenceHierarchy();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkDataInterval);
+        console.error('❌ Timeout esperando datos maestros después de ' + (attempts * 100) + 'ms');
+        console.log('Datos faltantes:');
+        if (!window.masterDataUnits) console.log('  - masterDataUnits');
+        if (!window.masterDataClassifications) console.log('  - masterDataClassifications');
+        if (!window.masterDataTypes) console.log('  - masterDataTypes');
+        if (!window.masterDataSubtypes) console.log('  - masterDataSubtypes');
+
+        // Mostrar mensaje de error
+        var tbody = document.getElementById('incidenceTableBody');
+        if (tbody) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" style="color: #ef4444; padding: 20px; text-align: center;">Error: Datos maestros no cargados</td></tr>';
+        }
+      }
+    }, 100);
+  }
+
+  // Construir la jerarquía completa
+  function buildIncidenceHierarchy() {
+    allIncidenceTypes = [];
+
+    console.log('🔨 Construyendo jerarquía...');
+    console.log('Units:', window.masterDataUnits.length);
+    console.log('Classifications:', window.masterDataClassifications.length);
+    console.log('Types:', window.masterDataTypes.length);
+    console.log('Subtypes:', window.masterDataSubtypes.length);
+
+    var stats = {
+      total_subtypes: window.masterDataSubtypes.length,
+      type_not_found: 0,
+      classification_not_found: 0,
+      unit_not_found: 0,
+      successful: 0
+    };
+
+    // Recorrer todos los subtipos (nivel más bajo)
+    window.masterDataSubtypes.forEach(function(subtype, index) {
+      // Encontrar el tipo padre
+      var type = window.masterDataTypes.find(function(t) {
+        return t.incidence_type_id === subtype.incidence_type_id;
+      });
+
+      if (!type) {
+        stats.type_not_found++;
+        if (stats.type_not_found === 1) {
+          console.warn('⚠️ Primer subtipo sin tipo padre:', subtype);
+        }
+        return;
+      }
+
+      // Encontrar la clasificación padre
+      var classification = window.masterDataClassifications.find(function(c) {
+        return c.incidence_classification_id === type.incidence_classification_id;
+      });
+
+      if (!classification) {
+        stats.classification_not_found++;
+        if (stats.classification_not_found === 1) {
+          console.warn('⚠️ Primer tipo sin clasificación padre:', type);
+        }
+        return;
+      }
+
+      // Encontrar la unidad padre usando el unit_id de la clasificación
+      var unit = window.masterDataUnits.find(function(u) {
+        return u.unit_id === classification.unit_id;
+      });
+
+      if (!unit) {
+        stats.unit_not_found++;
+        if (stats.unit_not_found === 1) {
+          console.warn('⚠️ Primera clasificación sin unidad padre:', classification);
+          console.warn('   unit_id buscado:', classification.unit_id);
+        }
+        return;
+      }
+
+      stats.successful++;
+
+      // Crear el objeto completo
+      allIncidenceTypes.push({
+        // IDs
+        unit_id: unit.unit_id,
+        classification_id: classification.incidence_classification_id,
+        type_id: type.incidence_type_id,
+        subtype_id: subtype.incidence_subtype_id,
+
+        // Nombres
+        unit_name: unit.unit_name,
+        classification_name: classification.incidence_classification_name,
+        type_name: type.incidence_type_name,
+        subtype_name: subtype.incidence_subtype_name,
+
+        // Ruta visual
+        path: unit.unit_name + ' > ' +
+              classification.incidence_classification_name + ' > ' +
+              type.incidence_type_name + ' > ' +
+              subtype.incidence_subtype_name
+      });
+    });
+
+    console.log('📊 Estadísticas de construcción:');
+    console.log('  Total subtipos procesados:', stats.total_subtypes);
+    console.log('  Sin tipo padre:', stats.type_not_found);
+    console.log('  Sin clasificación padre:', stats.classification_not_found);
+    console.log('  Sin unidad padre:', stats.unit_not_found);
+    console.log('  Exitosos:', stats.successful);
+    console.log('✅ Jerarquía construida:', allIncidenceTypes.length, 'opciones disponibles');
+
+    // Guardar copia de los datos
+    allIncidenceTypesData = allIncidenceTypes.slice();
+
+    // ✅ Marcar como construida para usar caché en siguientes aperturas
+    hierarchyBuilt = true;
+    console.log('💾 Jerarquía guardada en caché para futuras consultas');
+
+    // Renderizar la tabla
+    renderIncidenceTable(allIncidenceTypes);
+  }
+
+  // Función para renderizar la tabla
+  function renderIncidenceTable(data) {
+    var tbody = document.getElementById('incidenceTableBody');
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">No se encontraron resultados</td></tr>';
+      return;
+    }
+
+    var html = '';
+    data.forEach(function(item) {
+      html += '<tr class="incidence-row" onclick="selectIncidenceRowById(\'' +
+              item.unit_id + '\', \'' +
+              item.classification_id + '\', \'' +
+              item.type_id + '\', \'' +
+              item.subtype_id + '\', \'' +
+              escapeHtml(item.unit_name).replace(/'/g, "\\'") + '\', \'' +
+              escapeHtml(item.classification_name).replace(/'/g, "\\'") + '\', \'' +
+              escapeHtml(item.type_name).replace(/'/g, "\\'") + '\', \'' +
+              escapeHtml(item.subtype_name).replace(/'/g, "\\'") + '\')" ' +
+              'data-unit-id="' + item.unit_id + '" ' +
+              'data-classification-id="' + item.classification_id + '" ' +
+              'data-type-id="' + item.type_id + '" ' +
+              'data-subtype-id="' + item.subtype_id + '" ' +
+              'data-unit-name="' + escapeHtml(item.unit_name) + '" ' +
+              'data-classification-name="' + escapeHtml(item.classification_name) + '" ' +
+              'data-type-name="' + escapeHtml(item.type_name) + '" ' +
+              'data-subtype-name="' + escapeHtml(item.subtype_name) + '">' +
+              '<th>' + escapeHtml(item.subtype_name) + '</th>' +
+              '<td>' + escapeHtml(item.type_name) + '</td>' +
+              '<td>' + escapeHtml(item.classification_name) + '</td>' +
+              '<td>' + escapeHtml(item.unit_name) + '</td>' +
+              '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  // Función auxiliar para onclick inline
+  function selectIncidenceRowById(unitId, classificationId, typeId, subtypeId, unitName, classificationName, typeName, subtypeName) {
+    // Buscar la fila en el DOM
+    var row = document.querySelector('.incidence-row[data-subtype-id="' + subtypeId + '"]');
+    if (row) {
+      selectIncidenceRow(row);
+    }
+  }
+
+  // Función para seleccionar una fila
+  function selectIncidenceRow(row) {
+    // Guardar la selección
+    currentSelection = {
+      unit_id: row.getAttribute('data-unit-id'),
+      classification_id: row.getAttribute('data-classification-id'),
+      type_id: row.getAttribute('data-type-id'),
+      subtype_id: row.getAttribute('data-subtype-id'),
+      unit_name: row.getAttribute('data-unit-name'),
+      classification_name: row.getAttribute('data-classification-name'),
+      type_name: row.getAttribute('data-type-name'),
+      subtype_name: row.getAttribute('data-subtype-name')
+    };
+
+    console.log('✅ Selección realizada:', currentSelection);
+
+    // Confirmar automáticamente la selección y cerrar el modal
+    confirmIncidenceSelection();
+  }
+
+  // Función para confirmar la selección
+  function confirmIncidenceSelection() {
+    if (!currentSelection.subtype_id) {
+      // showNotification('⚠️ Debe seleccionar un subtipo de incidencia', 'warning');
+      return;
+    }
+
+    console.log('💾 Guardando selección en el formulario...');
+
+    // Verificar si estamos en modo "cierre" (desde el modal de cerrar ticket)
+    var isCloseMode = window.incidenceTypeSelectorMode === 'close';
+
+    if (isCloseMode) {
+      console.log('🚪 Modo cierre - Actualizando tipo de incidencia para cierre');
+
+      // Actualizar los campos ocultos del modal de cierre
+      $('#closeTicketNewUnitId').val(currentSelection.unit_id);
+      $('#closeTicketNewClassificationId').val(currentSelection.classification_id);
+      $('#closeTicketNewTypeId').val(currentSelection.type_id);
+      $('#closeTicketNewSubtypeId').val(currentSelection.subtype_id);
+
+      // Auto-seleccionar el radio button "cambiar"
+      $('input[name="closeIncidenceAction"][value="change"]').prop('checked', true);
+
+      // Actualizar el label del status
+      var statusLabel = document.getElementById('closeIncidenceStatusLabel');
+      if (statusLabel) {
+        statusLabel.textContent = 'nuevo';
+      }
+
+      // Actualizar el display visual en el modal de cierre
+      var pathElement = document.getElementById('closeTicketIncidencePath');
+      if (pathElement) {
+        pathElement.innerHTML =
+          '<strong style="color: #4a90e2;">' + currentSelection.unit_name + '</strong> → ' +
+          '<strong style="color: #4a90e2;">' + currentSelection.classification_name + '</strong> → ' +
+          '<strong style="color: #4a90e2;">' + currentSelection.type_name + '</strong> → ' +
+          '<strong style="color: #4a90e2;">' + currentSelection.subtype_name + '</strong>' +
+          ' <span style="color: #28a745; font-size: 11px; font-weight: 600;">(NUEVO)</span>';
+      }
+
+      // Limpiar el flag
+      window.incidenceTypeSelectorMode = null;
+
+      // Cerrar el modal del selector
+      if (typeof window.$ !== 'undefined') {
+        window.$('#incidenceTypeModal').modal('hide');
+      }
+
+      return; // Salir aquí para no actualizar el formulario principal
+    }
+
+    // Modo normal: actualizar el formulario principal
+    // ESTRATEGIA: Primero cargar opciones con eventos change, LUEGO establecer valores finales
+    setTimeout(function() {
+      var unitSelect = document.getElementById('formUnit');
+      var classificationSelect = document.getElementById('formClassification');
+      var typeSelect = document.getElementById('formIncidentType');
+      var subtypeSelect = document.getElementById('formIncidentSubtype');
+
+      console.log('💾 Guardando selección en el formulario...');
+      console.log('   🎯 IDs seleccionados:', {
+        unit_id: currentSelection.unit_id,
+        classification_id: currentSelection.classification_id,
+        type_id: currentSelection.type_id,
+        subtype_id: currentSelection.subtype_id
+      });
+
+      // PASO 1: Establecer valores y disparar eventos para cargar opciones en cascada
+      if (unitSelect) {
+        unitSelect.value = currentSelection.unit_id;
+        var event = new Event('change', { bubbles: true });
+        unitSelect.dispatchEvent(event);
+      }
+
+      // PASO 2: Esperar a que se carguen las clasificaciones, luego establecer y disparar
+      setTimeout(function() {
+        if (classificationSelect) {
+          classificationSelect.value = currentSelection.classification_id;
+          var event = new Event('change', { bubbles: true });
+          classificationSelect.dispatchEvent(event);
+        }
+
+        // PASO 3: Esperar a que se carguen los tipos, luego establecer y disparar
+        setTimeout(function() {
+          if (typeSelect) {
+            typeSelect.value = currentSelection.type_id;
+            var event = new Event('change', { bubbles: true });
+            typeSelect.dispatchEvent(event);
+          }
+
+          // PASO 4: Esperar a que se carguen los subtipos, LUEGO establecer el valor final
+          setTimeout(function() {
+            // ✅ AHORA SÍ: Establecer todos los valores finales sin disparar eventos
+            // Esto sobrescribe cualquier reseteo que hayan hecho los listeners
+            if (unitSelect) unitSelect.value = currentSelection.unit_id;
+            if (classificationSelect) classificationSelect.value = currentSelection.classification_id;
+            if (typeSelect) typeSelect.value = currentSelection.type_id;
+            if (subtypeSelect) subtypeSelect.value = currentSelection.subtype_id;
+
+            console.log('✅ Valores finales establecidos:');
+            console.log('   - Unit:', unitSelect ? unitSelect.value : 'N/A');
+            console.log('   - Classification:', classificationSelect ? classificationSelect.value : 'N/A');
+            console.log('   - Type:', typeSelect ? typeSelect.value : 'N/A');
+            console.log('   - Subtype:', subtypeSelect ? subtypeSelect.value : 'N/A');
+
+            // Cerrar el modal
+            if (typeof window.$ !== 'undefined') {
+              window.$('#incidenceTypeModal').modal('hide');
+            }
+
+            // ✅ GUARDAR INMEDIATAMENTE
+            setTimeout(function() {
+              console.log('💾 Iniciando guardado...');
+
+              // Obtener el ticket activo
+              var ticket = null;
+              if (window.ticketsState && window.ticketsState.tickets && window.ticketsState.activeTicketId) {
+                ticket = window.ticketsState.tickets.find(function(t) {
+                  return t.id === window.ticketsState.activeTicketId;
+                });
+              }
+
+              if (!ticket) {
+                console.warn('⚠️ No hay ticket activo');
+                return;
+              }
+
+              if (!ticket.incidence_id) {
+                console.warn('⚠️ Ticket nuevo - debe usar botón "Guardar Cambios" manualmente');
+                if (typeof window.autoSaveState !== 'undefined') {
+                  window.autoSaveState.hasUnsavedChanges = true;
+                }
+                if (typeof window.updateSaveIndicator === 'function') {
+                  window.updateSaveIndicator('unsaved');
+                }
+                return;
+              }
+
+              // ✅ Actualizar el ticket local con los nombres para mostrar en el tab
+              ticket.unit_name = currentSelection.unit_name;
+              ticket.classification_name = currentSelection.classification_name;
+              ticket.type_name = currentSelection.type_name;
+              ticket.subtype_name = currentSelection.subtype_name;
+              ticket.classification = currentSelection.classification_name; // Fallback
+
+              console.log('✅ Ticket local actualizado con nombres:', {
+                type_name: ticket.type_name,
+                subtype_name: ticket.subtype_name
+              });
+
+              // ✅ Actualizar la UI de los tabs inmediatamente
+              if (typeof window.renderTicketTabs === 'function') {
+                window.renderTicketTabs();
+                console.log('✅ Tabs actualizados con nuevo tipo');
+              }
+
+              // ✅ Resetear el hash para forzar detección de cambios
+              if (typeof window.autoSaveState !== 'undefined') {
+                window.autoSaveState.lastSavedData = null;
+                window.autoSaveState.hasUnsavedChanges = true;
+              }
+
+              // ✅ Ticket existente - guardar inmediatamente
+              if (typeof window.autoSaveTicket === 'function') {
+                window.autoSaveTicket();
+                console.log('✅ Guardado disparado');
+              } else {
+                console.warn('⚠️ Función autoSaveTicket no disponible');
+              }
+            }, 200);
+
+          }, 150);
+        }, 150);
+      }, 150);
+    }, 100);
+  }
+
+  // Función para escapar HTML y prevenir XSS
+  function escapeHtml(text) {
+    if (!text) return '';
+    var map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+
+  // Filtro de búsqueda
+  $('#txtSearchIncidence').on('keyup', function() {
+    var searchValue = $(this).val().toLowerCase();
+
+    if (searchValue === '') {
+      // Mostrar todos
+      renderIncidenceTable(allIncidenceTypesData);
+    } else {
+      // Filtrar
+      var filtered = allIncidenceTypesData.filter(function(item) {
+        return item.subtype_name.toLowerCase().indexOf(searchValue) !== -1 ||
+               item.type_name.toLowerCase().indexOf(searchValue) !== -1 ||
+               item.classification_name.toLowerCase().indexOf(searchValue) !== -1 ||
+               item.unit_name.toLowerCase().indexOf(searchValue) !== -1;
+      });
+      renderIncidenceTable(filtered);
+    }
+  });
+
+  // Inicializar cuando se abre el modal
+  $('#incidenceTypeModal').on('shown.bs.modal', function() {
+    console.log('🔍 Modal de selector abierto');
+
+    // Limpiar el buscador
+    $('#txtSearchIncidence').val('');
+
+    // ✅ Usar caché si ya está construida
+    if (hierarchyBuilt && allIncidenceTypes.length > 0) {
+      console.log('⚡ Usando datos en caché (' + allIncidenceTypes.length + ' opciones) - SIN peticiones API');
+      renderIncidenceTable(allIncidenceTypesData);
+    } else {
+      console.log('📦 Primera apertura - construyendo jerarquía...');
+      loadIncidenceHierarchy();
+    }
+  });
+
+  // ✅ OPTIMIZACIÓN: Cargar y cachear la jerarquía al inicio de la página
+  // Esto se hace UNA SOLA VEZ cuando carga la página
+  // Las siguientes aperturas del modal usarán la caché (SIN peticiones API)
+  $(document).ready(function() {
+    console.log('🚀 Iniciando precarga de jerarquía de incidencias...');
+
+    // Esperar un poco para que los datos maestros terminen de cargarse
+    setTimeout(function() {
+      loadIncidenceHierarchy();
+    }, 500); // 500ms de delay para asegurar que catalogos.html cargue los datos maestros
+  });
+</script>
+
+<style>
+  #incidenceTypeModal .incidence-row {
+    cursor: pointer;
+  }
+</style>
+<script>
+
+
+          const userid = __MAINDOCUMENT['userid'];
+
+            const fullname = __MAINDOCUMENT['fullname'];
+
+            log("userid",userid)
+</script>

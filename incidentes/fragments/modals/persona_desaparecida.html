@@ -1,0 +1,294 @@
+<!-- Modal: Registro de Persona Desaparecida -->
+<div class="modal fade" id="modal-persona-desaparecida" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-left">
+                <h4 class="modal-title mb-0">Registro de Nueva Persona</h4>
+                <h7 class="mb-0">Persona Desaparecida</h7>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-lg-5 m-0" id="columna-informacion-estructurada-persona">
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 0px 15px 15px 0px">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">DATOS PERSONALES</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-12">
+                                    <label>Nombre Completo</label>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class=form-group>
+                                        <input id="txtnombres-persona" type="text" class="form-control"
+                                            placeholder="Ingreso Nombre">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class=form-group>
+                                        <input id="txtapellidos-persona" type="text" class="form-control"
+                                            placeholder="Ingreso Apellido">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>Sexo</label>
+                                    <div class=form-group>
+                                        <select id="txtsexo-persona" class="form-control">
+                                            <option value="" disabled selected>Seleccione sexo</option>
+                                            <option value=0>Mujer</option>
+                                            <option value=1>Hombre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>F. Nacimiento</label>
+                                    <div class=form-group>
+                                        <input id="txtnacim_fecha_dt-persona" type="date" class="form-control"
+                                            placeholder="Fecha de Nacimiento">
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <label>Edad</label>
+                                    <div class=form-group>
+                                        <input id="txtedad-persona" type="integer" class="form-control" placeholder="Ingrese edad">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>Ciudad Nacimiento</label>
+                                    <div class=form-group>
+                                        <input id="txtnacim_ciud-persona" type="text" class="form-control"
+                                            placeholder="Selecciona Ciudad">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 0px 15px 15px 0px">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">DOCUMENTO DE IDENTIDAD</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Nacionalidad</label>
+                                        <select id="txtidpais-persona" class="form-control">
+                                            <option value="">Seleccione nacionalidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Tipo de Doc</label>
+                                        <select id="txtident_tipo-persona" class="form-control">
+                                            <option value="" disabled selected>Seleccione tipo de doc</option>
+                                            <option value="DNI" selected>DNI</option>
+                                            <option value="CE">Carnet Extranjeria</option>
+                                            <option value="PA">Pasaporte</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class=form-group>
+                                        <label>Num. de Doc</label>
+                                        <input id="txtident_nro-persona" type="text" class="form-control" placeholder="00000000">
+                                    </div>
+                                </div>
+                            </div>
+
+                       </div>
+
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 0px 15px 15px 0px">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">CONTACTO</h5>
+                            </div>
+                             <div class="panel-body">
+                                <div class="col-lg-12">
+                                    <div class=form-group>
+                                        <label>Nombre de contacto</label>
+                                        <input id="txtpersocontacname-persona" type="text" class="form-control"
+                                            placeholder="Ingreso nombre">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class=form-group>
+                                        <label>Número de teléfono</label>
+                                        <input id="txtpersocontac-persona" type="text" class="form-control" placeholder="000 000 000">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class=form-group>
+                                        <label>Parentesco</label>
+                                        <select id="txtparentesco-persona" type="text" class="form-control">
+                                            <option value="" disabled selected>Seleccione parentesco</option>
+                                            <option value="Padre" selected>Padre</option>
+                                            <option value="Madre">Madre</option>
+                                            <option value="Tio(a)">Tio(a)</option>
+                                            <option value="Hermano(a)">Hermano(a)</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+
+                                    </div>
+                                </div>
+                             </div>
+                        </div>
+
+                        <div class="panel panel-filled panel-c-accent" style="border-radius: 0px 15px 15px 0px">
+                            <div class="panel-heading">
+                                <div class="panel-tools">
+                                    <a class="panel-toggle"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <h5 class="panel-toggle" style="cursor:pointer;">INFORMACIÓN ADICIONAL</h5>
+                            </div>
+                            <div class="panel-body">
+                                <div class="col-lg-12">
+                                    <textarea id="txtdescripcion-persona" class="form-control" placeholder="" rows="4"
+                                        style="resize: none;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-lg-7 text-center" style="padding: 0px 0px;" id="columna-imagenes-persona">
+                        <div class="panel panel-filled " style="border-radius: 15px">
+                            <div class="panel-body">
+                                <div class="col-lg-12 text-center mb-4" id="imagen-profile-persona">
+                                    <div class="form-group" style="height: 250px; padding: 20px 0px 0px 0px">
+                                        <img id="imagen-cambiable-persona" src="public/images/logowin.png" alt="Clic para cambiar"
+                                            style="cursor: pointer; width: auto; height: 100%; border-radius: 15px; max-width: 100%;">
+                                        <input type="file" id="input-file-persona" accept="image/*" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-rounded" data-dismiss="modal">Cerrar</button>
+                <button id="btnSendNewPersona" type="button" class="btn btn-accent btn-rounded">Guardar Persona</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const img = document.getElementById('imagen-cambiable-persona');
+    const input = document.getElementById('input-file-persona');
+    const id_lista = 4;
+
+    function getvaluesPersona() {
+        const txtphoto_new = img.src;
+        return {
+            id: Date.now(),
+            id_lista: id_lista,
+            nombres: $("#txtnombres-persona").val(),
+            apellidos: $("#txtapellidos-persona").val(),
+            sexo: $("#txtsexo-persona").val(),
+            nacim_fecha_dt: $("#txtnacim_fecha_dt-persona").val(),
+            edad: $("#txtedad-persona").val(),
+            nacim_ciud: $("#txtnacim_ciud-persona").val(),
+            idpais: $("#txtidpais-persona").val(),
+            ident_tipo: $("#txtident_tipo-persona").val(),
+            ident_nro: $("#txtident_nro-persona").val(),
+            persocontacname: $("#txtpersocontacname-persona").val(),
+            parentesco: $("#txtparentesco-persona").val(),
+            persocontac: $("#txtpersocontac-persona").val(),
+            descripcion: $("#txtdescripcion-persona").val(),
+            personame: $("#txtnombres-persona").val() + " " + $("#txtapellidos-persona").val(),
+            photo_new: txtphoto_new,
+            status: 1
+        };
+    }
+
+    function doinsertPersona() {
+        var values = getvaluesPersona();
+        callAPI({
+            method: "gestion/donewdes",
+            post: 1,
+            params: values,
+            ok: (data) => {
+                console.log('✅ Persona registrada con ID:', data.id);
+
+                // Vincular la persona al incidente actual
+                if (data && data.id) {
+                    callAPI({
+                        method: "gestincidencias/involvedentity",
+                        post: 1,
+                        params: {
+                            entity_id: data.id,
+                            entity_type: 1 // 1 = Persona desaparecida
+                        },
+                        ok: (response) => {
+                            console.log('✅ Persona vinculada al incidente correctamente');
+                            // showNotification('Persona desaparecida registrada y vinculada al incidente', 'success');
+                        },
+                        error: (error) => {
+                            console.error('❌ Error al vincular persona al incidente:', error);
+                        }
+                    });
+                }
+
+                $("#modal-persona-desaparecida").modal('hide');
+                $(".modal-backdrop").remove();
+
+                // Limpiar formulario
+                $('#modal-persona-desaparecida').find('input[type="text"], input[type="date"], input[type="integer"]').val('');
+                $('#modal-persona-desaparecida').find('select').prop('selectedIndex', 0);
+                $('#modal-persona-desaparecida').find('textarea').val('');
+                $('#imagen-cambiable-persona').attr('src', 'public/images/logowin.png');
+            }
+        });
+    }
+
+    // Event listeners
+    $('#btnSendNewPersona').on('click', function () {
+        doinsertPersona();
+    });
+
+    img.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', () => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    });
+
+    // Cargar países cuando se abre el modal
+    $('#modal-persona-desaparecida').on('shown.bs.modal', function() {
+        if ($("#txtidpais-persona option").length <= 1) {
+            callAPI({
+                method: "gestion/listpaises",
+                ok: (data) => {
+                    const select = document.getElementById("txtidpais-persona");
+                    select.innerHTML = '<option value="">Seleccione nacionalidad</option>';
+                    for (let i = 1; i < data.length; i++) {
+                        const nombre = data[i].nombre;
+                        const codigo = data[i].iso2;
+                        const opt = document.createElement("option");
+                        opt.value = codigo;
+                        opt.textContent = nombre;
+                        select.appendChild(opt);
+                    }
+                }
+            });
+        }
+    });
+})();
+</script>

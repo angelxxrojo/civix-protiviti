@@ -375,41 +375,8 @@
       return;
     }
 
-    if (typeof Swal === 'undefined') {
-      showNotification('⚠️ SweetAlert2 no disponible', 'error');
-      return;
-    }
-
     var updateInterval = null;
     var frameCounter = 0;
-
-    // HTML del modal con contenedores dinámicos
-    var modalHtml =
-      '<div style="text-align: center;">' +
-        '<div id="cameraFrameContainer" style="position: relative; min-height: 400px; background: #1f2937; border-radius: 8px; overflow: hidden;">' +
-          '<img id="cameraFrameImage" src="" style="width: 100%; max-width: 640px; display: block; margin: 0 auto;" alt="Último frame">' +
-          '<div id="cameraFrameLoader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af;">Cargando...</div>' +
-        '</div>' +
-        '<div style="margin-top: 12px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 6px; border-left: 4px solid #3b82f6;">' +
-          '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">' +
-            '<div style="flex: 1; min-width: 150px;">' +
-              '<span style="color: #9ca3af; font-size: 11px;">FPS</span><br>' +
-              '<strong id="cameraFps" style="color: #e5e7eb; font-size: 16px;">--</strong>' +
-            '</div>' +
-            '<div style="flex: 1; min-width: 150px;">' +
-              '<span style="color: #9ca3af; font-size: 11px;">👤 Personas</span><br>' +
-              '<strong id="cameraPersons" style="color: #e5e7eb; font-size: 16px;">--</strong>' +
-            '</div>' +
-            '<div style="flex: 1; min-width: 150px;">' +
-              '<span style="color: #9ca3af; font-size: 11px;">🚗 Vehículos</span><br>' +
-              '<strong id="cameraVehicles" style="color: #e5e7eb; font-size: 16px;">--</strong>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div style="margin-top: 8px; text-align: right;">' +
-          '<small id="cameraTimestamp" style="color: #6b7280; font-size: 11px;">Última actualización: --</small>' +
-        '</div>' +
-      '</div>';
 
     // Función de throttle para limitar renderizados
     function throttleRender(callback) {
@@ -533,28 +500,36 @@
       }, 50); // Ejecutar después de 50ms para dar tiempo a mostrar el caché
     }
 
-    // Abrir modal  
-    Swal.fire({
-      title: '📹 ' + camera.name,
-      html: modalHtml,
-      confirmButtonText: 'Cerrar',
-      width: '800px',
-      showClass: {
-        popup: 'animate__animated animate__fadeIn animate__faster'
-      },
-      didOpen: function() {
-        // Iniciar actualización automática cada medio segundo
-        console.log('🎬 Iniciando stream de cámara:', camera.name, '(actualización cada 0.5s)');
-        updateCameraFrame(); // Primera actualización inmediata
-        updateInterval = setInterval(updateCameraFrame, 1000); // Actualizar cada 0.5 segundos
-      },
-      willClose: function() {
-        // Detener actualización al cerrar
-        if (updateInterval) {
-          clearInterval(updateInterval);
-          updateInterval = null;
-          console.log('🛑 Stream de cámara detenido:', camera.name, '(' + frameCounter + ' frames)');
-        }
+    // Actualizar información del modal
+    $('#showcameraname').text(camera.name);
+    $('#showcameralocation').text(camera.ubicacion || 'N/A');
+
+    // Resetear la imagen y mostrar loader
+    $('#cameraFrameImage').hide().attr('src', '');
+    $('#cameraFrameLoader').show();
+
+    // Resetear estadísticas
+    $('#cameraFps').text('--');
+    $('#cameraPersons').text('--');
+    $('#cameraVehicles').text('--');
+    $('#cameraTimestamp').text('Última actualización: --');
+
+    // Abrir modal Bootstrap
+    $('#showCameraModal').modal('show');
+
+    // Iniciar actualización automática cuando el modal se muestre
+    $('#showCameraModal').off('shown.bs.modal').on('shown.bs.modal', function() {
+      console.log('🎬 Iniciando stream de cámara:', camera.name, '(actualización cada 1s)');
+      updateCameraFrame(); // Primera actualización inmediata
+      updateInterval = setInterval(updateCameraFrame, 1000); // Actualizar cada segundo
+    });
+
+    // Detener actualización cuando el modal se cierre
+    $('#showCameraModal').off('hidden.bs.modal').on('hidden.bs.modal', function() {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+        console.log('🛑 Stream de cámara detenido:', camera.name, '(' + frameCounter + ' frames)');
       }
     });
   }
@@ -613,7 +588,7 @@
       cadMap.setView(filteredCameras[0].coords, 15);
     }
 
-    showNotification('Se encontraron ' + filteredCameras.length + ' cámara(s)', 'success');
+    // showNotification('Se encontraron ' + filteredCameras.length + ' cámara(s)', 'success');
   }
 
   /**
@@ -709,3 +684,70 @@
 
   console.log('✅ Búsqueda de cámaras configurada');
 </script>
+
+<!-- Modal para visualizar cámara en vivo -->
+<div class="modal fade" id="showCameraModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header text-left">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <span class="c-white" style="float:right" id="showcameratime"></span>
+                Cámara: <span class="c-white" id="showcameraname"></span>
+                <div id="showcameralocation"></div>
+            </div>
+
+            <div class="modal-body" style="height:400px; padding: 0; position: relative; background: #000;">
+                <img id="cameraFrameImage" src="" style="width: 100%; height: 100%; object-fit: contain; display: none;" alt="Último frame">
+                <div id="cameraFrameLoader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; text-align: center;">
+                    <i class="pe-7s-refresh pe-spin" style="font-size: 48px;"></i>
+                    <div style="margin-top: 10px;">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- <div class="modal-body" style="padding: 15px; background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.1);">
+                <div class="row">
+                    <div class="col-xs-4">
+                        <div class="panel panel-filled panel-c-accent">
+                            <div class="panel-heading text-center">
+                                FPS
+                            </div>
+                            <div class="panel-body text-center">
+                                <h2 class="m-b-none" id="cameraFps">--</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="panel panel-filled panel-c-accent">
+                            <div class="panel-heading text-center">
+                                👤 Personas
+                            </div>
+                            <div class="panel-body text-center">
+                                <h2 class="m-b-none" id="cameraPersons">--</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="panel panel-filled panel-c-accent">
+                            <div class="panel-heading text-center">
+                                🚗 Vehículos
+                            </div>
+                            <div class="panel-body text-center">
+                                <h2 class="m-b-none" id="cameraVehicles">--</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <small id="cameraTimestamp" style="color: #9ca3af; font-size: 11px;">Última actualización: --</small>
+                </div>
+            </div> -->
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

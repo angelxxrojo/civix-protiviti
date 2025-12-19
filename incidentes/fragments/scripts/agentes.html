@@ -274,7 +274,7 @@
       showNearbyAgents(ticket.location.lat, ticket.location.lon);
     }
 
-    showNotification('Agente ' + agent.name + ' asignado exitosamente', 'success');
+    // showNotification('Agente ' + agent.name + ' asignado exitosamente', 'success');
   }
 
   // Función para renderizar agentes asignados a ESTE ticket específico
@@ -504,7 +504,7 @@
     renderAssignedAgentsList();
     closeAssignAgentModal();
 
-    showNotification('Agente ' + agent.shortName + ' asignado correctamente', 'success');
+    // showNotification('Agente ' + agent.shortName + ' asignado correctamente', 'success');
   }
 
   // Función para liberar un agente del ticket
@@ -631,7 +631,7 @@
     // Limpiar input
     event.target.value = '';
 
-    showNotification(files.length + ' archivo(s) agregado(s) exitosamente', 'success');
+    // showNotification(files.length + ' archivo(s) agregado(s) exitosamente', 'success');
   }
 
   // Función para renderizar la lista de evidencias
